@@ -16,9 +16,10 @@ export const PRODUCTS: ProductInfo[] = [
   { type: "stepslab", label: "Пошаговая плита", icon: "🏗️", description: "Ступенчатые и пошаговые плиты" },
 ];
 
+// Keep as fallback, but dynamic colors from DB take priority
 export const STANDARD_COLORS = [
   "белоснежный", "белый", "светло-серый", "серый", "темно-серый",
-  "зеленый", "бежевый", "коричневый", "желтый",
+  "зеленый", "бежевый", "коричневый", "желтый", "терракотовый",
 ];
 
 export interface CountertopParams {
@@ -50,6 +51,9 @@ export interface SimpleProductParams {
   thickness: number;
   color: string;
   quantity: number;
+  hasRiser?: boolean;       // stair riser
+  riserHeight?: number;
+  isHeated?: boolean;       // stepslab heated
 }
 
 export interface CalculationResult {
@@ -66,7 +70,7 @@ export interface CalculationResult {
   pricePerUnit: number;
 }
 
-export function calculateCountertop(params: CountertopParams, pricing: Record<string, number>): CalculationResult {
+export function calculateCountertop(params: CountertopParams, pricing: Record<string, number>, colorNames?: string[]): CalculationResult {
   const BASE_PRICE = pricing.base_price_per_m2 || 53200;
   const DENSITY = pricing.density || 2350;
   const INSTALL_PER_KG = pricing.install_price_per_kg || 112;
@@ -77,6 +81,7 @@ export function calculateCountertop(params: CountertopParams, pricing: Record<st
   const SUPPORT_MULT = pricing.support_multiplier || 1.15;
   const DROP_MULT = pricing.drop_multiplier || 1.1;
 
+  const stdColors = colorNames || STANDARD_COLORS;
   let area = 0, volume = 0, basePrice = 0, optionPrice = 0;
   const optionItems: { name: string; price: number }[] = [];
   const isIvory = params.color.toLowerCase() === "белоснежный";
@@ -96,22 +101,30 @@ export function calculateCountertop(params: CountertopParams, pricing: Record<st
     if (isIvory) basePrice *= IVORY_MULT;
   }
 
-  // Supports
-  for (const side of ["left", "right"] as const) {
-    const h = params.supports[side];
-    if (h > 0) {
-      const sArea = (params.width * h) / 1_000_000;
-      const cost = sArea * BASE_PRICE * SUPPORT_MULT;
-      optionPrice += cost;
-      optionItems.push({ name: `Опора ${side === "left" ? "слева" : "справа"} ${h} мм`, price: Math.round(cost) });
-      volume += (params.width * h * params.thickness) / 1_000_000_000;
+  // Supports (only for non-round)
+  if (!params.isRound) {
+    for (const side of ["left", "right"] as const) {
+      const h = params.supports[side];
+      if (h > 0) {
+        const sArea = (params.width * h) / 1_000_000;
+        const cost = sArea * BASE_PRICE * SUPPORT_MULT;
+        optionPrice += cost;
+        optionItems.push({ name: `Опора ${side === "left" ? "слева" : "справа"} ${h} мм`, price: Math.round(cost) });
+        volume += (params.width * h * params.thickness) / 1_000_000_000;
+      }
     }
   }
 
-  // Drops
+  // Drops - work for both round and rectangular
   for (const [side, h] of Object.entries(params.drops)) {
     if (h > 0) {
-      const len = side === "front" || side === "back" ? params.length : params.width;
+      let len: number;
+      if (params.isRound && params.diameter) {
+        // For round: use circumference portion (quarter per side)
+        len = Math.PI * params.diameter / 4;
+      } else {
+        len = side === "front" || side === "back" ? params.length : params.width;
+      }
       const dArea = (len * h) / 1_000_000;
       const cost = dArea * BASE_PRICE * DROP_MULT;
       optionPrice += cost;
@@ -122,7 +135,7 @@ export function calculateCountertop(params: CountertopParams, pricing: Record<st
   }
 
   // Custom color
-  const isCustom = !STANDARD_COLORS.includes(params.color.toLowerCase()) && !isIvory;
+  const isCustom = !stdColors.map(c => c.toLowerCase()).includes(params.color.toLowerCase()) && !isIvory;
   if (isCustom) {
     optionPrice += CUSTOM_COLOR;
     optionItems.push({ name: `Нестандартный цвет: ${params.color}`, price: CUSTOM_COLOR });
@@ -155,7 +168,8 @@ export function calculateCountertop(params: CountertopParams, pricing: Record<st
 export function calculateSimpleProduct(
   type: ProductType,
   params: SimpleProductParams,
-  pricing: Record<string, number>
+  pricing: Record<string, number>,
+  colorNames?: string[]
 ): CalculationResult {
   const priceKeyMap: Record<string, string> = {
     windowsill: "windowsill_price_per_m2",
@@ -175,7 +189,10 @@ export function calculateSimpleProduct(
   const INSTALL_PER_KG = pricing.install_price_per_kg || 112;
   const MIN_INSTALL = pricing.min_install_price || 10000;
   const CUSTOM_COLOR = pricing.custom_color_surcharge || 3000;
+  const RISER_PRICE_M2 = pricing.stair_riser_price_per_m2 || 40000;
+  const HEATED_SURCHARGE = pricing.stepslab_heated_surcharge || 5000;
 
+  const stdColors = colorNames || STANDARD_COLORS;
   const area = (params.length * params.width) / 1_000_000;
   const thickness = params.thickness || 30;
   const volume = area * (thickness / 1000);
@@ -184,13 +201,27 @@ export function calculateSimpleProduct(
   const optionItems: { name: string; price: number }[] = [];
   let optionPrice = 0;
 
-  const isCustom = !STANDARD_COLORS.includes(params.color.toLowerCase()) && params.color.toLowerCase() !== "белоснежный";
+  const isCustom = !stdColors.map(c => c.toLowerCase()).includes(params.color.toLowerCase()) && params.color.toLowerCase() !== "белоснежный";
   if (isCustom) {
     optionPrice += CUSTOM_COLOR;
     optionItems.push({ name: `Нестандартный цвет: ${params.color}`, price: CUSTOM_COLOR });
   }
   if (params.color.toLowerCase() === "белоснежный") {
     basePrice *= (pricing.ivory_color_multiplier || 1.03);
+  }
+
+  // Stair riser
+  if (type === "stair" && params.hasRiser && params.riserHeight && params.riserHeight > 0) {
+    const riserArea = (params.length * params.riserHeight) / 1_000_000;
+    const riserCost = riserArea * RISER_PRICE_M2;
+    optionPrice += riserCost;
+    optionItems.push({ name: `Подступенок ${params.riserHeight} мм`, price: Math.round(riserCost) });
+  }
+
+  // Stepslab heated
+  if (type === "stepslab" && params.isHeated) {
+    optionPrice += HEATED_SURCHARGE;
+    optionItems.push({ name: "Подогрев", price: HEATED_SURCHARGE });
   }
 
   const qty = Math.max(1, params.quantity);
@@ -213,7 +244,7 @@ export function calculateSimpleProduct(
   };
 }
 
-export function calculateSink(params: SinkParams, pricing: Record<string, number>): CalculationResult {
+export function calculateSink(params: SinkParams, pricing: Record<string, number>, colorNames?: string[]): CalculationResult {
   const BASE_PRICE = pricing.sink_base_price_per_m2 || 85000;
   const BOWL_PRICE = pricing.sink_bowl_price || 15000;
   const DRAIN_PRICE = pricing.sink_drain_price || 5000;
@@ -223,26 +254,24 @@ export function calculateSink(params: SinkParams, pricing: Record<string, number
   const CUSTOM_COLOR = pricing.custom_color_surcharge || 3000;
   const DROP_MULT = pricing.drop_multiplier || 1.1;
 
+  const stdColors = colorNames || STANDARD_COLORS;
   const area = (params.length * params.width) / 1_000_000;
-  const thickness = 30; // fixed for sinks
+  const thickness = 30;
   const volume = area * (thickness / 1000);
   let basePrice = area * BASE_PRICE;
 
   const optionItems: { name: string; price: number }[] = [];
   let optionPrice = 0;
 
-  // Bowls
   const bowlCost = params.bowlCount * BOWL_PRICE;
   optionPrice += bowlCost;
   optionItems.push({ name: `Чаша x${params.bowlCount}`, price: bowlCost });
 
-  // Drain
   if (params.drainType) {
     optionPrice += DRAIN_PRICE;
     optionItems.push({ name: `Слив: ${params.drainType}`, price: DRAIN_PRICE });
   }
 
-  // Overhang
   if (params.overhangHeight > 0) {
     const sides = params.overhangSides;
     let overhangLength = 0;
@@ -258,8 +287,7 @@ export function calculateSink(params: SinkParams, pricing: Record<string, number
     }
   }
 
-  // Color
-  const isCustom = !STANDARD_COLORS.includes(params.color.toLowerCase()) && params.color.toLowerCase() !== "белоснежный";
+  const isCustom = !stdColors.map(c => c.toLowerCase()).includes(params.color.toLowerCase()) && params.color.toLowerCase() !== "белоснежный";
   if (isCustom) {
     optionPrice += CUSTOM_COLOR;
     optionItems.push({ name: `Нестандартный цвет: ${params.color}`, price: CUSTOM_COLOR });

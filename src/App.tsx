@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ProtectedRoute, AdminRoute } from "@/components/ProtectedRoute";
 import AuthPage from "./pages/AuthPage";
 import CalculatorPage from "./pages/CalculatorPage";
+import HistoryPage from "./pages/HistoryPage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/auth" element={<AuthRedirect />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/" element={<CalculatorPage />} />
+              <Route path="/history" element={<HistoryPage />} />
             </Route>
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminPage />} />

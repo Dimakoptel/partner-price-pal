@@ -5,6 +5,8 @@ import CalculatorForm from "@/components/CalculatorForm";
 import ResultPanel from "@/components/ResultPanel";
 import AppLayout from "@/components/AppLayout";
 import { usePricing } from "@/hooks/usePricing";
+import { useColors } from "@/hooks/useColors";
+import { useCalculations } from "@/hooks/useCalculations";
 import {
   ProductType,
   CalculationResult,
@@ -12,24 +14,44 @@ import {
   calculateSink,
   calculateSimpleProduct,
 } from "@/lib/calculator";
+import { toast } from "sonner";
 
 export default function CalculatorPage() {
   const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null);
   const [result, setResult] = useState<CalculationResult | null>(null);
+  const [currentParams, setCurrentParams] = useState<any>(null);
+  const [saved, setSaved] = useState(false);
   const { settings, loading } = usePricing();
+  const { colors } = useColors();
+  const { saveCalculation } = useCalculations();
+
+  const colorNames = colors.map((c) => c.name);
 
   const handleCalculate = (params: any) => {
     if (!selectedProduct) return;
+    setCurrentParams(params);
+    setSaved(false);
 
     let res: CalculationResult;
     if (selectedProduct === "countertop") {
-      res = calculateCountertop(params, settings);
+      res = calculateCountertop(params, settings, colorNames);
     } else if (selectedProduct === "sink") {
-      res = calculateSink(params, settings);
+      res = calculateSink(params, settings, colorNames);
     } else {
-      res = calculateSimpleProduct(selectedProduct, params, settings);
+      res = calculateSimpleProduct(selectedProduct, params, settings, colorNames);
     }
     setResult(res);
+  };
+
+  const handleSave = async () => {
+    if (!result || !selectedProduct || !currentParams) return;
+    const { error } = await saveCalculation(selectedProduct, result.productLabel, currentParams, result);
+    if (error) {
+      toast.error("Ошибка сохранения");
+    } else {
+      setSaved(true);
+      toast.success("Расчёт сохранён");
+    }
   };
 
   if (loading) {
@@ -52,7 +74,7 @@ export default function CalculatorPage() {
 
         <ProductSelector
           selected={selectedProduct}
-          onSelect={(t) => { setSelectedProduct(t as ProductType); setResult(null); }}
+          onSelect={(t) => { setSelectedProduct(t as ProductType); setResult(null); setSaved(false); }}
         />
 
         {selectedProduct && (
@@ -64,10 +86,10 @@ export default function CalculatorPage() {
               className="glass-panel p-6"
             >
               <h2 className="text-lg font-semibold mb-4">Параметры</h2>
-              <CalculatorForm productType={selectedProduct} onCalculate={handleCalculate} />
+              <CalculatorForm productType={selectedProduct} onCalculate={handleCalculate} colorNames={colorNames} />
             </motion.div>
 
-            {result && <ResultPanel result={result} />}
+            {result && <ResultPanel result={result} onSave={handleSave} saving={saved} />}
           </div>
         )}
       </div>

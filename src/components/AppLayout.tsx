@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useLocation } from "react-router-dom";
-import { Calculator, Settings, LogOut, User } from "lucide-react";
+import { Calculator, Settings, LogOut, User, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -18,25 +18,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
           <nav className="flex items-center gap-1">
             <Link to="/">
-              <Button
-                variant={location.pathname === "/" ? "secondary" : "ghost"}
-                size="sm"
-                className="gap-2"
-              >
+              <Button variant={location.pathname === "/" ? "secondary" : "ghost"} size="sm" className="gap-2">
                 <Calculator className="w-4 h-4" />
                 <span className="hidden sm:inline">Расчёт</span>
               </Button>
             </Link>
 
+            <Link to="/history">
+              <Button variant={location.pathname === "/history" ? "secondary" : "ghost"} size="sm" className="gap-2">
+                <History className="w-4 h-4" />
+                <span className="hidden sm:inline">История</span>
+              </Button>
+            </Link>
+
             {isAdmin && (
               <Link to="/admin">
-                <Button
-                  variant={location.pathname === "/admin" ? "secondary" : "ghost"}
-                  size="sm"
-                  className="gap-2"
-                >
+                <Button variant={location.pathname === "/admin" ? "secondary" : "ghost"} size="sm" className="gap-2">
                   <Settings className="w-4 h-4" />
-                  <span className="hidden sm:inline">Настройки</span>
+                  <span className="hidden sm:inline">Админ</span>
                 </Button>
               </Link>
             )}
