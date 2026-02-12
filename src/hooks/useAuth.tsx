@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  profile: { role: string; full_name: string } | null;
+  profile: { full_name: string } | null;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -19,15 +19,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<{ role: string; full_name: string } | null>(null);
+  const [profile, setProfile] = useState<{ full_name: string } | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
-      .select("role, full_name")
+      .select("full_name")
       .eq("user_id", userId)
       .single();
     setProfile(data);
+  };
+
+  const fetchRole = async (userId: string) => {
+    const { data } = await supabase.rpc("has_role" as any, {
+      _user_id: userId,
+      _role: "admin",
+    });
+    setIsAdmin(data === true);
   };
 
   useEffect(() => {
@@ -35,9 +44,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        setTimeout(() => fetchProfile(session.user.id), 0);
+        setTimeout(() => {
+          fetchProfile(session.user.id);
+          fetchRole(session.user.id);
+        }, 0);
       } else {
         setProfile(null);
+        setIsAdmin(false);
       }
       setLoading(false);
     });
@@ -47,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
+        fetchRole(session.user.id);
       }
       setLoading(false);
     });
@@ -77,16 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{
-        user,
-        session,
-        loading,
-        profile,
-        signIn,
-        signUp,
-        signOut,
-        isAdmin: profile?.role === "admin",
-      }}
+      value={{ user, session, loading, profile, signIn, signUp, signOut, isAdmin }}
     >
       {children}
     </AuthContext.Provider>

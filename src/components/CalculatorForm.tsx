@@ -4,15 +4,16 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { STANDARD_COLORS, CountertopParams, SinkParams, SimpleProductParams, ProductType } from "@/lib/calculator";
+import { CountertopParams, SinkParams, SimpleProductParams, ProductType } from "@/lib/calculator";
 import { Calculator } from "lucide-react";
 
 interface Props {
   productType: ProductType;
   onCalculate: (params: any) => void;
+  colorNames?: string[];
 }
 
-export default function CalculatorForm({ productType, onCalculate }: Props) {
+export default function CalculatorForm({ productType, onCalculate, colorNames = [] }: Props) {
   const [length, setLength] = useState(1000);
   const [width, setWidth] = useState(600);
   const [diameter, setDiameter] = useState(800);
@@ -34,6 +35,9 @@ export default function CalculatorForm({ productType, onCalculate }: Props) {
   const [ohLeft, setOhLeft] = useState(false);
   const [ohRight, setOhRight] = useState(false);
   const [drainType, setDrainType] = useState("щелевой");
+  const [hasRiser, setHasRiser] = useState(false);
+  const [riserHeight, setRiserHeight] = useState(150);
+  const [isHeated, setIsHeated] = useState(false);
 
   const finalColor = color === "другой" ? customColor : color;
 
@@ -57,12 +61,19 @@ export default function CalculatorForm({ productType, onCalculate }: Props) {
     } else {
       const params: SimpleProductParams = {
         length, width, thickness, color: finalColor, quantity,
+        hasRiser: productType === "stair" ? hasRiser : undefined,
+        riserHeight: productType === "stair" && hasRiser ? riserHeight : undefined,
+        isHeated: productType === "stepslab" ? isHeated : undefined,
       };
       onCalculate(params);
     }
   };
 
   const inputClass = "bg-secondary border-border";
+  const availableColors = colorNames.length > 0 ? colorNames : [
+    "белоснежный", "белый", "светло-серый", "серый", "темно-серый",
+    "зеленый", "бежевый", "коричневый", "желтый", "терракотовый",
+  ];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -110,45 +121,76 @@ export default function CalculatorForm({ productType, onCalculate }: Props) {
         </div>
       </div>
 
-      {/* Countertop extras */}
-      {productType === "countertop" && !isRound && (
-        <>
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Опуски (мм)</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs">Спереди</Label>
-                <Input type="number" value={dropFront} onChange={(e) => setDropFront(+e.target.value)} min={0} max={300} className={inputClass} />
-              </div>
-              <div>
-                <Label className="text-xs">Сзади</Label>
-                <Input type="number" value={dropBack} onChange={(e) => setDropBack(+e.target.value)} min={0} max={300} className={inputClass} />
-              </div>
-              <div>
-                <Label className="text-xs">Слева</Label>
-                <Input type="number" value={dropLeft} onChange={(e) => setDropLeft(+e.target.value)} min={0} max={300} className={inputClass} />
-              </div>
-              <div>
-                <Label className="text-xs">Справа</Label>
-                <Input type="number" value={dropRight} onChange={(e) => setDropRight(+e.target.value)} min={0} max={300} className={inputClass} />
-              </div>
+      {/* Countertop drops - now for both round and rectangular */}
+      {productType === "countertop" && (
+        <div>
+          <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Опуски (мм)</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Спереди</Label>
+              <Input type="number" value={dropFront} onChange={(e) => setDropFront(+e.target.value)} min={0} max={300} className={inputClass} />
+            </div>
+            <div>
+              <Label className="text-xs">Сзади</Label>
+              <Input type="number" value={dropBack} onChange={(e) => setDropBack(+e.target.value)} min={0} max={300} className={inputClass} />
+            </div>
+            <div>
+              <Label className="text-xs">Слева</Label>
+              <Input type="number" value={dropLeft} onChange={(e) => setDropLeft(+e.target.value)} min={0} max={300} className={inputClass} />
+            </div>
+            <div>
+              <Label className="text-xs">Справа</Label>
+              <Input type="number" value={dropRight} onChange={(e) => setDropRight(+e.target.value)} min={0} max={300} className={inputClass} />
             </div>
           </div>
+        </div>
+      )}
 
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Опоры (мм)</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs">Слева</Label>
-                <Input type="number" value={supportLeft} onChange={(e) => setSupportLeft(+e.target.value)} min={0} max={1200} className={inputClass} />
-              </div>
-              <div>
-                <Label className="text-xs">Справа</Label>
-                <Input type="number" value={supportRight} onChange={(e) => setSupportRight(+e.target.value)} min={0} max={1200} className={inputClass} />
-              </div>
+      {/* Countertop supports - only for non-round */}
+      {productType === "countertop" && !isRound && (
+        <div>
+          <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Опоры (мм)</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Слева</Label>
+              <Input type="number" value={supportLeft} onChange={(e) => setSupportLeft(+e.target.value)} min={0} max={1200} className={inputClass} />
+            </div>
+            <div>
+              <Label className="text-xs">Справа</Label>
+              <Input type="number" value={supportRight} onChange={(e) => setSupportRight(+e.target.value)} min={0} max={1200} className={inputClass} />
             </div>
           </div>
-        </>
+        </div>
+      )}
+
+      {/* Stair riser */}
+      {productType === "stair" && (
+        <div>
+          <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Подступенок</h3>
+          <div className="flex items-center gap-3 mb-3">
+            <Switch checked={hasRiser} onCheckedChange={setHasRiser} />
+            <Label className="text-sm">С подступенком</Label>
+          </div>
+          {hasRiser && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Высота подступенка (мм)</Label>
+                <Input type="number" value={riserHeight} onChange={(e) => setRiserHeight(+e.target.value)} min={50} max={300} className={inputClass} />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Stepslab heated */}
+      {productType === "stepslab" && (
+        <div>
+          <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Дополнительно</h3>
+          <div className="flex items-center gap-3">
+            <Switch checked={isHeated} onCheckedChange={setIsHeated} />
+            <Label className="text-sm">С подогревом</Label>
+          </div>
+        </div>
       )}
 
       {/* Sink extras */}
@@ -200,7 +242,7 @@ export default function CalculatorForm({ productType, onCalculate }: Props) {
         <Select value={color} onValueChange={setColor}>
           <SelectTrigger className={inputClass}><SelectValue /></SelectTrigger>
           <SelectContent>
-            {STANDARD_COLORS.map((c) => (
+            {availableColors.map((c) => (
               <SelectItem key={c} value={c}>{c}</SelectItem>
             ))}
             <SelectItem value="другой">Другой (нестандартный)</SelectItem>
