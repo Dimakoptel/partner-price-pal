@@ -29,12 +29,17 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
   const [supportLeft, setSupportLeft] = useState(0);
   const [supportRight, setSupportRight] = useState(0);
   const [bowlCount, setBowlCount] = useState(1);
+  const [bowlLength, setBowlLength] = useState(600);
+  const [bowlWidth, setBowlWidth] = useState(350);
+  const [bowlDepth, setBowlDepth] = useState(100);
+  const [maxBowlSize, setMaxBowlSize] = useState(false);
   const [overhangHeight, setOverhangHeight] = useState(0);
   const [ohFront, setOhFront] = useState(true);
   const [ohBack, setOhBack] = useState(false);
   const [ohLeft, setOhLeft] = useState(false);
   const [ohRight, setOhRight] = useState(false);
   const [drainType, setDrainType] = useState("щелевой");
+  const [mixerMount, setMixerMount] = useState<"на столешнице" | "на стене">("на столешнице");
   const [hasRiser, setHasRiser] = useState(false);
   const [riserHeight, setRiserHeight] = useState(150);
   const [isHeated, setIsHeated] = useState(false);
@@ -55,7 +60,12 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
       const params: SinkParams = {
         length, width, quantity, overhangHeight,
         overhangSides: { front: ohFront, back: ohBack, left: ohLeft, right: ohRight },
-        bowlCount, color: finalColor, drainType,
+        bowlCount,
+        bowlLength: maxBowlSize ? undefined : bowlLength,
+        bowlWidth: maxBowlSize ? undefined : bowlWidth,
+        bowlDepth,
+        maxBowlSize,
+        color: finalColor, drainType, mixerMount,
       };
       onCalculate(params);
     } else {
@@ -201,8 +211,34 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs">Количество чаш</Label>
-                <Input type="number" value={bowlCount} onChange={(e) => setBowlCount(+e.target.value)} min={1} max={3} className={inputClass} />
+                <Input type="number" value={bowlCount} onChange={(e) => setBowlCount(+e.target.value)} min={1} max={5} className={inputClass} />
               </div>
+              <div>
+                <Label className="text-xs">Глубина чаши (мм)</Label>
+                <Input type="number" value={bowlDepth} onChange={(e) => setBowlDepth(+e.target.value)} min={50} max={200} className={inputClass} />
+              </div>
+            </div>
+            <div className="flex items-center gap-3 mt-3 mb-3">
+              <Switch checked={maxBowlSize} onCheckedChange={setMaxBowlSize} />
+              <Label className="text-sm">Максимальная чаша</Label>
+            </div>
+            {!maxBowlSize && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Длина чаши (мм)</Label>
+                  <Input type="number" value={bowlLength} onChange={(e) => setBowlLength(+e.target.value)} min={200} max={3000} className={inputClass} />
+                </div>
+                <div>
+                  <Label className="text-xs">Ширина чаши (мм)</Label>
+                  <Input type="number" value={bowlWidth} onChange={(e) => setBowlWidth(+e.target.value)} min={200} max={1500} className={inputClass} />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Слив и смеситель</h3>
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs">Тип слива</Label>
                 <Select value={drainType} onValueChange={setDrainType}>
@@ -210,6 +246,16 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
                   <SelectContent>
                     <SelectItem value="щелевой">Щелевой</SelectItem>
                     <SelectItem value="классический">Классический</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Смеситель</Label>
+                <Select value={mixerMount} onValueChange={(v) => setMixerMount(v as "на столешнице" | "на стене")}>
+                  <SelectTrigger className={inputClass}><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="на столешнице">На столешнице</SelectItem>
+                    <SelectItem value="на стене">На стене</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

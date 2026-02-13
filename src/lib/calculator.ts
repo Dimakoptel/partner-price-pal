@@ -41,8 +41,13 @@ export interface SinkParams {
   overhangHeight: number;
   overhangSides: { front: boolean; back: boolean; left: boolean; right: boolean };
   bowlCount: number;
+  bowlLength?: number;
+  bowlWidth?: number;
+  bowlDepth?: number;
+  maxBowlSize: boolean;
   color: string;
   drainType: string;
+  mixerMount: "на столешнице" | "на стене";
 }
 
 export interface SimpleProductParams {
@@ -60,10 +65,13 @@ export interface CalculationResult {
   productLabel: string;
   area: number;
   weight: number;
+  weightPerItem?: number;
   basePrice: number;
   optionPrice: number;
   optionItems: { name: string; price: number }[];
   totalPrice: number;
+  supportPrice?: number;
+  supportPricePerItem?: number;
   installationPrice: number;
   grandTotal: number;
   quantity: number;
@@ -245,73 +253,168 @@ export function calculateSimpleProduct(
 }
 
 export function calculateSink(params: SinkParams, pricing: Record<string, number>, colorNames?: string[]): CalculationResult {
-  const BASE_PRICE = pricing.sink_base_price_per_m2 || 85000;
-  const BOWL_PRICE = pricing.sink_bowl_price || 15000;
-  const DRAIN_PRICE = pricing.sink_drain_price || 5000;
+  const PRICE_PER_SQM = pricing.base_price_per_m2 || 53200;
   const DENSITY = pricing.density || 2350;
   const INSTALL_PER_KG = pricing.install_price_per_kg || 112;
-  const MIN_INSTALL = pricing.min_install_price || 10000;
+  const MIN_INSTALL = pricing.min_install_price || 12000;
   const CUSTOM_COLOR = pricing.custom_color_surcharge || 3000;
-  const DROP_MULT = pricing.drop_multiplier || 1.1;
+  const OVERHANG_MARKUP = pricing.sink_overhang_markup || 0.15;
+  const BOWL_MARKUP = pricing.sink_bowl_markup || 1.5;
+  const DRAIN_SLOTTED_PER_M = pricing.sink_drain_slotted_per_m || 6000;
+  const IVORY_MARKUP = pricing.ivory_color_multiplier || 1.03;
+  const BRACKET_STANDARD_PER_M = pricing.bracket_standard_per_m || 1200;
+  const BRACKET_REINFORCED_PER_M = pricing.bracket_reinforced_per_m || 1500;
+  const THICKNESS_PLATE = 30; // mm, always fixed
+  const THICKNESS_BOWL_WALL = 20;
+  const THICKNESS_BOWL_BOTTOM = 20;
+  const EDGE_MARGIN = 70;
+  const MIN_GAP_BETWEEN_BOWLS = 80;
 
   const stdColors = colorNames || STANDARD_COLORS;
-  const area = (params.length * params.width) / 1_000_000;
-  const thickness = 30;
-  const volume = area * (thickness / 1000);
-  let basePrice = area * BASE_PRICE;
-
   const optionItems: { name: string; price: number }[] = [];
-  let optionPrice = 0;
+  const qty = Math.max(1, params.quantity);
 
-  const bowlCost = params.bowlCount * BOWL_PRICE;
-  optionPrice += bowlCost;
-  optionItems.push({ name: `Чаша x${params.bowlCount}`, price: bowlCost });
+  // --- Bowl dimensions ---
+  const mixerOffset = params.mixerMount === "на столешнице" ? 100 : 50;
+  const maxBowlWidth = params.width - 35 - mixerOffset;
+  const availableLength = params.length - (2 * EDGE_MARGIN) - ((params.bowlCount - 1) * MIN_GAP_BETWEEN_BOWLS);
 
-  if (params.drainType) {
-    optionPrice += DRAIN_PRICE;
-    optionItems.push({ name: `Слив: ${params.drainType}`, price: DRAIN_PRICE });
+  let bowlLength: number, bowlWidth: number, bowlDepth: number;
+
+  if (params.maxBowlSize) {
+    bowlLength = Math.max(200, Math.floor((availableLength / params.bowlCount) / 10) * 10);
+    bowlWidth = Math.max(200, Math.floor(maxBowlWidth / 10) * 10);
+    bowlDepth = params.bowlDepth || 100;
+  } else if (params.bowlLength && params.bowlWidth) {
+    bowlLength = Math.min(params.bowlLength, params.length - 100);
+    bowlWidth = Math.min(params.bowlWidth, maxBowlWidth);
+    bowlDepth = params.bowlDepth || 100;
+  } else {
+    // defaults
+    bowlLength = params.length < 800 ? Math.max(200, params.length - 100) : 600;
+    bowlWidth = Math.max(200, Math.floor(maxBowlWidth / 10) * 10);
+    bowlDepth = params.bowlDepth || 100;
   }
 
-  if (params.overhangHeight > 0) {
+  bowlDepth = Math.max(50, Math.min(200, bowlDepth));
+
+  // --- Weight calculation (per item) ---
+  const plateVolume = (params.length * params.width * THICKNESS_PLATE) / 1_000_000_000;
+  let overhangVolume = 0;
+  const oh = params.overhangHeight > 0 ? Math.min(300, Math.max(0, params.overhangHeight)) : 0;
+  if (oh > 0) {
     const sides = params.overhangSides;
-    let overhangLength = 0;
-    if (sides.front) overhangLength += params.length;
-    if (sides.back) overhangLength += params.length;
-    if (sides.left) overhangLength += params.width;
-    if (sides.right) overhangLength += params.width;
-    if (overhangLength > 0) {
-      const ohArea = (overhangLength * params.overhangHeight) / 1_000_000;
-      const ohCost = ohArea * BASE_PRICE * DROP_MULT;
-      optionPrice += ohCost;
-      optionItems.push({ name: `Опуски ${params.overhangHeight} мм`, price: Math.round(ohCost) });
+    if (sides.front) overhangVolume += (params.length * oh * THICKNESS_PLATE) / 1_000_000_000;
+    if (sides.back) overhangVolume += (params.length * oh * THICKNESS_PLATE) / 1_000_000_000;
+    if (sides.left) overhangVolume += (params.width * oh * THICKNESS_PLATE) / 1_000_000_000;
+    if (sides.right) overhangVolume += (params.width * oh * THICKNESS_PLATE) / 1_000_000_000;
+  }
+
+  // Bowl material volume (outer - inner)
+  const outerBowlVol = (bowlLength * bowlWidth * bowlDepth) / 1_000_000_000;
+  const innerL = bowlLength - 2 * THICKNESS_BOWL_WALL;
+  const innerW = bowlWidth - 2 * THICKNESS_BOWL_WALL;
+  const innerD = bowlDepth - THICKNESS_BOWL_BOTTOM;
+  const innerBowlVol = Math.max(0, (innerL * innerW * innerD) / 1_000_000_000);
+  const bowlMaterialVol = (outerBowlVol - innerBowlVol) * params.bowlCount;
+
+  const totalVolumePerItem = plateVolume + overhangVolume + bowlMaterialVol;
+  const weightPerItem = Math.max(10, Math.round(totalVolumePerItem * DENSITY));
+
+  // --- Price calculation (per item) ---
+  // Plate
+  const plateArea = (params.length * params.width) / 1_000_000;
+  const platePrice = plateArea * PRICE_PER_SQM;
+
+  // Overhangs
+  let overhangPrice = 0;
+  if (oh > 0) {
+    let overhangArea = 0;
+    const sides = params.overhangSides;
+    if (sides.front) overhangArea += (params.length / 1000) * (oh / 1000);
+    if (sides.back) overhangArea += (params.length / 1000) * (oh / 1000);
+    if (sides.left) overhangArea += (params.width / 1000) * (oh / 1000);
+    if (sides.right) overhangArea += (params.width / 1000) * (oh / 1000);
+    overhangPrice = Math.round(overhangArea * PRICE_PER_SQM * (1 + OVERHANG_MARKUP));
+    if (overhangPrice > 0) {
+      const activeSides = [];
+      if (sides.front) activeSides.push("спереди");
+      if (sides.back) activeSides.push("сзади");
+      if (sides.left) activeSides.push("слева");
+      if (sides.right) activeSides.push("справа");
+      optionItems.push({ name: `Опуски ${oh} мм (${activeSides.join(", ")})`, price: overhangPrice });
     }
   }
 
-  const isCustom = !stdColors.map(c => c.toLowerCase()).includes(params.color.toLowerCase()) && params.color.toLowerCase() !== "белоснежный";
-  if (isCustom) {
-    optionPrice += CUSTOM_COLOR;
-    optionItems.push({ name: `Нестандартный цвет: ${params.color}`, price: CUSTOM_COLOR });
+  // Bowls with progressive discount
+  const bL = bowlLength / 1000;
+  const bW = bowlWidth / 1000;
+  const bD = bowlDepth / 1000;
+  const bowlSurfaceArea = (bL * bW) + 2 * (bL * bD) + 2 * (bW * bD);
+  const baseBowlPrice = bowlSurfaceArea * PRICE_PER_SQM * BOWL_MARKUP;
+  let totalBowlsPrice = 0;
+  for (let i = 1; i <= params.bowlCount; i++) {
+    const discount = i === 1 ? 1.0 : i === 2 ? 0.9 : 0.85;
+    totalBowlsPrice += baseBowlPrice * discount;
   }
-  if (params.color.toLowerCase() === "белоснежный") {
-    basePrice *= (pricing.ivory_color_multiplier || 1.03);
+  const bowlsPrice = Math.round(totalBowlsPrice);
+  optionItems.push({ name: `Чаша ${bowlLength}×${bowlWidth}×${bowlDepth} мм x${params.bowlCount}`, price: bowlsPrice });
+
+  // Drain
+  let drainPrice = 0;
+  if (params.drainType === "щелевой") {
+    drainPrice = Math.round((bowlLength / 1000) * DRAIN_SLOTTED_PER_M * params.bowlCount);
+    optionItems.push({ name: `Слив щелевой`, price: drainPrice });
   }
 
-  const qty = Math.max(1, params.quantity);
-  const totalPrice = Math.round((basePrice + optionPrice) * qty);
-  const totalWeight = Math.round(volume * DENSITY * qty);
-  const installationPrice = Math.max(MIN_INSTALL, Math.round(totalWeight * INSTALL_PER_KG));
+  // Color
+  let colorMarkup = 0;
+  const isIvory = params.color.toLowerCase() === "белоснежный";
+  const isCustom = !isIvory && !stdColors.map(c => c.toLowerCase()).includes(params.color.toLowerCase());
+  if (isCustom) {
+    colorMarkup = CUSTOM_COLOR;
+    optionItems.push({ name: `Нестандартный цвет: ${params.color}`, price: CUSTOM_COLOR });
+  }
+
+  // Single item price
+  let singleItemPrice = platePrice + overhangPrice + bowlsPrice + drainPrice + colorMarkup;
+  if (isIvory) {
+    singleItemPrice = Math.round(singleItemPrice * IVORY_MARKUP);
+    optionItems.push({ name: `Наценка «белоснежный» +3%`, price: Math.round(singleItemPrice - (singleItemPrice / IVORY_MARKUP)) });
+  } else {
+    singleItemPrice = Math.round(singleItemPrice);
+  }
+
+  // Bracket calculation
+  let pipeLength_mm = (params.length * 4) + (params.width * 6.5);
+  if (params.length >= 1500) pipeLength_mm += params.width * 6.5;
+  const pipeLength_m = pipeLength_mm / 1000;
+  const pricePerMeter = weightPerItem > 60 ? BRACKET_REINFORCED_PER_M : BRACKET_STANDARD_PER_M;
+  const supportPricePerItem = Math.round(pipeLength_m * pricePerMeter);
+  const profileType = weightPerItem > 60 ? "усиленный 20×40 мм" : "стандартный 20×20 мм";
+  optionItems.push({ name: `Кронштейн ${profileType}`, price: supportPricePerItem });
+
+  // Totals
+  const totalPrice = singleItemPrice * qty;
+  const totalSupportPrice = supportPricePerItem * qty;
+  const totalWeight = weightPerItem * qty;
+  const installByWeight = Math.round(totalWeight * INSTALL_PER_KG);
+  const installationPrice = Math.max(MIN_INSTALL, installByWeight);
 
   return {
     productLabel: "Раковина",
-    area: +area.toFixed(4),
+    area: +plateArea.toFixed(4),
     weight: totalWeight,
-    basePrice: Math.round(basePrice * qty),
-    optionPrice: Math.round(optionPrice * qty),
+    weightPerItem,
+    basePrice: Math.round(platePrice * qty),
+    optionPrice: Math.round((singleItemPrice - platePrice) * qty + totalSupportPrice),
     optionItems,
-    totalPrice,
+    totalPrice: totalPrice + totalSupportPrice,
+    supportPrice: totalSupportPrice,
+    supportPricePerItem,
     installationPrice,
-    grandTotal: totalPrice + installationPrice,
+    grandTotal: totalPrice + totalSupportPrice + installationPrice,
     quantity: qty,
-    pricePerUnit: Math.round(totalPrice / qty),
+    pricePerUnit: singleItemPrice + supportPricePerItem,
   };
 }
