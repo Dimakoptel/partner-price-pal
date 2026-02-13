@@ -17,7 +17,7 @@ function formatPrice(num: number) {
 
 function buildShareText(result: CalculationResult) {
   let text = `🧾 Расчёт изделия\n\n`;
-  text += `${result.productLabel}\n`;
+  text += `${result.productLabel}\n — ${formatPrice(result.totalPrice)} ₽\n`;
   text += `Площадь: ${result.area} м²\n`;
   text += `Вес: ${result.weight} кг\n`;
   if (result.quantity > 1) text += `Количество: ${result.quantity} шт.\n`;
