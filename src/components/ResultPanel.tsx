@@ -27,6 +27,11 @@ function buildShareText(result: CalculationResult) {
   });
   text += `\nСтоимость изделия: ${formatPrice(result.totalPrice)} ₽\n`;
   if (result.quantity > 1) text += `Цена за 1 шт.: ${formatPrice(result.pricePerUnit)} ₽\n`;
+  if (result.supportPrice) {
+    text += `Кронштейн: ${formatPrice(result.supportPrice)} ₽`;
+    if (result.supportPricePerItem && result.quantity > 1) text += ` (${formatPrice(result.supportPricePerItem)} ₽/шт.)`;
+    text += `\n`;
+  }
   text += `Монтаж: ${formatPrice(result.installationPrice)} ₽\n`;
   text += `\n💰 ИТОГО: ${formatPrice(result.grandTotal)} ₽\n`;
   text += `\n📌 УСЛОВИЯ\n`;
@@ -96,7 +101,7 @@ export default function ResultPanel({ result, onSave, saving }: Props) {
 
         <div className="flex justify-between">
           <span className="text-muted-foreground">Вес</span>
-          <span>{result.weight} кг</span>
+          <span>{result.weight} кг{result.weightPerItem && result.quantity > 1 ? ` (${result.weightPerItem} кг/шт.)` : ""}</span>
         </div>
 
         {result.quantity > 1 && (
