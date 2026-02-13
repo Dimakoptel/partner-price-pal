@@ -401,8 +401,23 @@ export function calculateSink(params: SinkParams, pricing: Record<string, number
   const installByWeight = Math.round(totalWeight * INSTALL_PER_KG);
   const installationPrice = Math.max(MIN_INSTALL, installByWeight);
 
+  // Build nomenclature label
+  const displayHeight = oh > 0 ? oh : THICKNESS_PLATE;
+  let label = `Раковина индивидуальная COZY ART ${params.length} × ${params.width} × ${displayHeight} мм`;
+  if (oh > 0) {
+    const activeSides: string[] = [];
+    if (params.overhangSides.front) activeSides.push("спереди");
+    if (params.overhangSides.back) activeSides.push("сзади");
+    if (params.overhangSides.left) activeSides.push("слева");
+    if (params.overhangSides.right) activeSides.push("справа");
+    if (activeSides.length > 0) label += `, опуски (${activeSides.join(", ")})`;
+  }
+  label += `, чаша ${bowlLength} × ${bowlWidth} × ${bowlDepth} мм`;
+  if (params.bowlCount > 1) label += ` ×${params.bowlCount}`;
+  label += `, слив ${params.drainType}, архитектурный бетон, цвет ${params.color}`;
+
   return {
-    productLabel: "Раковина",
+    productLabel: label,
     area: +plateArea.toFixed(4),
     weight: totalWeight,
     weightPerItem,
