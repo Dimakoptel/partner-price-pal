@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      company_settings: {
+        Row: {
+          category: string
+          id: string
+          key: string
+          label: string
+          sort_order: number
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          category?: string
+          id?: string
+          key: string
+          label: string
+          sort_order?: number
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          category?: string
+          id?: string
+          key?: string
+          label?: string
+          sort_order?: number
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       pricing_settings: {
         Row: {
           category: string
@@ -73,6 +103,7 @@ export type Database = {
       }
       saved_calculations: {
         Row: {
+          calc_name: string
           created_at: string
           id: string
           params: Json
@@ -82,6 +113,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          calc_name?: string
           created_at?: string
           id?: string
           params: Json
@@ -91,6 +123,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          calc_name?: string
           created_at?: string
           id?: string
           params?: Json

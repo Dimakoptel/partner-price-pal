@@ -72,6 +72,7 @@ export interface CalculationResult {
   totalPrice: number;
   supportPrice?: number;
   supportPricePerItem?: number;
+  supportLabel?: string;
   installationPrice: number;
   grandTotal: number;
   quantity: number;
@@ -416,6 +417,8 @@ export function calculateSink(params: SinkParams, pricing: Record<string, number
   if (params.bowlCount > 1) label += ` ×${params.bowlCount}`;
   label += `, слив ${params.drainType}, архитектурный бетон, цвет ${params.color}`;
 
+  const supportLabel = `Кронштейн стальной ${weightPerItem > 60 ? "усиленный" : "стандартный"} для раковины COZY ART ${params.length} × ${params.width} × ${displayHeight} мм`;
+
   return {
     productLabel: label,
     area: +plateArea.toFixed(4),
@@ -427,6 +430,7 @@ export function calculateSink(params: SinkParams, pricing: Record<string, number
     totalPrice: totalPrice + totalSupportPrice,
     supportPrice: totalSupportPrice,
     supportPricePerItem,
+    supportLabel,
     installationPrice,
     grandTotal: totalPrice + totalSupportPrice + installationPrice,
     quantity: qty,

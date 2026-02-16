@@ -7,6 +7,7 @@ export interface SavedCalculation {
   user_id: string;
   product_type: string;
   product_label: string;
+  calc_name: string;
   params: any;
   result: any;
   created_at: string;
@@ -31,7 +32,8 @@ export function useCalculations() {
     productType: string,
     productLabel: string,
     params: any,
-    result: any
+    result: any,
+    calcName: string
   ) => {
     if (!user) return { error: new Error("Not authenticated") };
     const { error } = await (supabase
@@ -40,6 +42,7 @@ export function useCalculations() {
         user_id: user.id,
         product_type: productType,
         product_label: productLabel,
+        calc_name: calcName,
         params,
         result,
       });

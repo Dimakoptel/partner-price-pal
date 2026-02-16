@@ -45,23 +45,33 @@ export default function HistoryPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="glass-panel p-4"
               >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="font-medium">{calc.product_label}</span>
-                    <span className="text-xs text-muted-foreground ml-2">{formatDate(calc.created_at)}</span>
+                <div className="flex justify-between items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    {calc.calc_name && (
+                      <div className="font-semibold text-primary text-sm mb-1">{calc.calc_name}</div>
+                    )}
+                    <div className="text-xs text-muted-foreground mb-2">{formatDate(calc.created_at)}</div>
+                    <div className="text-sm leading-relaxed">{calc.product_label}</div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-primary">{formatPrice(calc.result.grandTotal)} ₽</span>
-                    <Button size="sm" variant="ghost" onClick={() => handleDelete(calc.id)} className="text-muted-foreground hover:text-destructive">
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
+                  <Button size="sm" variant="ghost" onClick={() => handleDelete(calc.id)} className="text-muted-foreground hover:text-destructive shrink-0">
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
-                <div className="text-xs text-muted-foreground mt-1 space-x-3">
-                  <span>Площадь: {calc.result.area} м²</span>
-                  <span>Вес: {calc.result.weight} кг</span>
-                  {calc.result.quantity > 1 && <span>Кол-во: {calc.result.quantity}</span>}
-                  <span>Монтаж: {formatPrice(calc.result.installationPrice)} ₽</span>
+                <div className="mt-3 pt-3 border-t border-border/50 space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Стоимость изделия</span>
+                    <span className="font-medium">{formatPrice(calc.result.totalPrice)} ₽</span>
+                  </div>
+                  {calc.result.supportPrice > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Кронштейн</span>
+                      <span>{formatPrice(calc.result.supportPrice)} ₽</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Монтаж</span>
+                    <span>{formatPrice(calc.result.installationPrice)} ₽</span>
+                  </div>
                 </div>
               </motion.div>
             ))}

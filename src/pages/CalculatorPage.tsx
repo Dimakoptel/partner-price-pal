@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import ProductSelector from "@/components/ProductSelector";
 import CalculatorForm from "@/components/CalculatorForm";
 import ResultPanel from "@/components/ResultPanel";
 import AppLayout from "@/components/AppLayout";
+import SaveCalculationDialog from "@/components/SaveCalculationDialog";
 import { usePricing } from "@/hooks/usePricing";
 import { useColors } from "@/hooks/useColors";
 import { useCalculations } from "@/hooks/useCalculations";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
 import {
   ProductType,
   CalculationResult,
@@ -21,11 +23,25 @@ export default function CalculatorPage() {
   const [result, setResult] = useState<CalculationResult | null>(null);
   const [currentParams, setCurrentParams] = useState<any>(null);
   const [saved, setSaved] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [savingName, setSavingName] = useState(false);
   const { settings, loading } = usePricing();
   const { colors } = useColors();
   const { saveCalculation } = useCalculations();
+  const { getSetting } = useCompanySettings();
+  const formRef = useRef<HTMLDivElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   const colorNames = colors.map((c) => c.name);
+
+  const handleSelectProduct = (t: string) => {
+    setSelectedProduct(t as ProductType);
+    setResult(null);
+    setSaved(false);
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  };
 
   const handleCalculate = (params: any) => {
     if (!selectedProduct) return;
@@ -41,11 +57,21 @@ export default function CalculatorPage() {
       res = calculateSimpleProduct(selectedProduct, params, settings, colorNames);
     }
     setResult(res);
+    setTimeout(() => {
+      resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
   };
 
-  const handleSave = async () => {
+  const handleSaveClick = () => {
+    setShowSaveDialog(true);
+  };
+
+  const handleSaveConfirm = async (calcName: string) => {
     if (!result || !selectedProduct || !currentParams) return;
-    const { error } = await saveCalculation(selectedProduct, result.productLabel, currentParams, result);
+    setSavingName(true);
+    const { error } = await saveCalculation(selectedProduct, result.productLabel, currentParams, result, calcName);
+    setSavingName(false);
+    setShowSaveDialog(false);
     if (error) {
       toast.error("Ошибка сохранения");
     } else {
@@ -74,11 +100,11 @@ export default function CalculatorPage() {
 
         <ProductSelector
           selected={selectedProduct}
-          onSelect={(t) => { setSelectedProduct(t as ProductType); setResult(null); setSaved(false); }}
+          onSelect={handleSelectProduct}
         />
 
         {selectedProduct && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+          <div ref={formRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
             <motion.div
               key={selectedProduct}
               initial={{ opacity: 0, y: 10 }}
@@ -89,10 +115,26 @@ export default function CalculatorPage() {
               <CalculatorForm productType={selectedProduct} onCalculate={handleCalculate} colorNames={colorNames} />
             </motion.div>
 
-            {result && <ResultPanel result={result} onSave={handleSave} saving={saved} />}
+            {result && (
+              <div ref={resultRef}>
+                <ResultPanel
+                  result={result}
+                  onSave={handleSaveClick}
+                  saving={saved}
+                  companySettings={{ getSetting }}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>
+
+      <SaveCalculationDialog
+        open={showSaveDialog}
+        onClose={() => setShowSaveDialog(false)}
+        onConfirm={handleSaveConfirm}
+        saving={savingName}
+      />
     </AppLayout>
   );
 }
