@@ -9,6 +9,7 @@ import { usePricing } from "@/hooks/usePricing";
 import { useColors } from "@/hooks/useColors";
 import { useCalculations } from "@/hooks/useCalculations";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
+import { useAuth } from "@/hooks/useAuth";
 import {
   ProductType,
   CalculationResult,
@@ -29,6 +30,7 @@ export default function CalculatorPage() {
   const { colors } = useColors();
   const { saveCalculation } = useCalculations();
   const { getSetting } = useCompanySettings();
+  const { user, profile } = useAuth();
   const formRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -122,6 +124,12 @@ export default function CalculatorPage() {
                   onSave={handleSaveClick}
                   saving={saved}
                   companySettings={{ getSetting }}
+                  specialist={{
+                    fullName: profile?.full_name || undefined,
+                    phone: profile?.phone || undefined,
+                    email: user?.email || undefined,
+                    telegram: profile?.telegram || undefined,
+                  }}
                 />
               </div>
             )}
