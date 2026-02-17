@@ -1,11 +1,13 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useLocation } from "react-router-dom";
-import { Calculator, Settings, LogOut, User, History } from "lucide-react";
+import { Calculator, Settings, LogOut, User, History, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "@/hooks/useTheme";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, profile, signOut, isAdmin } = useAuth();
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -39,6 +41,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </Button>
               </Link>
             )}
+
+            <Button variant="ghost" size="sm" onClick={toggleTheme} className="ml-1">
+              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </Button>
 
             <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border/50">
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
