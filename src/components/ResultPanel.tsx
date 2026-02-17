@@ -24,12 +24,13 @@ function buildShareText(result: CalculationResult, cs?: CompanySettingsAccessor)
   text += `${result.productLabel}\n`;
   text += `Стоимость изделия: ${formatPrice(result.totalPrice)} ₽\n`;
   if (result.supportPrice) {
-    text += `${result.supportLabel || "Кронштейн"}: ${formatPrice(result.supportPrice)} ₽\n`;
+    text += `${result.supportLabel || "Кронштейн"} (при необходимости): ${formatPrice(result.supportPrice)} ₽\n`;
   }
-  text += `Монтаж: ${formatPrice(result.installationPrice)} ₽\n`;
+  text += `Монтаж (при необходимости): ${formatPrice(result.installationPrice)} ₽\n`;
   text += `\n📌 УСЛОВИЯ\n`;
   const days = cs?.getSetting("production_days") || "20";
   const warranty = cs?.getSetting("warranty_years") || "1";
+  text += `• Кронштейн и монтаж приобретаются при необходимости\n`;
   text += `• Доставка и грузчики — отдельно\n`;
   text += `• Срок изготовления: от ${days} рабочих дней\n`;
   text += `• Гарантия: ${warranty} год\n`;
@@ -43,7 +44,7 @@ function buildShareText(result: CalculationResult, cs?: CompanySettingsAccessor)
   return text;
 }
 
-function handlePrint(result: CalculationResult, cs?: CompanySettingsAccessor) {
+function handlePrint(result: CalculationResult, cs?: CompanySettingsAccessor, specialist?: SpecialistInfo) {
   const phone = cs?.getSetting("phone_main") || "+7 (913) 748-05-03";
   const phoneExtra = cs?.getSetting("phone_extra") || "";
   const email = cs?.getSetting("email") || "cozyartnsk1@gmail.com";
@@ -61,7 +62,7 @@ function handlePrint(result: CalculationResult, cs?: CompanySettingsAccessor) {
   const supportLine = result.supportPrice
     ? `<tr>
         <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;">
-          <div style="font-size:14px;color:#333;">${result.supportLabel || "Кронштейн"}</div>
+          <div style="font-size:14px;color:#333;">${result.supportLabel || "Кронштейн"} <span style="font-size:11px;color:#888;">(при необходимости)</span></div>
         </td>
         <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600;white-space:nowrap;">${formatPrice(result.supportPrice)} ₽</td>
       </tr>`
@@ -126,7 +127,7 @@ function handlePrint(result: CalculationResult, cs?: CompanySettingsAccessor) {
     ${supportLine}
     <tr>
       <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;">
-        <div style="font-size:14px;color:#333;">Монтажные работы</div>
+        <div style="font-size:14px;color:#333;">Монтажные работы <span style="font-size:11px;color:#888;">(при необходимости)</span></div>
         <div style="font-size:11px;color:#888;margin-top:2px;">в черте города Новосибирск</div>
       </td>
       <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600;white-space:nowrap;">${formatPrice(result.installationPrice)} ₽</td>
@@ -136,11 +137,22 @@ function handlePrint(result: CalculationResult, cs?: CompanySettingsAccessor) {
   <div class="section-title">Условия</div>
   <div class="conditions">
     <ul>
+      <li>Кронштейн и монтаж приобретаются при необходимости</li>
       <li>Доставка и услуги грузчиков — по тарифам партнёров (оплачиваются отдельно)</li>
       <li>Срок изготовления: от ${prodDays} рабочих дней</li>
       <li>Гарантия: ${warranty} год на изделие</li>
     </ul>
   </div>
+
+  ${specialist?.fullName ? `
+  <div class="section-title" style="margin-top:20px;">Ваш специалист</div>
+  <div style="font-size:13px;color:#333;line-height:1.8;margin-bottom:20px;">
+    <strong>${specialist.fullName}</strong><br>
+    ${specialist.phone ? `📞 ${specialist.phone}<br>` : ""}
+    ${specialist.email ? `✉️ ${specialist.email}<br>` : ""}
+    ${specialist.telegram ? `Telegram: ${specialist.telegram}` : ""}
+  </div>
+  ` : ""}
 
   <div class="footer">
     <div class="footer-col">
@@ -174,14 +186,22 @@ function shareVia(platform: string, result: CalculationResult, cs?: CompanySetti
   window.open(url, "_blank");
 }
 
+interface SpecialistInfo {
+  fullName?: string;
+  phone?: string;
+  telegram?: string;
+  email?: string;
+}
+
 interface Props {
   result: CalculationResult;
   onSave?: () => void;
   saving?: boolean;
   companySettings?: CompanySettingsAccessor;
+  specialist?: SpecialistInfo;
 }
 
-export default function ResultPanel({ result, onSave, saving, companySettings }: Props) {
+export default function ResultPanel({ result, onSave, saving, companySettings, specialist }: Props) {
   const prodDays = companySettings?.getSetting("production_days") || "20";
 
   return (
@@ -214,22 +234,32 @@ export default function ResultPanel({ result, onSave, saving, companySettings }:
 
         {result.supportPrice != null && result.supportPrice > 0 && (
           <div className="flex justify-between">
-            <span className="text-muted-foreground text-xs">{result.supportLabel || "Кронштейн"}</span>
+            <span className="text-muted-foreground text-xs">{result.supportLabel || "Кронштейн"} <span className="text-[10px]">(при необходимости)</span></span>
             <span>{formatPrice(result.supportPrice)} ₽</span>
           </div>
         )}
 
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Монтаж</span>
+          <span className="text-muted-foreground">Монтаж <span className="text-[10px]">(при необходимости)</span></span>
           <span>{formatPrice(result.installationPrice)} ₽</span>
         </div>
       </div>
 
       <div className="mt-6 p-3 rounded-lg bg-secondary/50 text-xs text-muted-foreground space-y-1">
+        <p>• Кронштейн и монтаж приобретаются при необходимости</p>
         <p>• Доставка и грузчики оплачиваются отдельно</p>
         <p>• Срок изготовления: от {prodDays} рабочих дней</p>
         <p>• Гарантия: 1 год</p>
       </div>
+
+      {specialist?.fullName && (
+        <div className="mt-3 p-3 rounded-lg bg-secondary/30 text-xs text-muted-foreground space-y-0.5">
+          <p className="font-medium text-foreground">Специалист: {specialist.fullName}</p>
+          {specialist.phone && <p>📞 {specialist.phone}</p>}
+          {specialist.email && <p>✉️ {specialist.email}</p>}
+          {specialist.telegram && <p>Telegram: {specialist.telegram}</p>}
+        </div>
+      )}
 
       {/* Action buttons */}
       <div className="mt-4 flex flex-wrap gap-2">
@@ -239,7 +269,7 @@ export default function ResultPanel({ result, onSave, saving, companySettings }:
             {saving ? "Сохранено" : "Сохранить"}
           </Button>
         )}
-        <Button size="sm" variant="secondary" onClick={() => handlePrint(result, companySettings)} className="gap-1.5">
+        <Button size="sm" variant="secondary" onClick={() => handlePrint(result, companySettings, specialist)} className="gap-1.5">
           <Printer className="w-4 h-4" />
           Печать
         </Button>

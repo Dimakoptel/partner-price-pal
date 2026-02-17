@@ -12,6 +12,8 @@ export default function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [telegram, setTelegram] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -26,7 +28,12 @@ export default function AuthPage() {
       const { error } = await signIn(email, password);
       if (error) setError(error.message);
     } else {
-      const { error } = await signUp(email, password, fullName);
+      if (!fullName.trim() || !phone.trim()) {
+        setError("ФИО и телефон обязательны для регистрации");
+        setLoading(false);
+        return;
+      }
+      const { error } = await signUp(email, password, fullName, phone, telegram);
       if (error) setError(error.message);
       else setSuccess("Проверьте почту для подтверждения регистрации.");
     }
@@ -53,16 +60,41 @@ export default function AuthPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === "register" && (
-              <div>
-                <Label htmlFor="fullName">Имя</Label>
-                <Input
-                  id="fullName"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Иван Петров"
-                  className="mt-1 bg-secondary border-border"
-                />
-              </div>
+              <>
+                <div>
+                  <Label htmlFor="fullName">ФИО <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="fullName"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Иванов Иван Иванович"
+                    required
+                    className="mt-1 bg-secondary border-border"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone">Телефон <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+7 (999) 123-45-67"
+                    required
+                    className="mt-1 bg-secondary border-border"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="telegram">Telegram</Label>
+                  <Input
+                    id="telegram"
+                    value={telegram}
+                    onChange={(e) => setTelegram(e.target.value)}
+                    placeholder="@username"
+                    className="mt-1 bg-secondary border-border"
+                  />
+                </div>
+              </>
             )}
 
             <div>
