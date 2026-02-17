@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { CountertopParams, SinkParams, SimpleProductParams, ProductType, validateSinkParams, SinkValidationError } from "@/lib/calculator";
+import { CountertopParams, SinkParams, SimpleProductParams, ProductType, validateSinkParams, SinkValidationError, validateCountertopParams, CountertopValidationError } from "@/lib/calculator";
 import { Calculator, AlertTriangle } from "lucide-react";
 
 interface Props {
@@ -43,7 +43,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
   const [hasRiser, setHasRiser] = useState(false);
   const [riserHeight, setRiserHeight] = useState(150);
   const [isHeated, setIsHeated] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<SinkValidationError[]>([]);
+  const [validationErrors, setValidationErrors] = useState<(SinkValidationError | CountertopValidationError)[]>([]);
   const finalColor = color === "другой" ? customColor : color;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -56,6 +56,11 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
         drops: { front: dropFront, back: dropBack, left: dropLeft, right: dropRight },
         supports: { left: supportLeft, right: supportRight },
       };
+      const errors = validateCountertopParams(params);
+      if (errors.length > 0) {
+        setValidationErrors(errors);
+        return;
+      }
       onCalculate(params);
     } else if (productType === "sink") {
       const params: SinkParams = {
@@ -114,11 +119,11 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
             <>
               <div>
                 <Label className="text-xs">Длина (мм)</Label>
-                <Input type="number" value={length} onChange={(e) => setLength(+e.target.value)} min={productType === "sink" ? 500 : 200} max={productType === "sink" ? 4000 : 5000} className={inputClass} />
+                <Input type="number" value={length} onChange={(e) => setLength(+e.target.value)} min={productType === "sink" ? 500 : 500} max={productType === "sink" ? 4000 : 3500} className={inputClass} />
               </div>
               <div>
                 <Label className="text-xs">Ширина (мм)</Label>
-                <Input type="number" value={width} onChange={(e) => setWidth(+e.target.value)} min={productType === "sink" ? 300 : 200} max={productType === "sink" ? 1500 : 2000} className={inputClass} />
+                <Input type="number" value={width} onChange={(e) => setWidth(+e.target.value)} min={productType === "sink" ? 300 : 200} max={productType === "sink" ? 1500 : 1500} className={inputClass} />
               </div>
             </>
           )}

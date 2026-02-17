@@ -56,9 +56,9 @@ export interface SimpleProductParams {
   thickness: number;
   color: string;
   quantity: number;
-  hasRiser?: boolean;       // stair riser
+  hasRiser?: boolean;
   riserHeight?: number;
-  isHeated?: boolean;       // stepslab heated
+  isHeated?: boolean;
 }
 
 export interface CalculationResult {
@@ -79,6 +79,56 @@ export interface CalculationResult {
   pricePerUnit: number;
 }
 
+export interface CountertopValidationError {
+  field: string;
+  message: string;
+}
+
+export function validateCountertopParams(params: CountertopParams): CountertopValidationError[] {
+  const errors: CountertopValidationError[] = [];
+
+  // Size validation
+  if (params.isRound) {
+    const d = params.diameter || 0;
+    if (d < 500) errors.push({ field: "diameter", message: `Минимальный диаметр — 500 мм (указано: ${d} мм)` });
+    if (d > 3000) errors.push({ field: "diameter", message: `Максимальный диаметр — 3000 мм (указано: ${d} мм)` });
+  } else {
+    if (params.length < 500) errors.push({ field: "length", message: `Минимальная длина — 500 мм (указано: ${params.length} мм)` });
+    if (params.length > 3500) errors.push({ field: "length", message: `Максимальная длина — 3500 мм (указано: ${params.length} мм)` });
+    if (params.width < 200) errors.push({ field: "width", message: `Минимальная ширина — 200 мм (указано: ${params.width} мм)` });
+    if (params.width > 1500) errors.push({ field: "width", message: `Максимальная ширина — 1500 мм (указано: ${params.width} мм)` });
+  }
+
+  // Thickness
+  if (params.thickness < 20) errors.push({ field: "thickness", message: `Минимальная толщина — 20 мм (указано: ${params.thickness} мм)` });
+  if (params.thickness > 50) errors.push({ field: "thickness", message: `Максимальная толщина — 50 мм (указано: ${params.thickness} мм). Свыше 50 мм — требуется согласование.` });
+
+  // Conflict: drops + supports
+  const hasAnyDrop = Object.values(params.drops).some(h => h > 0);
+  const hasAnySupp = Object.values(params.supports).some(h => h > 0);
+  if (hasAnyDrop && hasAnySupp) {
+    errors.push({ field: "drops_supports", message: "Одновременное использование опор и опусков невозможно" });
+  }
+
+  // Drop height limits
+  for (const [side, h] of Object.entries(params.drops)) {
+    if (h > 300) {
+      const sideLabel = side === "front" ? "спереди" : side === "back" ? "сзади" : side === "left" ? "слева" : "справа";
+      errors.push({ field: `drop_${side}`, message: `Высота опуска ${sideLabel} (${h} мм) не может превышать 300 мм` });
+    }
+  }
+
+  // Support height limits (750–1200)
+  for (const [side, h] of Object.entries(params.supports)) {
+    if (h > 0 && (h < 750 || h > 1200)) {
+      const sideLabel = side === "left" ? "слева" : "справа";
+      errors.push({ field: `support_${side}`, message: `Высота опоры ${sideLabel} (${h} мм) должна быть 750–1200 мм` });
+    }
+  }
+
+  return errors;
+}
+
 export function calculateCountertop(params: CountertopParams, pricing: Record<string, number>, colorNames?: string[]): CalculationResult {
   const BASE_PRICE = pricing.base_price_per_m2 || 53200;
   const DENSITY = pricing.density || 2350;
@@ -94,23 +144,23 @@ export function calculateCountertop(params: CountertopParams, pricing: Record<st
   let area = 0, volume = 0, basePrice = 0, optionPrice = 0;
   const optionItems: { name: string; price: number }[] = [];
   const isIvory = params.color.toLowerCase() === "белоснежный";
+  const isCustom = !isIvory && !stdColors.map(c => c.toLowerCase()).includes(params.color.toLowerCase());
 
+  // Area & volume
   if (params.isRound && params.diameter) {
     const r = params.diameter / 2;
     area = (Math.PI * r * r) / 1_000_000;
-    volume = area * (params.thickness / 1000);
-    basePrice = area * BASE_PRICE;
-    if (params.thickness === 40) basePrice *= THICK_40_MULT;
-    if (isIvory) basePrice *= IVORY_MULT;
   } else {
     area = (params.length * params.width) / 1_000_000;
-    volume = area * (params.thickness / 1000);
-    basePrice = area * BASE_PRICE;
-    if (params.thickness === 40) basePrice *= THICK_40_MULT;
-    if (isIvory) basePrice *= IVORY_MULT;
   }
+  volume = area * (params.thickness / 1000);
 
-  // Supports (only for non-round)
+  // Base price with modifiers
+  basePrice = area * BASE_PRICE;
+  if (params.thickness === 40) basePrice *= THICK_40_MULT;
+  if (isIvory) basePrice *= IVORY_MULT;
+
+  // Supports (only non-round)
   if (!params.isRound) {
     for (const side of ["left", "right"] as const) {
       const h = params.supports[side];
@@ -124,13 +174,12 @@ export function calculateCountertop(params: CountertopParams, pricing: Record<st
     }
   }
 
-  // Drops - work for both round and rectangular
+  // Drops
   for (const [side, h] of Object.entries(params.drops)) {
     if (h > 0) {
       let len: number;
       if (params.isRound && params.diameter) {
-        // For round: use circumference portion (quarter per side)
-        len = Math.PI * params.diameter / 4;
+        len = Math.PI * params.diameter;
       } else {
         len = side === "front" || side === "back" ? params.length : params.width;
       }
@@ -144,12 +193,12 @@ export function calculateCountertop(params: CountertopParams, pricing: Record<st
   }
 
   // Custom color
-  const isCustom = !stdColors.map(c => c.toLowerCase()).includes(params.color.toLowerCase()) && !isIvory;
   if (isCustom) {
     optionPrice += CUSTOM_COLOR;
     optionItems.push({ name: `Нестандартный цвет: ${params.color}`, price: CUSTOM_COLOR });
   }
 
+  // Quantity & totals
   const qty = Math.max(1, params.quantity);
   const totalBase = basePrice * qty;
   const totalOpt = optionPrice * qty;
@@ -159,8 +208,38 @@ export function calculateCountertop(params: CountertopParams, pricing: Record<st
   const installByWeight = Math.round(totalWeight * INSTALL_PER_KG);
   const installationPrice = Math.max(MIN_INSTALL, installByWeight);
 
+  // Build nomenclature label
+  let label: string;
+  if (params.isRound && params.diameter) {
+    label = `Столешница индивидуальная COZY ART Ø${params.diameter} × ${params.thickness} мм`;
+  } else {
+    label = `Столешница индивидуальная COZY ART ${params.length} × ${params.width} × ${params.thickness} мм`;
+  }
+
+  // Add drops to label
+  const activeDrops: string[] = [];
+  for (const [side, h] of Object.entries(params.drops)) {
+    if (h > 0) {
+      const sideLabel = side === "front" ? "спереди" : side === "back" ? "сзади" : side === "left" ? "слева" : "справа";
+      activeDrops.push(`${sideLabel} ${h}`);
+    }
+  }
+  if (activeDrops.length > 0) label += `, опуски (${activeDrops.join(", ")}) мм`;
+
+  // Add supports to label
+  const activeSupports: string[] = [];
+  for (const [side, h] of Object.entries(params.supports)) {
+    if (h > 0) {
+      const sideLabel = side === "left" ? "слева" : "справа";
+      activeSupports.push(`${sideLabel} ${h}`);
+    }
+  }
+  if (activeSupports.length > 0) label += `, опоры (${activeSupports.join(", ")}) мм`;
+
+  label += `, архитектурный бетон, цвет ${params.color}`;
+
   return {
-    productLabel: "Столешница",
+    productLabel: label,
     area: +area.toFixed(4),
     weight: totalWeight,
     basePrice: Math.round(totalBase),
