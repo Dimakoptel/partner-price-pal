@@ -4,8 +4,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { CountertopParams, SinkParams, SimpleProductParams, ProductType } from "@/lib/calculator";
-import { Calculator } from "lucide-react";
+import { CountertopParams, SinkParams, SimpleProductParams, ProductType, validateSinkParams, SinkValidationError } from "@/lib/calculator";
+import { Calculator, AlertTriangle } from "lucide-react";
 
 interface Props {
   productType: ProductType;
@@ -43,11 +43,12 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
   const [hasRiser, setHasRiser] = useState(false);
   const [riserHeight, setRiserHeight] = useState(150);
   const [isHeated, setIsHeated] = useState(false);
-
+  const [validationErrors, setValidationErrors] = useState<SinkValidationError[]>([]);
   const finalColor = color === "другой" ? customColor : color;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setValidationErrors([]);
 
     if (productType === "countertop") {
       const params: CountertopParams = {
@@ -67,6 +68,11 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
         maxBowlSize,
         color: finalColor, drainType, mixerMount,
       };
+      const errors = validateSinkParams(params);
+      if (errors.length > 0) {
+        setValidationErrors(errors);
+        return;
+      }
       onCalculate(params);
     } else {
       const params: SimpleProductParams = {
@@ -108,11 +114,11 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
             <>
               <div>
                 <Label className="text-xs">Длина (мм)</Label>
-                <Input type="number" value={length} onChange={(e) => setLength(+e.target.value)} min={200} max={5000} className={inputClass} />
+                <Input type="number" value={length} onChange={(e) => setLength(+e.target.value)} min={productType === "sink" ? 500 : 200} max={productType === "sink" ? 4000 : 5000} className={inputClass} />
               </div>
               <div>
                 <Label className="text-xs">Ширина (мм)</Label>
-                <Input type="number" value={width} onChange={(e) => setWidth(+e.target.value)} min={200} max={2000} className={inputClass} />
+                <Input type="number" value={width} onChange={(e) => setWidth(+e.target.value)} min={productType === "sink" ? 300 : 200} max={productType === "sink" ? 1500 : 2000} className={inputClass} />
               </div>
             </>
           )}
@@ -126,7 +132,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
 
           <div>
             <Label className="text-xs">Количество (шт.)</Label>
-            <Input type="number" value={quantity} onChange={(e) => setQuantity(+e.target.value)} min={1} max={100} className={inputClass} />
+            <Input type="number" value={quantity} onChange={(e) => setQuantity(+e.target.value)} min={1} max={productType === "sink" ? 10 : 100} className={inputClass} />
           </div>
         </div>
       </div>
@@ -303,6 +309,16 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
           />
         )}
       </div>
+      {validationErrors.length > 0 && (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 space-y-2">
+          {validationErrors.map((err, i) => (
+            <div key={i} className="flex items-start gap-2 text-sm text-destructive">
+              <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+              <span>{err.message}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       <Button type="submit" className="w-full gap-2" size="lg">
         <Calculator className="w-5 h-5" />

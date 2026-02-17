@@ -253,6 +253,49 @@ export function calculateSimpleProduct(
   };
 }
 
+export interface SinkValidationError {
+  field: string;
+  message: string;
+}
+
+export function validateSinkParams(params: SinkParams): SinkValidationError[] {
+  const errors: SinkValidationError[] = [];
+
+  // Size limits
+  if (params.length < 500) {
+    errors.push({ field: "length", message: `Минимальная длина раковины — 500 мм (указано: ${params.length} мм)` });
+  }
+  if (params.length > 4000) {
+    errors.push({ field: "length", message: `Максимальная длина раковины — 4000 мм (указано: ${params.length} мм). Рекомендуем разделить на 2 изделия.` });
+  }
+  if (params.width < 300) {
+    errors.push({ field: "width", message: `Минимальная ширина раковины — 300 мм (указано: ${params.width} мм)` });
+  }
+  if (params.width > 1500) {
+    errors.push({ field: "width", message: `Максимальная ширина раковины — 1500 мм (указано: ${params.width} мм)` });
+  }
+
+  // Bowl count
+  if (params.bowlCount < 1) {
+    errors.push({ field: "bowlCount", message: "Раковины без чаши не производятся. Минимум 1 чаша." });
+  }
+  if (params.bowlCount > 5) {
+    errors.push({ field: "bowlCount", message: "Максимум 5 чаш в одной раковине." });
+  }
+
+  // Overhang
+  if (params.overhangHeight > 300) {
+    errors.push({ field: "overhangHeight", message: `Максимальная высота опуска — 300 мм (указано: ${params.overhangHeight} мм)` });
+  }
+
+  // Quantity
+  if (params.quantity > 10) {
+    errors.push({ field: "quantity", message: "Максимум 10 изделий в одном расчёте." });
+  }
+
+  return errors;
+}
+
 export function calculateSink(params: SinkParams, pricing: Record<string, number>, colorNames?: string[]): CalculationResult {
   const PRICE_PER_SQM = pricing.base_price_per_m2 || 53200;
   const DENSITY = pricing.density || 2350;
