@@ -2,10 +2,10 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import AppLayout from "@/components/AppLayout";
 import { useCalculations } from "@/hooks/useCalculations";
-import { Trash2, Search, CalendarDays, List } from "lucide-react";
+import { Search, CalendarDays, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+
 import { Badge } from "@/components/ui/badge";
 
 function formatPrice(num: number) {
@@ -98,7 +98,7 @@ function CalendarView({
 }
 
 export default function HistoryPage() {
-  const { calculations, loading, deleteCalculation } = useCalculations();
+  const { calculations, loading } = useCalculations();
   const [search, setSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
@@ -128,12 +128,6 @@ export default function HistoryPage() {
     }
     return result;
   }, [calculations, search, selectedDate]);
-
-  const handleDelete = async (id: string) => {
-    const { error } = await deleteCalculation(id);
-    if (error) toast.error("Ошибка удаления");
-    else toast.success("Удалено");
-  };
 
   return (
     <AppLayout>
@@ -205,9 +199,6 @@ export default function HistoryPage() {
                     <div className="text-xs text-muted-foreground mb-2">{formatDate(calc.created_at)}</div>
                     <div className="text-sm leading-relaxed">{calc.product_label}</div>
                   </div>
-                  <Button size="sm" variant="ghost" onClick={() => handleDelete(calc.id)} className="text-muted-foreground hover:text-destructive shrink-0">
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
                 </div>
                 <div className="mt-3 pt-3 border-t border-border/50 space-y-1 text-sm">
                   <div className="flex justify-between">
