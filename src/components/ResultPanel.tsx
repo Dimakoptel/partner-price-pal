@@ -1,8 +1,7 @@
 import { motion } from "framer-motion";
 import { CalculationResult } from "@/lib/calculator";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Printer, Share2, Save, MessageCircle, Mail } from "lucide-react";
+import { Printer, Share2, Save, MessageCircle, Mail, Download } from "lucide-react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -11,15 +10,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-function formatPrice(num: number) {
+export function formatPrice(num: number) {
   return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
-interface CompanySettingsAccessor {
+export interface CompanySettingsAccessor {
   getSetting: (key: string) => string;
 }
 
-function buildShareText(result: CalculationResult, cs?: CompanySettingsAccessor) {
+export interface SpecialistInfo {
+  fullName?: string;
+  phone?: string;
+  telegram?: string;
+  email?: string;
+}
+
+export function buildShareText(result: CalculationResult, cs?: CompanySettingsAccessor) {
   let text = `🧾 Расчёт стоимости\n\n`;
   text += `${result.productLabel}\n`;
   text += `Стоимость изделия: ${formatPrice(result.totalPrice)} ₽\n`;
@@ -47,7 +53,7 @@ function buildShareText(result: CalculationResult, cs?: CompanySettingsAccessor)
   return text;
 }
 
-function handlePrint(result: CalculationResult, cs?: CompanySettingsAccessor, specialist?: SpecialistInfo) {
+export function handlePrint(result: CalculationResult, cs?: CompanySettingsAccessor, specialist?: SpecialistInfo) {
   const phone = cs?.getSetting("phone_main") || "";
   const phoneExtra = cs?.getSetting("phone_extra") || "";
   const email = cs?.getSetting("email") || "";
@@ -71,7 +77,6 @@ function handlePrint(result: CalculationResult, cs?: CompanySettingsAccessor, sp
       </tr>`
     : "";
 
-  // Build contact lines only from filled company_settings
   const headerContactLines: string[] = [];
   if (phone) headerContactLines.push(phone);
   if (phoneExtra) headerContactLines.push(phoneExtra);
@@ -182,7 +187,7 @@ function handlePrint(result: CalculationResult, cs?: CompanySettingsAccessor, sp
   printWindow.print();
 }
 
-function shareVia(platform: string, result: CalculationResult, cs?: CompanySettingsAccessor) {
+export function shareVia(platform: string, result: CalculationResult, cs?: CompanySettingsAccessor) {
   const text = encodeURIComponent(buildShareText(result, cs));
   let url = "";
   switch (platform) {
@@ -198,11 +203,15 @@ function shareVia(platform: string, result: CalculationResult, cs?: CompanySetti
   window.open(url, "_blank");
 }
 
-interface SpecialistInfo {
-  fullName?: string;
-  phone?: string;
-  telegram?: string;
-  email?: string;
+export function handleSaveFile(result: CalculationResult, calcName?: string) {
+  const text = buildShareText(result);
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${calcName || "расчёт"}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 interface Props {
@@ -211,9 +220,10 @@ interface Props {
   saving?: boolean;
   companySettings?: CompanySettingsAccessor;
   specialist?: SpecialistInfo;
+  calcName?: string;
 }
 
-export default function ResultPanel({ result, onSave, saving, companySettings, specialist }: Props) {
+export default function ResultPanel({ result, onSave, saving, companySettings, specialist, calcName }: Props) {
   const prodDays = companySettings?.getSetting("production_days") || "20";
 
   return (
@@ -234,33 +244,33 @@ export default function ResultPanel({ result, onSave, saving, companySettings, s
       <div className="space-y-3 text-sm">
         <div className="flex justify-between">
           <span className="text-muted-foreground">Стоимость изделия</span>
-          <span className="font-medium">{formatPrice(result.totalPrice)} ₽</span>
+          <span className="font-medium whitespace-nowrap ml-4">{formatPrice(result.totalPrice)} ₽</span>
         </div>
 
         {result.quantity > 1 && (
           <div className="flex justify-between text-xs">
             <span className="text-muted-foreground">Цена за 1 шт.</span>
-            <span>{formatPrice(result.pricePerUnit)} ₽</span>
+            <span className="whitespace-nowrap ml-4">{formatPrice(result.pricePerUnit)} ₽</span>
           </div>
         )}
 
         {result.weight > 0 && (
           <div className="flex justify-between text-xs">
             <span className="text-muted-foreground">Ориентировочный вес</span>
-            <span>{result.weight} кг</span>
+            <span className="whitespace-nowrap ml-4">{result.weight} кг</span>
           </div>
         )}
 
         {result.supportPrice != null && result.supportPrice > 0 && (
           <div className="flex justify-between">
             <span className="text-muted-foreground text-xs">{result.supportLabel || "Кронштейн"} <span className="text-[10px]">(при необходимости)</span></span>
-            <span>{formatPrice(result.supportPrice)} ₽</span>
+            <span className="whitespace-nowrap ml-4">{formatPrice(result.supportPrice)} ₽</span>
           </div>
         )}
 
         <div className="flex justify-between">
           <span className="text-muted-foreground">Монтаж <span className="text-[10px]">(при необходимости)</span></span>
-          <span>{formatPrice(result.installationPrice)} ₽</span>
+          <span className="whitespace-nowrap ml-4">{formatPrice(result.installationPrice)} ₽</span>
         </div>
       </div>
 
@@ -291,6 +301,10 @@ export default function ResultPanel({ result, onSave, saving, companySettings, s
         <Button size="sm" variant="secondary" onClick={() => handlePrint(result, companySettings, specialist)} className="gap-1.5">
           <Printer className="w-4 h-4" />
           Печать
+        </Button>
+        <Button size="sm" variant="secondary" onClick={() => handleSaveFile(result, calcName)} className="gap-1.5">
+          <Download className="w-4 h-4" />
+          Сохранить файл
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
