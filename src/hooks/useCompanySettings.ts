@@ -36,9 +36,27 @@ export function useCompanySettings() {
     return { error };
   };
 
+  const addSetting = async (key: string, label: string, value: string, category: string) => {
+    const maxOrder = settings.reduce((max, s) => Math.max(max, s.sort_order), 0);
+    const { error } = await (supabase
+      .from("company_settings" as any) as any)
+      .insert({ key, label, value, category, sort_order: maxOrder + 1 });
+    if (!error) fetchSettings();
+    return { error };
+  };
+
+  const deleteSetting = async (id: string) => {
+    const { error } = await (supabase
+      .from("company_settings" as any) as any)
+      .delete()
+      .eq("id", id);
+    if (!error) fetchSettings();
+    return { error };
+  };
+
   useEffect(() => {
     fetchSettings();
   }, []);
 
-  return { settings, loading, getSetting, updateSetting, fetchSettings };
+  return { settings, loading, getSetting, updateSetting, addSetting, deleteSetting, fetchSettings };
 }
