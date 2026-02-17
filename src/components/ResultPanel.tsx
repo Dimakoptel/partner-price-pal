@@ -23,6 +23,9 @@ function buildShareText(result: CalculationResult, cs?: CompanySettingsAccessor)
   let text = `🧾 Расчёт стоимости\n\n`;
   text += `${result.productLabel}\n`;
   text += `Стоимость изделия: ${formatPrice(result.totalPrice)} ₽\n`;
+  if (result.weight > 0) {
+    text += `Ориентировочный вес: ${result.weight} кг\n`;
+  }
   if (result.supportPrice) {
     text += `${result.supportLabel || "Кронштейн"} (при необходимости): ${formatPrice(result.supportPrice)} ₽\n`;
   }
@@ -45,15 +48,15 @@ function buildShareText(result: CalculationResult, cs?: CompanySettingsAccessor)
 }
 
 function handlePrint(result: CalculationResult, cs?: CompanySettingsAccessor, specialist?: SpecialistInfo) {
-  const phone = cs?.getSetting("phone_main") || "+7 (913) 748-05-03";
+  const phone = cs?.getSetting("phone_main") || "";
   const phoneExtra = cs?.getSetting("phone_extra") || "";
-  const email = cs?.getSetting("email") || "cozyartnsk1@gmail.com";
-  const site = cs?.getSetting("website") || "www.cozyart.ru";
-  const address = cs?.getSetting("address") || "г. Новосибирск";
-  const workHours = cs?.getSetting("work_hours") || "Пн-Пт: 09:00 — 18:00";
+  const email = cs?.getSetting("email") || "";
+  const site = cs?.getSetting("website") || "";
+  const address = cs?.getSetting("address") || "";
+  const workHours = cs?.getSetting("work_hours") || "";
   const prodDays = cs?.getSetting("production_days") || "20";
   const warranty = cs?.getSetting("warranty_years") || "1";
-  const telegram = cs?.getSetting("telegram") || "@dimakopt";
+  const telegram = cs?.getSetting("telegram") || "";
   const whatsapp = cs?.getSetting("whatsapp") || "";
 
   const printWindow = window.open("", "_blank");
@@ -67,6 +70,21 @@ function handlePrint(result: CalculationResult, cs?: CompanySettingsAccessor, sp
         <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600;white-space:nowrap;">${formatPrice(result.supportPrice)} ₽</td>
       </tr>`
     : "";
+
+  // Build contact lines only from filled company_settings
+  const headerContactLines: string[] = [];
+  if (phone) headerContactLines.push(phone);
+  if (phoneExtra) headerContactLines.push(phoneExtra);
+  if (email) headerContactLines.push(email);
+
+  const footerLeftLines: string[] = [];
+  if (address) footerLeftLines.push(address);
+  if (workHours) footerLeftLines.push(workHours);
+
+  const footerRightLines: string[] = [];
+  if (site) footerRightLines.push(site);
+  if (telegram) footerRightLines.push(`Telegram: ${telegram}`);
+  if (whatsapp) footerRightLines.push(`WhatsApp: ${whatsapp}`);
 
   printWindow.document.write(`<!DOCTYPE html>
 <html lang="ru">
@@ -106,11 +124,7 @@ function handlePrint(result: CalculationResult, cs?: CompanySettingsAccessor, sp
       <div class="logo">COZY ART</div>
       <div class="logo-sub">архитектурный бетон</div>
     </div>
-    <div class="header-contacts">
-      ${phone}<br>
-      ${phoneExtra ? phoneExtra + "<br>" : ""}
-      ${email}
-    </div>
+    ${headerContactLines.length > 0 ? `<div class="header-contacts">${headerContactLines.join("<br>")}</div>` : ""}
   </div>
 
   <div class="section-title">Расчёт стоимости изделия</div>
@@ -128,9 +142,13 @@ function handlePrint(result: CalculationResult, cs?: CompanySettingsAccessor, sp
     <tr>
       <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;">
         <div style="font-size:14px;color:#333;">Монтажные работы <span style="font-size:11px;color:#888;">(при необходимости)</span></div>
-        <div style="font-size:11px;color:#888;margin-top:2px;">в черте города Новосибирск</div>
       </td>
       <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600;white-space:nowrap;">${formatPrice(result.installationPrice)} ₽</td>
+    </tr>
+    <tr>
+      <td colspan="2" style="padding:8px 0;font-size:12px;color:#555;">
+        Ориентировочный вес: <strong>${result.weight} кг</strong>
+      </td>
     </tr>
   </table>
 
@@ -155,14 +173,8 @@ function handlePrint(result: CalculationResult, cs?: CompanySettingsAccessor, sp
   ` : ""}
 
   <div class="footer">
-    <div class="footer-col">
-      ${address}<br>
-      ${workHours}
-    </div>
-    <div class="footer-col" style="text-align:right;">
-      ${site}<br>
-      Telegram: ${telegram}${whatsapp ? "<br>WhatsApp: " + whatsapp : ""}
-    </div>
+    ${footerLeftLines.length > 0 ? `<div class="footer-col">${footerLeftLines.join("<br>")}</div>` : ""}
+    ${footerRightLines.length > 0 ? `<div class="footer-col" style="text-align:right;">${footerRightLines.join("<br>")}</div>` : ""}
   </div>
 </div>
 </body></html>`);
@@ -174,7 +186,7 @@ function shareVia(platform: string, result: CalculationResult, cs?: CompanySetti
   const text = encodeURIComponent(buildShareText(result, cs));
   let url = "";
   switch (platform) {
-    case "telegram": url = `https://t.me/share/url?text=${text}`; break;
+    case "telegram": url = `tg://msg_url?url=&text=${text}`; break;
     case "whatsapp": url = `https://wa.me/?text=${text}`; break;
     case "email": url = `mailto:?subject=${encodeURIComponent("COZY ART — Расчёт стоимости")}&body=${text}`; break;
     default: {
@@ -229,6 +241,13 @@ export default function ResultPanel({ result, onSave, saving, companySettings, s
           <div className="flex justify-between text-xs">
             <span className="text-muted-foreground">Цена за 1 шт.</span>
             <span>{formatPrice(result.pricePerUnit)} ₽</span>
+          </div>
+        )}
+
+        {result.weight > 0 && (
+          <div className="flex justify-between text-xs">
+            <span className="text-muted-foreground">Ориентировочный вес</span>
+            <span>{result.weight} кг</span>
           </div>
         )}
 
