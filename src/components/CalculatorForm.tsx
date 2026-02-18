@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { CountertopParams, SinkParams, SimpleProductParams, StepSlabParams, WindowsillParams, BacksplashParams, ProductType, validateSinkParams, SinkValidationError, validateCountertopParams, CountertopValidationError, validateStepSlabParams, StepSlabValidationError, validateWindowsillParams, WindowsillValidationError, validateBacksplashParams, BacksplashValidationError } from "@/lib/calculator";
+import { CountertopParams, SinkParams, StairParams, StepSlabParams, WindowsillParams, BacksplashParams, ProductType, validateSinkParams, SinkValidationError, validateCountertopParams, CountertopValidationError, validateStepSlabParams, StepSlabValidationError, validateWindowsillParams, WindowsillValidationError, validateBacksplashParams, BacksplashValidationError, validateStairParams, StairValidationError } from "@/lib/calculator";
 import { Calculator, AlertTriangle } from "lucide-react";
 
 interface Props {
@@ -43,10 +43,11 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
   const [drainType, setDrainType] = useState("щелевой");
   const [mixerMount, setMixerMount] = useState<"на столешнице" | "на стене">("на столешнице");
   const [hasRiser, setHasRiser] = useState(false);
-  const [riserHeight, setRiserHeight] = useState(150);
+  const [riserHeight, setRiserHeight] = useState(180);
+  const [riserThickness, setRiserThickness] = useState(15);
   const [isHeated, setIsHeated] = useState(false);
   const [thicknessConcrete, setThicknessConcrete] = useState(40);
-  const [validationErrors, setValidationErrors] = useState<(SinkValidationError | CountertopValidationError | StepSlabValidationError | WindowsillValidationError | BacksplashValidationError)[]>([]);
+  const [validationErrors, setValidationErrors] = useState<(SinkValidationError | CountertopValidationError | StepSlabValidationError | WindowsillValidationError | BacksplashValidationError | StairValidationError)[]>([]);
   const finalColor = color === "другой" ? customColor : color;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -113,12 +114,18 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
         return;
       }
       onCalculate(params);
-    } else {
-      const params: SimpleProductParams = {
+    } else if (productType === "stair") {
+      const params: StairParams = {
         length, width, thickness, color: finalColor, quantity,
-        hasRiser: productType === "stair" ? hasRiser : undefined,
-        riserHeight: productType === "stair" && hasRiser ? riserHeight : undefined,
+        hasRiser,
+        riserHeight: hasRiser ? riserHeight : 0,
+        riserThickness: hasRiser ? riserThickness : 15,
       };
+      const errors = validateStairParams(params);
+      if (errors.length > 0) {
+        setValidationErrors(errors);
+        return;
+      }
       onCalculate(params);
     }
   };
@@ -194,10 +201,23 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
               )}
             </div>
           )}
-          {(productType === "countertop" || productType === "stair") && (
+          {productType === "countertop" && (
             <div>
               <Label className="text-xs">Толщина (мм)</Label>
               <Input type="number" value={thickness} onChange={(e) => setThickness(+e.target.value)} min={20} max={50} className={inputClass} />
+            </div>
+          )}
+          {productType === "stair" && (
+            <div>
+              <Label className="text-xs">Толщина (мм)</Label>
+              <Select value={String(thickness)} onValueChange={(v) => setThickness(+v)}>
+                <SelectTrigger className={inputClass}><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30">30 мм</SelectItem>
+                  <SelectItem value="35">35 мм</SelectItem>
+                  <SelectItem value="40">40 мм (+10%)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           )}
           {productType === "windowsill" && (
@@ -291,7 +311,13 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs">Высота подступенка (мм)</Label>
-                <Input type="number" value={riserHeight} onChange={(e) => setRiserHeight(+e.target.value)} min={50} max={300} className={inputClass} />
+                <Input type="number" value={riserHeight} onChange={(e) => setRiserHeight(+e.target.value)} min={100} max={300} className={inputClass} />
+                <p className="text-[10px] text-muted-foreground mt-1">100–300 мм (по умолч. 180)</p>
+              </div>
+              <div>
+                <Label className="text-xs">Толщина подступенка (мм)</Label>
+                <Input type="number" value={riserThickness} onChange={(e) => setRiserThickness(+e.target.value)} min={15} max={20} className={inputClass} />
+                <p className="text-[10px] text-muted-foreground mt-1">15–20 мм (по умолч. 15)</p>
               </div>
             </div>
           )}
