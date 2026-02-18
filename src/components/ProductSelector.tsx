@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { PRODUCTS, ProductInfo } from "@/lib/calculator";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
 
 interface Props {
   selected: string | null;
@@ -7,6 +8,17 @@ interface Props {
 }
 
 export default function ProductSelector({ selected, onSelect }: Props) {
+  const { getSetting } = useCompanySettings();
+
+  const getProductIcon = (product: ProductInfo) => {
+    const customIcon = getSetting(`product_icon_${product.type}`);
+    if (!customIcon) return <span className="text-2xl">{product.icon}</span>;
+    if (customIcon.startsWith("http")) {
+      return <img src={customIcon} alt={product.label} className="w-8 h-8 object-contain" />;
+    }
+    return <span className="text-2xl">{customIcon}</span>;
+  };
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
       {PRODUCTS.map((p, i) => (
@@ -22,7 +34,7 @@ export default function ProductSelector({ selected, onSelect }: Props) {
               : "hover:bg-card"
           }`}
         >
-          <div className="text-2xl mb-2">{p.icon}</div>
+          <div className="mb-2">{getProductIcon(p)}</div>
           <div className="font-medium text-sm">{p.label}</div>
           <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{p.description}</div>
         </motion.button>
