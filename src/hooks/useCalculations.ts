@@ -55,7 +55,9 @@ export function useCalculations() {
       .from("saved_calculations" as any) as any)
       .delete()
       .eq("id", id);
-    if (!error) fetchCalculations();
+    if (!error) {
+      setCalculations(prev => prev.filter(c => c.id !== id));
+    }
     return { error };
   };
 

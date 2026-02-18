@@ -25,6 +25,15 @@ export interface SpecialistInfo {
   email?: string;
 }
 
+// "Коптелов Дмитрий Владимирович" → "Дмитрий Коптелов"
+function formatSpecialistName(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return `${parts[1]} ${parts[0]}`;
+  }
+  return fullName;
+}
+
 export function buildShareText(result: CalculationResult, cs?: CompanySettingsAccessor) {
   let text = `🧾 Расчёт стоимости\n\n`;
   text += `${result.productLabel}\n`;
@@ -241,7 +250,7 @@ export function buildPrintHtml(result: CalculationResult, cs?: CompanySettingsAc
   ${specialist?.fullName ? `
   <div class="section-title" style="margin-top:20px;">Ваш специалист</div>
   <div style="font-size:13px;color:#333;line-height:1.8;margin-bottom:20px;">
-    <strong>${specialist.fullName}</strong><br>
+    <strong>${formatSpecialistName(specialist.fullName)}</strong><br>
     ${specialist.phone ? `📞 ${specialist.phone}<br>` : ""}
     ${specialist.email ? `✉️ ${specialist.email}<br>` : ""}
     ${specialist.telegram ? `Telegram: ${specialist.telegram}` : ""}
@@ -433,7 +442,7 @@ export default function ResultPanel({ result, onSave, saving, companySettings, s
 
       {specialist?.fullName && (
         <div className="mt-3 p-3 rounded-lg bg-secondary/30 text-xs text-muted-foreground space-y-0.5">
-          <p className="font-medium text-foreground">Специалист: {specialist.fullName}</p>
+          <p className="font-medium text-foreground">Специалист: {formatSpecialistName(specialist.fullName)}</p>
           {specialist.phone && <p>📞 {specialist.phone}</p>}
           {specialist.email && <p>✉️ {specialist.email}</p>}
           {specialist.telegram && <p>Telegram: {specialist.telegram}</p>}
