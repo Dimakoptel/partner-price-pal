@@ -61,6 +61,20 @@ export interface SimpleProductParams {
   isHeated?: boolean;
 }
 
+export interface StepSlabParams {
+  length: number;
+  width: number;
+  thicknessConcrete: number;
+  isHeated: boolean;
+  color: string;
+  quantity: number;
+}
+
+export interface StepSlabValidationError {
+  field: string;
+  message: string;
+}
+
 export interface CalculationResult {
   productLabel: string;
   area: number;
@@ -74,9 +88,12 @@ export interface CalculationResult {
   supportPricePerItem?: number;
   supportLabel?: string;
   installationPrice: number;
+  installationNote?: string;
   grandTotal: number;
   quantity: number;
   pricePerUnit: number;
+  energyConsumption?: number;
+  energyConsumptionPerItem?: number;
 }
 
 export interface CountertopValidationError {
@@ -306,12 +323,6 @@ export function calculateSimpleProduct(
     optionItems.push({ name: `Подступенок ${params.riserHeight} мм`, price: Math.round(riserCost) });
   }
 
-  // Stepslab heated
-  if (type === "stepslab" && params.isHeated) {
-    optionPrice += HEATED_SURCHARGE;
-    optionItems.push({ name: "Подогрев", price: HEATED_SURCHARGE });
-  }
-
   const qty = Math.max(1, params.quantity);
   const totalPrice = Math.round((basePrice + optionPrice) * qty);
   const totalWeight = Math.round(volume * DENSITY * qty);
@@ -329,6 +340,93 @@ export function calculateSimpleProduct(
     grandTotal: totalPrice + installationPrice,
     quantity: qty,
     pricePerUnit: Math.round(totalPrice / qty),
+  };
+}
+
+export function validateStepSlabParams(params: StepSlabParams): StepSlabValidationError[] {
+  const errors: StepSlabValidationError[] = [];
+  if (params.length < 500) errors.push({ field: "length", message: `Минимальная длина — 500 мм (указано: ${params.length} мм)` });
+  if (params.length > 3500) errors.push({ field: "length", message: `Максимальная длина — 3500 мм (указано: ${params.length} мм)` });
+  if (params.width < 200) errors.push({ field: "width", message: `Минимальная ширина — 200 мм (указано: ${params.width} мм)` });
+  if (params.width > 1500) errors.push({ field: "width", message: `Максимальная ширина — 1500 мм (указано: ${params.width} мм)` });
+  if (params.thicknessConcrete < 40) errors.push({ field: "thickness", message: `Минимальная толщина бетона — 40 мм (указано: ${params.thicknessConcrete} мм)` });
+  if (params.thicknessConcrete > 60) errors.push({ field: "thickness", message: `Максимальная толщина бетона — 60 мм (указано: ${params.thicknessConcrete} мм)` });
+  if (params.isHeated) {
+    const total = params.thicknessConcrete + 20;
+    if (total > 80) {
+      errors.push({ field: "thickness", message: `Общая толщина с подложкой (${params.thicknessConcrete} + 20 = ${total} мм) превышает максимум 80 мм` });
+    }
+  }
+  return errors;
+}
+
+export function calculateStepSlab(params: StepSlabParams, pricing: Record<string, number>, colorNames?: string[]): CalculationResult {
+  const DENSITY = 2400;
+  const PRICE_PER_M2_COLD = pricing.stepslab_price_per_m2 || 25300;
+  const PRICE_PER_M2_HEATED = pricing.stepslab_heated_price_per_m2 || 33350;
+  const CUSTOM_COLOR = pricing.custom_color_surcharge || 3000;
+  const IVORY_MULT = pricing.ivory_color_multiplier || 1.03;
+  const WATTS_PER_M2 = 200 / 0.54; // ≈ 370.37 Вт/м²
+  const SUBSTRATE_THICKNESS = 20;
+
+  const stdColors = colorNames || STANDARD_COLORS;
+  const thicknessTotal = params.isHeated ? params.thicknessConcrete + SUBSTRATE_THICKNESS : params.thicknessConcrete;
+  const area = (params.length * params.width) / 1_000_000;
+  const volumePerItem = (params.length / 1000) * (params.width / 1000) * (thicknessTotal / 1000);
+  const qty = Math.max(1, Math.floor(params.quantity));
+
+  const pricePerM2 = params.isHeated ? PRICE_PER_M2_HEATED : PRICE_PER_M2_COLD;
+  let basePricePerItem = area * pricePerM2;
+
+  const optionItems: { name: string; price: number }[] = [];
+  let optionPrice = 0;
+
+  const isIvory = params.color.toLowerCase() === "белоснежный";
+  const isCustom = !isIvory && !stdColors.map(c => c.toLowerCase()).includes(params.color.toLowerCase());
+  if (isCustom) {
+    optionPrice += CUSTOM_COLOR;
+    optionItems.push({ name: `Нестандартный цвет: ${params.color}`, price: CUSTOM_COLOR });
+  }
+  if (isIvory) {
+    basePricePerItem *= IVORY_MULT;
+  }
+
+  if (params.isHeated) {
+    optionItems.push({ name: "С обогревом", price: 0 });
+  }
+
+  const totalPrice = Math.round((basePricePerItem + optionPrice) * qty);
+  const weightPerItem = Math.round(volumePerItem * DENSITY);
+  const totalWeight = weightPerItem * qty;
+
+  let energyPerItem = 0;
+  if (params.isHeated) {
+    energyPerItem = Math.round(area * WATTS_PER_M2);
+  }
+
+  // Build label
+  let label = `Плита пошаговая COZY ART ${params.length} × ${params.width} × ${thicknessTotal} мм`;
+  if (params.isHeated) {
+    label += ` (бетон ${params.thicknessConcrete} мм + подложка ${SUBSTRATE_THICKNESS} мм)`;
+  }
+  label += `, ${params.isHeated ? "с обогревом, " : ""}архитектурный фибробетон${params.isHeated ? " с утеплённой подложкой" : ""}, цвет ${params.color}`;
+
+  return {
+    productLabel: label,
+    area: +area.toFixed(4),
+    weight: totalWeight,
+    weightPerItem,
+    basePrice: Math.round(basePricePerItem * qty),
+    optionPrice: Math.round(optionPrice * qty),
+    optionItems,
+    totalPrice,
+    installationPrice: 0,
+    installationNote: "Стоимость монтажа уточняется индивидуально у менеджера.\nНа цену влияют: сложность укладки, тип грунта, расстояние на объекте и другие факторы.",
+    grandTotal: totalPrice,
+    quantity: qty,
+    pricePerUnit: Math.round(basePricePerItem + optionPrice),
+    energyConsumption: energyPerItem * qty,
+    energyConsumptionPerItem: energyPerItem,
   };
 }
 
