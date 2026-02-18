@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import DOMPurify from "dompurify";
 import { CalculationResult } from "@/lib/calculator";
 import { Button } from "@/components/ui/button";
 import { Printer, Share2, Save, MessageCircle, Mail } from "lucide-react";
@@ -105,15 +106,15 @@ export function buildPrintHtml(result: CalculationResult, cs?: CompanySettingsAc
   const telegram = cs?.getSetting("telegram") || "";
   const whatsapp = cs?.getSetting("whatsapp") || "";
 
-  // Template settings
-  const companyName = cs?.getSetting("print_company_name") || "COZY ART";
-  const subtitle = cs?.getSetting("print_company_subtitle") || "архитектурный бетон";
-  const logoUrl = cs?.getSetting("print_logo_url") || "";
+  // Template settings - sanitize all user-controlled values
+  const companyName = DOMPurify.sanitize(cs?.getSetting("print_company_name") || "COZY ART");
+  const subtitle = DOMPurify.sanitize(cs?.getSetting("print_company_subtitle") || "архитектурный бетон");
+  const logoUrl = DOMPurify.sanitize(cs?.getSetting("print_logo_url") || "");
   const customFooterLeft = cs?.getSetting("print_footer_left") || "";
   const customFooterRight = cs?.getSetting("print_footer_right") || "";
   const customConditions = cs?.getSetting("print_conditions") || "";
-  const prodDays = cs?.getSetting("production_days") || "20";
-  const warranty = cs?.getSetting("warranty_years") || "1";
+  const prodDays = DOMPurify.sanitize(cs?.getSetting("production_days") || "20");
+  const warranty = DOMPurify.sanitize(cs?.getSetting("warranty_years") || "1");
 
   const supportLine = result.supportPrice
     ? `<tr>
@@ -140,14 +141,14 @@ export function buildPrintHtml(result: CalculationResult, cs?: CompanySettingsAc
   if (phoneExtra) headerContactLines.push(phoneExtra);
   if (email) headerContactLines.push(email);
 
-  // Footer: use custom or fallback to dynamic contacts
-  const footerLeftLines: string[] = customFooterLeft
+  // Footer: use custom or fallback to dynamic contacts, sanitize each line
+  const footerLeftLines: string[] = (customFooterLeft
     ? customFooterLeft.split("\n").filter(Boolean)
-    : [address, workHours].filter(Boolean);
+    : [address, workHours].filter(Boolean)).map(l => DOMPurify.sanitize(l));
 
-  const footerRightLines: string[] = customFooterRight
+  const footerRightLines: string[] = (customFooterRight
     ? customFooterRight.split("\n").filter(Boolean)
-    : [site, telegram ? `Telegram: ${telegram}` : "", whatsapp ? `WhatsApp: ${whatsapp}` : ""].filter(Boolean);
+    : [site, telegram ? `Telegram: ${telegram}` : "", whatsapp ? `WhatsApp: ${whatsapp}` : ""].filter(Boolean)).map(l => DOMPurify.sanitize(l));
 
   // Conditions: use custom or default
   const defaultConditions = [];
@@ -159,9 +160,9 @@ export function buildPrintHtml(result: CalculationResult, cs?: CompanySettingsAc
     `Срок изготовления: от ${prodDays} рабочих дней`,
     `Гарантия: ${warranty} год на изделие`,
   );
-  const conditionLines = customConditions
+  const conditionLines = (customConditions
     ? customConditions.split("\n").filter(Boolean)
-    : defaultConditions;
+    : defaultConditions).map(l => DOMPurify.sanitize(l));
 
   return `<!DOCTYPE html>
 <html lang="ru">

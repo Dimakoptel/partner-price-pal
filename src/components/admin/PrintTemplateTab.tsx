@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
+import DOMPurify from "dompurify";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -111,8 +112,8 @@ export default function PrintTemplateTab() {
   const logoUrl = getValue("print_logo_url");
 
   const handlePreview = () => {
-    const companyName = getValue("print_company_name") || "COZY ART";
-    const subtitle = getValue("print_company_subtitle") || "архитектурный бетон";
+    const companyName = DOMPurify.sanitize(getValue("print_company_name") || "COZY ART");
+    const subtitle = DOMPurify.sanitize(getValue("print_company_subtitle") || "архитектурный бетон");
     const conditions = getValue("print_conditions") || "";
     const footerLeft = getValue("print_footer_left");
     const footerRight = getValue("print_footer_right");
@@ -144,7 +145,7 @@ export default function PrintTemplateTab() {
 <div class="page">
   <div class="header">
     <div>
-      ${logoUrl ? `<img src="${logoUrl}" class="logo-img" alt="Logo"><br>` : ""}
+      ${logoUrl ? `<img src="${DOMPurify.sanitize(logoUrl)}" class="logo-img" alt="Logo"><br>` : ""}
       <div class="logo">${companyName}</div>
       <div class="logo-sub">${subtitle}</div>
     </div>
@@ -165,13 +166,13 @@ export default function PrintTemplateTab() {
   <div class="section-title">Условия</div>
   <div class="conditions">
     <ul>
-      ${conditions.split("\n").filter(Boolean).map(l => `<li>${l.trim()}</li>`).join("\n      ")}
+      ${conditions.split("\n").filter(Boolean).map(l => `<li>${DOMPurify.sanitize(l.trim())}</li>`).join("\n      ")}
     </ul>
   </div>
 
   <div class="footer">
-    ${footerLeft ? `<div class="footer-col">${footerLeft.split("\n").join("<br>")}</div>` : ""}
-    ${footerRight ? `<div class="footer-col" style="text-align:right;">${footerRight.split("\n").join("<br>")}</div>` : ""}
+    ${footerLeft ? `<div class="footer-col">${footerLeft.split("\n").map(l => DOMPurify.sanitize(l)).join("<br>")}</div>` : ""}
+    ${footerRight ? `<div class="footer-col" style="text-align:right;">${footerRight.split("\n").map(l => DOMPurify.sanitize(l)).join("<br>")}</div>` : ""}
   </div>
 </div></body></html>`);
     printWindow.document.close();
