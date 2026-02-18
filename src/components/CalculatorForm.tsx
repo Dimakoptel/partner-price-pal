@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { CountertopParams, SinkParams, SimpleProductParams, StepSlabParams, WindowsillParams, ProductType, validateSinkParams, SinkValidationError, validateCountertopParams, CountertopValidationError, validateStepSlabParams, StepSlabValidationError, validateWindowsillParams, WindowsillValidationError } from "@/lib/calculator";
+import { CountertopParams, SinkParams, SimpleProductParams, StepSlabParams, WindowsillParams, BacksplashParams, ProductType, validateSinkParams, SinkValidationError, validateCountertopParams, CountertopValidationError, validateStepSlabParams, StepSlabValidationError, validateWindowsillParams, WindowsillValidationError, validateBacksplashParams, BacksplashValidationError } from "@/lib/calculator";
 import { Calculator, AlertTriangle } from "lucide-react";
 
 interface Props {
@@ -18,7 +18,9 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
   const [width, setWidth] = useState(600);
   const [diameter, setDiameter] = useState(800);
   const [isRound, setIsRound] = useState(false);
-  const [thickness, setThickness] = useState(30);
+  const [thickness, setThickness] = useState(productType === "backsplash" ? 15 : 30);
+  const [backsplashWidth, setBacksplashWidth] = useState(2500);
+  const [backsplashHeight, setBacksplashHeight] = useState(600);
   const [color, setColor] = useState("серый");
   const [customColor, setCustomColor] = useState("");
   const [quantity, setQuantity] = useState(1);
@@ -44,7 +46,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
   const [riserHeight, setRiserHeight] = useState(150);
   const [isHeated, setIsHeated] = useState(false);
   const [thicknessConcrete, setThicknessConcrete] = useState(40);
-  const [validationErrors, setValidationErrors] = useState<(SinkValidationError | CountertopValidationError | StepSlabValidationError | WindowsillValidationError)[]>([]);
+  const [validationErrors, setValidationErrors] = useState<(SinkValidationError | CountertopValidationError | StepSlabValidationError | WindowsillValidationError | BacksplashValidationError)[]>([]);
   const finalColor = color === "другой" ? customColor : color;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -101,6 +103,16 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
         return;
       }
       onCalculate(params);
+    } else if (productType === "backsplash") {
+      const params: BacksplashParams = {
+        width: backsplashWidth, height: backsplashHeight, thickness, color: finalColor, quantity,
+      };
+      const errors = validateBacksplashParams(params);
+      if (errors.length > 0) {
+        setValidationErrors(errors);
+        return;
+      }
+      onCalculate(params);
     } else {
       const params: SimpleProductParams = {
         length, width, thickness, color: finalColor, quantity,
@@ -131,7 +143,28 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
         )}
 
         <div className="grid grid-cols-2 gap-3">
-          {productType === "countertop" && isRound ? (
+          {productType === "backsplash" ? (
+            <>
+              <div>
+                <Label className="text-xs">Ширина (мм)</Label>
+                <Input type="number" value={backsplashWidth} onChange={(e) => setBacksplashWidth(+e.target.value)} min={100} max={6000} className={inputClass} />
+                <p className="text-[10px] text-muted-foreground mt-1">100–6000 мм</p>
+              </div>
+              <div>
+                <Label className="text-xs">Высота (мм)</Label>
+                <Input type="number" value={backsplashHeight} onChange={(e) => setBacksplashHeight(+e.target.value)} min={300} max={1000} className={inputClass} />
+                <p className="text-[10px] text-muted-foreground mt-1">300–1000 мм (по умолч. 600)</p>
+              </div>
+              <div>
+                <Label className="text-xs">Толщина (мм)</Label>
+                <Input type="number" value={thickness} onChange={(e) => setThickness(+e.target.value)} min={10} max={15} className={inputClass} />
+                <p className="text-[10px] text-muted-foreground mt-1">10–15 мм (стандарт 15)</p>
+                {thickness < 15 && thickness >= 10 && (
+                  <p className="text-[10px] text-amber-500 mt-1">⚠️ Нестандартная толщина, требует согласования</p>
+                )}
+              </div>
+            </>
+          ) : productType === "countertop" && isRound ? (
             <div>
               <Label className="text-xs">Диаметр (мм)</Label>
               <Input type="number" value={diameter} onChange={(e) => setDiameter(+e.target.value)} min={500} max={3000} className={inputClass} />
@@ -161,7 +194,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
               )}
             </div>
           )}
-          {(productType === "countertop" || productType === "backsplash" || productType === "stair") && (
+          {(productType === "countertop" || productType === "stair") && (
             <div>
               <Label className="text-xs">Толщина (мм)</Label>
               <Input type="number" value={thickness} onChange={(e) => setThickness(+e.target.value)} min={20} max={50} className={inputClass} />

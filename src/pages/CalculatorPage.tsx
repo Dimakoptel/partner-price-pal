@@ -18,6 +18,7 @@ import {
   calculateSimpleProduct,
   calculateStepSlab,
   calculateWindowsill,
+  calculateBacksplash,
 } from "@/lib/calculator";
 import { toast } from "sonner";
 
@@ -61,6 +62,8 @@ export default function CalculatorPage() {
       res = calculateStepSlab(params, settings, colorNames);
     } else if (selectedProduct === "windowsill") {
       res = calculateWindowsill(params, settings, colorNames);
+    } else if (selectedProduct === "backsplash") {
+      res = calculateBacksplash(params, settings, colorNames);
     } else {
       res = calculateSimpleProduct(selectedProduct, params, settings, colorNames);
     }

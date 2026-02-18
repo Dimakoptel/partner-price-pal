@@ -75,6 +75,19 @@ export interface StepSlabValidationError {
   message: string;
 }
 
+export interface BacksplashParams {
+  width: number;
+  height: number;
+  thickness: number;
+  color: string;
+  quantity: number;
+}
+
+export interface BacksplashValidationError {
+  field: string;
+  message: string;
+}
+
 export interface CalculationResult {
   productLabel: string;
   area: number;
@@ -94,6 +107,10 @@ export interface CalculationResult {
   pricePerUnit: number;
   energyConsumption?: number;
   energyConsumptionPerItem?: number;
+  numElements?: number;
+  elementWidth?: number;
+  liftWarning?: string;
+  customThicknessWarning?: string;
 }
 
 export interface CountertopValidationError {
@@ -399,6 +416,106 @@ export function calculateWindowsill(params: WindowsillParams, pricing: Record<st
   };
 }
 
+export function validateBacksplashParams(params: BacksplashParams): BacksplashValidationError[] {
+  const errors: BacksplashValidationError[] = [];
+  if (!params.width || params.width < 100) errors.push({ field: "width", message: `Ширина должна быть не менее 100 мм (указано: ${params.width} мм)` });
+  if (params.width > 6000) errors.push({ field: "width", message: `Ширина не может превышать 6000 мм (указано: ${params.width} мм)` });
+  if (params.height < 300) errors.push({ field: "height", message: `Высота должна быть не менее 300 мм (указано: ${params.height} мм)` });
+  if (params.height > 1000) errors.push({ field: "height", message: `Высота не может превышать 1000 мм (указано: ${params.height} мм)` });
+  if (params.thickness < 10) errors.push({ field: "thickness", message: `Толщина фартука не может быть менее 10 мм (указано: ${params.thickness} мм)` });
+  if (params.thickness > 15) errors.push({ field: "thickness", message: `Толщина фартука не может превышать 15 мм (указано: ${params.thickness} мм)` });
+  return errors;
+}
+
+export function calculateBacksplash(params: BacksplashParams, pricing: Record<string, number>, colorNames?: string[]): CalculationResult {
+  const PRICE_PER_M2 = pricing.backsplash_price_per_m2 || 53200;
+  const INSTALL_PER_M2 = pricing.backsplash_install_per_m2 || 7000;
+  const MIN_INSTALL = pricing.min_install_price || 10000;
+  const IVORY_MULT = pricing.ivory_color_multiplier || 1.03;
+  const CUSTOM_COLOR = pricing.custom_color_surcharge || 3000;
+
+  const stdColors = colorNames || STANDARD_COLORS;
+  const qty = Math.max(1, Math.floor(params.quantity || 1));
+  const thickness = params.thickness || 15;
+
+  // Area
+  const area = parseFloat(((params.width * params.height) / 1_000_000).toFixed(3));
+
+  // Transport elements
+  const numElements = Math.ceil(params.width / 3500);
+  const elementWidth = Math.ceil(params.width / numElements);
+
+  // Lift warning
+  let liftWarning: string | undefined;
+  if (elementWidth > 2500) {
+    liftWarning = `⚠️ Элемент длиной ${elementWidth} мм может не влезть в лифт. Рекомендуем заказать услуги грузчиков для подъёма на этаж.`;
+  }
+
+  // Custom thickness warning
+  let customThicknessWarning: string | undefined;
+  if (thickness < 15) {
+    customThicknessWarning = `Запрошена толщина ${thickness} мм (менее стандартных 15 мм). Требуется согласование с менеджером.`;
+  }
+
+  // Base price
+  let totalPrice = Math.round(area * PRICE_PER_M2);
+
+  const optionItems: { name: string; price: number }[] = [];
+  let optionPrice = 0;
+
+  // Color modifiers
+  const isIvory = params.color.toLowerCase() === "белоснежный";
+  const isCustom = !isIvory && !stdColors.map(c => c.toLowerCase()).includes(params.color.toLowerCase());
+
+  if (isIvory) {
+    const premium = Math.round(totalPrice * (IVORY_MULT - 1));
+    totalPrice = Math.round(totalPrice * IVORY_MULT);
+    optionItems.push({ name: `Наценка «белоснежный» +3%`, price: premium });
+    optionPrice += premium;
+  }
+  if (isCustom) {
+    totalPrice += CUSTOM_COLOR;
+    optionPrice += CUSTOM_COLOR;
+    optionItems.push({ name: `Нестандартный цвет: ${params.color}`, price: CUSTOM_COLOR });
+  }
+
+  const totalPriceAll = totalPrice * qty;
+
+  // Installation: area-based, not weight-based
+  const installationPrice = Math.max(MIN_INSTALL, Math.round(area * INSTALL_PER_M2));
+
+  // Label
+  const actualThickness = thickness;
+  let label = `Фартук кухонный COZY ART ${params.width} × ${params.height} × ${actualThickness} мм`;
+  label += `, архитектурный бетон, цвет ${params.color}`;
+  if (numElements > 1) {
+    label += `, частей ${numElements}`;
+  }
+
+  // Transport info in option items
+  if (numElements > 1) {
+    optionItems.push({ name: `Разбит на ${numElements} элемент(ов) по ~${elementWidth} мм, ${numElements - 1} стык(ов)`, price: 0 });
+  }
+
+  return {
+    productLabel: label,
+    area,
+    weight: 0, // backsplash doesn't calculate weight per spec
+    basePrice: Math.round((area * PRICE_PER_M2) * qty),
+    optionPrice: Math.round(optionPrice * qty),
+    optionItems,
+    totalPrice: totalPriceAll,
+    installationPrice,
+    grandTotal: totalPriceAll + installationPrice,
+    quantity: qty,
+    pricePerUnit: totalPrice,
+    numElements,
+    elementWidth,
+    liftWarning,
+    customThicknessWarning,
+  };
+}
+
 export function calculateSimpleProduct(
   type: ProductType,
   params: SimpleProductParams,
@@ -406,11 +523,9 @@ export function calculateSimpleProduct(
   colorNames?: string[]
 ): CalculationResult {
   const priceKeyMap: Record<string, string> = {
-    backsplash: "backsplash_price_per_m2",
     stair: "stair_price_per_m2",
   };
   const labelMap: Record<string, string> = {
-    backsplash: "Фартук",
     stair: "Ступень",
   };
 
