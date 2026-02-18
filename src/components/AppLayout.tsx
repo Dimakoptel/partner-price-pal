@@ -3,18 +3,26 @@ import { Link, useLocation } from "react-router-dom";
 import { Calculator, Settings, LogOut, User, History, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, profile, signOut, isAdmin } = useAuth();
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
+  const { getSetting } = useCompanySettings();
+
+  const logoUrl = getSetting("print_logo_url");
 
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-border/50 bg-card/50 backdrop-blur-md sticky top-0 z-50">
         <div className="container flex items-center justify-between h-14 px-4">
           <Link to="/" className="flex items-center gap-3">
-            <span className="text-xl font-bold text-gradient">COZY ART</span>
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" className="h-8 max-w-[140px] object-contain" />
+            ) : (
+              <span className="text-xl font-bold text-gradient">COZY ART</span>
+            )}
             <span className="text-xs text-muted-foreground hidden sm:inline">Калькулятор</span>
           </Link>
 

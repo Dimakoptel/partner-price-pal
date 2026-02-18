@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { NumericInput } from "@/components/ui/numeric-input";
 import { CountertopParams, SinkParams, StairParams, StepSlabParams, WindowsillParams, BacksplashParams, ProductType, validateSinkParams, SinkValidationError, validateCountertopParams, CountertopValidationError, validateStepSlabParams, StepSlabValidationError, validateWindowsillParams, WindowsillValidationError, validateBacksplashParams, BacksplashValidationError, validateStairParams, StairValidationError } from "@/lib/calculator";
 import { Calculator, AlertTriangle } from "lucide-react";
 
@@ -61,10 +62,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
         supports: { left: supportLeft, right: supportRight },
       };
       const errors = validateCountertopParams(params);
-      if (errors.length > 0) {
-        setValidationErrors(errors);
-        return;
-      }
+      if (errors.length > 0) { setValidationErrors(errors); return; }
       onCalculate(params);
     } else if (productType === "sink") {
       const params: SinkParams = {
@@ -73,25 +71,18 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
         bowlCount,
         bowlLength: maxBowlSize ? undefined : bowlLength,
         bowlWidth: maxBowlSize ? undefined : bowlWidth,
-        bowlDepth,
-        maxBowlSize,
+        bowlDepth, maxBowlSize,
         color: finalColor, drainType, mixerMount,
       };
       const errors = validateSinkParams(params);
-      if (errors.length > 0) {
-        setValidationErrors(errors);
-        return;
-      }
+      if (errors.length > 0) { setValidationErrors(errors); return; }
       onCalculate(params);
     } else if (productType === "stepslab") {
       const params: StepSlabParams = {
         length, width, thicknessConcrete, color: finalColor, quantity, isHeated,
       };
       const errors = validateStepSlabParams(params);
-      if (errors.length > 0) {
-        setValidationErrors(errors);
-        return;
-      }
+      if (errors.length > 0) { setValidationErrors(errors); return; }
       onCalculate(params);
     } else if (productType === "windowsill") {
       const params: WindowsillParams = {
@@ -99,20 +90,14 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
         drops: { front: dropFront, left: dropLeft, right: dropRight },
       };
       const errors = validateWindowsillParams(params);
-      if (errors.length > 0) {
-        setValidationErrors(errors);
-        return;
-      }
+      if (errors.length > 0) { setValidationErrors(errors); return; }
       onCalculate(params);
     } else if (productType === "backsplash") {
       const params: BacksplashParams = {
         width: backsplashWidth, height: backsplashHeight, thickness, color: finalColor, quantity,
       };
       const errors = validateBacksplashParams(params);
-      if (errors.length > 0) {
-        setValidationErrors(errors);
-        return;
-      }
+      if (errors.length > 0) { setValidationErrors(errors); return; }
       onCalculate(params);
     } else if (productType === "stair") {
       const params: StairParams = {
@@ -122,10 +107,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
         riserThickness: hasRiser ? riserThickness : 15,
       };
       const errors = validateStairParams(params);
-      if (errors.length > 0) {
-        setValidationErrors(errors);
-        return;
-      }
+      if (errors.length > 0) { setValidationErrors(errors); return; }
       onCalculate(params);
     }
   };
@@ -154,17 +136,17 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
             <>
               <div>
                 <Label className="text-xs">Ширина (мм)</Label>
-                <Input type="number" value={backsplashWidth} onChange={(e) => setBacksplashWidth(+e.target.value)} min={100} max={6000} className={inputClass} />
+                <NumericInput value={backsplashWidth} onValueChange={setBacksplashWidth} min={100} max={6000} className={inputClass} />
                 <p className="text-[10px] text-muted-foreground mt-1">100–6000 мм</p>
               </div>
               <div>
                 <Label className="text-xs">Высота (мм)</Label>
-                <Input type="number" value={backsplashHeight} onChange={(e) => setBacksplashHeight(+e.target.value)} min={300} max={1000} className={inputClass} />
+                <NumericInput value={backsplashHeight} onValueChange={setBacksplashHeight} min={300} max={1000} className={inputClass} />
                 <p className="text-[10px] text-muted-foreground mt-1">300–1000 мм (по умолч. 600)</p>
               </div>
               <div>
                 <Label className="text-xs">Толщина (мм)</Label>
-                <Input type="number" value={thickness} onChange={(e) => setThickness(+e.target.value)} min={10} max={15} className={inputClass} />
+                <NumericInput value={thickness} onValueChange={setThickness} min={10} max={15} className={inputClass} />
                 <p className="text-[10px] text-muted-foreground mt-1">10–15 мм (стандарт 15)</p>
                 {thickness < 15 && thickness >= 10 && (
                   <p className="text-[10px] text-amber-500 mt-1">⚠️ Нестандартная толщина, требует согласования</p>
@@ -174,17 +156,17 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
           ) : productType === "countertop" && isRound ? (
             <div>
               <Label className="text-xs">Диаметр (мм)</Label>
-              <Input type="number" value={diameter} onChange={(e) => setDiameter(+e.target.value)} min={500} max={3000} className={inputClass} />
+              <NumericInput value={diameter} onValueChange={setDiameter} min={500} max={3000} className={inputClass} />
             </div>
           ) : (
             <>
               <div>
                 <Label className="text-xs">Длина (мм)</Label>
-                <Input type="number" value={length} onChange={(e) => setLength(+e.target.value)} min={productType === "sink" ? 500 : 500} max={productType === "sink" ? 4000 : 3500} className={inputClass} />
+                <NumericInput value={length} onValueChange={setLength} min={productType === "sink" ? 500 : 500} max={productType === "sink" ? 4000 : 3500} className={inputClass} />
               </div>
               <div>
                 <Label className="text-xs">Ширина (мм)</Label>
-                <Input type="number" value={width} onChange={(e) => setWidth(+e.target.value)} min={productType === "sink" ? 300 : 200} max={productType === "sink" ? 1500 : 1500} className={inputClass} />
+                <NumericInput value={width} onValueChange={setWidth} min={productType === "sink" ? 300 : 200} max={productType === "sink" ? 1500 : 1500} className={inputClass} />
               </div>
             </>
           )}
@@ -192,7 +174,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
           {productType === "stepslab" && (
             <div>
               <Label className="text-xs">Толщина бетона (мм)</Label>
-              <Input type="number" value={thicknessConcrete} onChange={(e) => setThicknessConcrete(+e.target.value)} min={40} max={60} className={inputClass} />
+              <NumericInput value={thicknessConcrete} onValueChange={setThicknessConcrete} min={40} max={60} className={inputClass} />
               {isHeated && (
                 <p className="text-[10px] text-muted-foreground mt-1">
                   Общая толщина: {thicknessConcrete + 20} мм (бетон {thicknessConcrete} + подложка 20)
@@ -204,7 +186,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
           {productType === "countertop" && (
             <div>
               <Label className="text-xs">Толщина (мм)</Label>
-              <Input type="number" value={thickness} onChange={(e) => setThickness(+e.target.value)} min={20} max={50} className={inputClass} />
+              <NumericInput value={thickness} onValueChange={setThickness} min={20} max={50} className={inputClass} />
             </div>
           )}
           {productType === "stair" && (
@@ -223,44 +205,44 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
           {productType === "windowsill" && (
             <div>
               <Label className="text-xs">Толщина (мм)</Label>
-              <Input type="number" value={thickness} onChange={(e) => setThickness(+e.target.value)} min={15} max={50} className={inputClass} />
+              <NumericInput value={thickness} onValueChange={setThickness} min={15} max={50} className={inputClass} />
               <p className="text-[10px] text-muted-foreground mt-1">Диапазон: 15–50 мм (по умолчанию 30)</p>
             </div>
           )}
 
           <div>
             <Label className="text-xs">Количество (шт.)</Label>
-            <Input type="number" value={quantity} onChange={(e) => setQuantity(+e.target.value)} min={1} max={productType === "sink" ? 10 : 100} className={inputClass} />
+            <NumericInput value={quantity} onValueChange={setQuantity} min={1} max={productType === "sink" ? 10 : 100} className={inputClass} />
           </div>
         </div>
       </div>
 
-      {/* Countertop drops - now for both round and rectangular */}
+      {/* Countertop drops */}
       {productType === "countertop" && (
         <div>
           <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Опуски (мм)</h3>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs">Спереди</Label>
-              <Input type="number" value={dropFront} onChange={(e) => setDropFront(+e.target.value)} min={0} max={300} className={inputClass} />
+              <NumericInput value={dropFront} onValueChange={setDropFront} min={0} max={300} className={inputClass} />
             </div>
             <div>
               <Label className="text-xs">Сзади</Label>
-              <Input type="number" value={dropBack} onChange={(e) => setDropBack(+e.target.value)} min={0} max={300} className={inputClass} />
+              <NumericInput value={dropBack} onValueChange={setDropBack} min={0} max={300} className={inputClass} />
             </div>
             <div>
               <Label className="text-xs">Слева</Label>
-              <Input type="number" value={dropLeft} onChange={(e) => setDropLeft(+e.target.value)} min={0} max={300} className={inputClass} />
+              <NumericInput value={dropLeft} onValueChange={setDropLeft} min={0} max={300} className={inputClass} />
             </div>
             <div>
               <Label className="text-xs">Справа</Label>
-              <Input type="number" value={dropRight} onChange={(e) => setDropRight(+e.target.value)} min={0} max={300} className={inputClass} />
+              <NumericInput value={dropRight} onValueChange={setDropRight} min={0} max={300} className={inputClass} />
             </div>
           </div>
         </div>
       )}
 
-      {/* Windowsill drops - front, left, right only (no back) */}
+      {/* Windowsill drops */}
       {productType === "windowsill" && (
         <div>
           <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Опуски (мм)</h3>
@@ -268,32 +250,32 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
           <div className="grid grid-cols-3 gap-3">
             <div>
               <Label className="text-xs">Спереди</Label>
-              <Input type="number" value={dropFront} onChange={(e) => setDropFront(+e.target.value)} min={0} max={200} className={inputClass} />
+              <NumericInput value={dropFront} onValueChange={setDropFront} min={0} max={200} className={inputClass} />
             </div>
             <div>
               <Label className="text-xs">Слева</Label>
-              <Input type="number" value={dropLeft} onChange={(e) => setDropLeft(+e.target.value)} min={0} max={200} className={inputClass} />
+              <NumericInput value={dropLeft} onValueChange={setDropLeft} min={0} max={200} className={inputClass} />
             </div>
             <div>
               <Label className="text-xs">Справа</Label>
-              <Input type="number" value={dropRight} onChange={(e) => setDropRight(+e.target.value)} min={0} max={200} className={inputClass} />
+              <NumericInput value={dropRight} onValueChange={setDropRight} min={0} max={200} className={inputClass} />
             </div>
           </div>
         </div>
       )}
 
-      {/* Countertop supports - only for non-round */}
+      {/* Countertop supports */}
       {productType === "countertop" && !isRound && (
         <div>
           <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Опоры (мм)</h3>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs">Слева</Label>
-              <Input type="number" value={supportLeft} onChange={(e) => setSupportLeft(+e.target.value)} min={0} max={1200} className={inputClass} />
+              <NumericInput value={supportLeft} onValueChange={setSupportLeft} min={0} max={1200} className={inputClass} />
             </div>
             <div>
               <Label className="text-xs">Справа</Label>
-              <Input type="number" value={supportRight} onChange={(e) => setSupportRight(+e.target.value)} min={0} max={1200} className={inputClass} />
+              <NumericInput value={supportRight} onValueChange={setSupportRight} min={0} max={1200} className={inputClass} />
             </div>
           </div>
         </div>
@@ -311,12 +293,12 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs">Высота подступенка (мм)</Label>
-                <Input type="number" value={riserHeight} onChange={(e) => setRiserHeight(+e.target.value)} min={100} max={300} className={inputClass} />
+                <NumericInput value={riserHeight} onValueChange={setRiserHeight} min={100} max={300} className={inputClass} />
                 <p className="text-[10px] text-muted-foreground mt-1">100–300 мм (по умолч. 180)</p>
               </div>
               <div>
                 <Label className="text-xs">Толщина подступенка (мм)</Label>
-                <Input type="number" value={riserThickness} onChange={(e) => setRiserThickness(+e.target.value)} min={15} max={20} className={inputClass} />
+                <NumericInput value={riserThickness} onValueChange={setRiserThickness} min={15} max={20} className={inputClass} />
                 <p className="text-[10px] text-muted-foreground mt-1">15–20 мм (по умолч. 15)</p>
               </div>
             </div>
@@ -343,11 +325,11 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs">Количество чаш</Label>
-                <Input type="number" value={bowlCount} onChange={(e) => setBowlCount(+e.target.value)} min={1} max={5} className={inputClass} />
+                <NumericInput value={bowlCount} onValueChange={setBowlCount} min={1} max={5} className={inputClass} />
               </div>
               <div>
                 <Label className="text-xs">Глубина чаши (мм)</Label>
-                <Input type="number" value={bowlDepth} onChange={(e) => setBowlDepth(+e.target.value)} min={50} max={200} className={inputClass} />
+                <NumericInput value={bowlDepth} onValueChange={setBowlDepth} min={50} max={200} className={inputClass} />
               </div>
             </div>
             <div className="flex items-center gap-3 mt-3 mb-3">
@@ -358,11 +340,11 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs">Длина чаши (мм)</Label>
-                  <Input type="number" value={bowlLength} onChange={(e) => setBowlLength(+e.target.value)} min={200} max={3000} className={inputClass} />
+                  <NumericInput value={bowlLength} onValueChange={setBowlLength} min={200} max={3000} className={inputClass} />
                 </div>
                 <div>
                   <Label className="text-xs">Ширина чаши (мм)</Label>
-                  <Input type="number" value={bowlWidth} onChange={(e) => setBowlWidth(+e.target.value)} min={200} max={1500} className={inputClass} />
+                  <NumericInput value={bowlWidth} onValueChange={setBowlWidth} min={200} max={1500} className={inputClass} />
                 </div>
               </div>
             )}
@@ -399,7 +381,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs">Высота опуска (мм)</Label>
-                <Input type="number" value={overhangHeight} onChange={(e) => setOverhangHeight(+e.target.value)} min={0} max={300} className={inputClass} />
+                <NumericInput value={overhangHeight} onValueChange={setOverhangHeight} min={0} max={300} className={inputClass} />
               </div>
             </div>
             {overhangHeight > 0 && (
