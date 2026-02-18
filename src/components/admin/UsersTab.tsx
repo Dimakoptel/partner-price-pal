@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { CheckCircle, XCircle, Search, UserCheck, Clock } from "lucide-react";
+import { CheckCircle, XCircle, Search, UserCheck, Clock, Pencil, Save, X } from "lucide-react";
 
 interface UserProfile {
   id: string;
@@ -45,6 +45,19 @@ export default function UsersTab() {
     }
   };
 
+  const updateName = async (userId: string, newName: string) => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ full_name: newName })
+      .eq("user_id", userId);
+    if (error) {
+      toast.error("Ошибка обновления имени");
+    } else {
+      setUsers(prev => prev.map(u => u.user_id === userId ? { ...u, full_name: newName } : u));
+      toast.success("Имя обновлено");
+    }
+  };
+
   const filtered = users.filter(u => {
     const q = search.toLowerCase();
     return !q || (u.full_name?.toLowerCase().includes(q) || u.phone?.includes(q) || u.telegram?.toLowerCase().includes(q));
@@ -74,7 +87,7 @@ export default function UsersTab() {
           </h3>
           <div className="space-y-2">
             {pending.map(u => (
-              <UserRow key={u.id} user={u} onToggle={toggleApproval} />
+              <UserRow key={u.id} user={u} onToggle={toggleApproval} onUpdateName={updateName} />
             ))}
           </div>
         </div>
@@ -89,7 +102,7 @@ export default function UsersTab() {
         ) : (
           <div className="space-y-2">
             {approved.map(u => (
-              <UserRow key={u.id} user={u} onToggle={toggleApproval} />
+              <UserRow key={u.id} user={u} onToggle={toggleApproval} onUpdateName={updateName} />
             ))}
           </div>
         )}
@@ -98,11 +111,51 @@ export default function UsersTab() {
   );
 }
 
-function UserRow({ user, onToggle }: { user: UserProfile; onToggle: (userId: string, status: boolean) => void }) {
+function UserRow({ user, onToggle, onUpdateName }: { user: UserProfile; onToggle: (userId: string, status: boolean) => void; onUpdateName: (userId: string, name: string) => Promise<void> }) {
+  const [editing, setEditing] = useState(false);
+  const [nameValue, setNameValue] = useState(user.full_name || "");
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!nameValue.trim()) return;
+    setSaving(true);
+    await onUpdateName(user.user_id, nameValue.trim());
+    setSaving(false);
+    setEditing(false);
+  };
+
+  const handleCancel = () => {
+    setNameValue(user.full_name || "");
+    setEditing(false);
+  };
+
   return (
     <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border/50">
-      <div className="min-w-0">
-        <p className="font-medium text-sm truncate">{user.full_name || "Без имени"}</p>
+      <div className="min-w-0 flex-1">
+        {editing ? (
+          <div className="flex items-center gap-1.5">
+            <Input
+              value={nameValue}
+              onChange={e => setNameValue(e.target.value)}
+              className="h-7 text-sm bg-background border-border"
+              autoFocus
+              onKeyDown={e => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") handleCancel(); }}
+            />
+            <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={handleSave} disabled={saving}>
+              <Save className="w-3.5 h-3.5" />
+            </Button>
+            <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={handleCancel}>
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5">
+            <p className="font-medium text-sm truncate">{user.full_name || "Без имени"}</p>
+            <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground" onClick={() => setEditing(true)}>
+              <Pencil className="w-3 h-3" />
+            </Button>
+          </div>
+        )}
         <div className="flex gap-3 text-xs text-muted-foreground mt-0.5">
           {user.phone && <span>📞 {user.phone}</span>}
           {user.telegram && <span>TG: {user.telegram}</span>}
