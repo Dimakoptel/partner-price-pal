@@ -281,53 +281,14 @@ export function shareVia(platform: string, result: CalculationResult, cs?: Compa
 }
 
 export async function handleSaveFile(result: CalculationResult, calcName?: string, cs?: CompanySettingsAccessor, specialist?: SpecialistInfo) {
-  const html = buildPrintHtml(result, cs, specialist);
-
-  // Create a temporary container for html2pdf
-  const container = document.createElement("div");
-  // Extract styles and body content separately
-  const styleMatch = html.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
-  const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-  if (styleMatch) {
-    const styleEl = document.createElement("style");
-    styleEl.textContent = styleMatch[1];
-    container.appendChild(styleEl);
-  }
-  const content = document.createElement("div");
-  content.innerHTML = bodyMatch ? bodyMatch[1] : html;
-  container.appendChild(content);
-  container.style.position = "fixed";
-  container.style.left = "-9999px";
-  container.style.top = "0";
-  container.style.width = "700px";
-  container.style.fontFamily = "Inter, sans-serif";
-  document.body.appendChild(container);
-
-  try {
-    const html2pdf = (await import("html2pdf.js")).default;
-    await html2pdf()
-      .set({
-        margin: [10, 10, 10, 10],
-        filename: `${calcName || "расчёт"}.pdf`,
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      })
-      .from(container)
-      .save();
-  } catch {
-    // Fallback to txt if pdf fails
-    const text = buildShareText(result, cs);
-    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${calcName || "расчёт"}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-  } finally {
-    document.body.removeChild(container);
-  }
+  const text = buildShareText(result, cs);
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${calcName || "расчёт"}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 interface Props {
