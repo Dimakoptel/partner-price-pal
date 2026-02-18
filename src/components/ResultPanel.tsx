@@ -350,6 +350,24 @@ export default function ResultPanel({ result, onSave, saving, companySettings, s
           </div>
         )}
 
+        {result.numElements != null && result.numElements > 0 && (
+          <div className="text-xs text-muted-foreground p-2 rounded bg-secondary/30 border border-border/30">
+            Фартук будет состоять из {result.numElements} элемент(ов) (~{result.elementWidth} мм){result.numElements > 1 ? `, ${result.numElements - 1} стык(ов)` : ""}
+          </div>
+        )}
+
+        {result.liftWarning && (
+          <div className="text-xs text-amber-600 p-2 rounded bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+            {result.liftWarning}
+          </div>
+        )}
+
+        {result.customThicknessWarning && (
+          <div className="text-xs text-amber-600 p-2 rounded bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+            ⚠️ {result.customThicknessWarning}
+          </div>
+        )}
+
         {result.energyConsumptionPerItem != null && result.energyConsumptionPerItem > 0 && (
           <>
             <div className="flex justify-between text-xs">
