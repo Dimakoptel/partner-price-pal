@@ -185,12 +185,12 @@ export function validateCountertopParams(params: CountertopParams): CountertopVa
 
 export function calculateCountertop(params: CountertopParams, pricing: Record<string, number>, colorNames?: string[]): CalculationResult {
   const BASE_PRICE = pricing.base_price_per_m2 || 53200;
-  const DENSITY = pricing.density || 2350;
-  const INSTALL_PER_KG = pricing.install_price_per_kg || 112;
-  const MIN_INSTALL = pricing.min_install_price || 10000;
+  const DENSITY = pricing.countertop_density || pricing.density || 2350;
+  const INSTALL_PER_KG = pricing.countertop_install_per_kg || pricing.install_price_per_kg || 112;
+  const MIN_INSTALL = pricing.countertop_min_install || pricing.min_install_price || 10000;
   const THICK_40_MULT = pricing.thickness_40_multiplier || 1.1;
   const IVORY_MULT = pricing.ivory_color_multiplier || 1.03;
-  const CUSTOM_COLOR = pricing.custom_color_surcharge || 3000;
+  const CUSTOM_COLOR = pricing.countertop_custom_color_surcharge || pricing.custom_color_surcharge || 3000;
   const SUPPORT_MULT = pricing.support_multiplier || 1.15;
   const DROP_MULT = pricing.drop_multiplier || 1.1;
 
@@ -338,12 +338,12 @@ export function validateWindowsillParams(params: WindowsillParams): WindowsillVa
 
 export function calculateWindowsill(params: WindowsillParams, pricing: Record<string, number>, colorNames?: string[]): CalculationResult {
   const PRICE_PER_M2 = pricing.windowsill_price_per_m2 || 53200;
-  const DENSITY = pricing.density || 2350;
-  const INSTALL_PER_KG = pricing.install_price_per_kg || 112;
-  const MIN_INSTALL = pricing.min_install_price || 10000;
+  const DENSITY = pricing.windowsill_density || pricing.density || 2350;
+  const INSTALL_PER_KG = pricing.windowsill_install_per_kg || pricing.install_price_per_kg || 112;
+  const MIN_INSTALL = pricing.windowsill_min_install || pricing.min_install_price || 10000;
   const DROP_MULT = pricing.windowsill_drop_multiplier || 1.15;
-  const IVORY_MULT = pricing.ivory_color_multiplier || 1.03;
-  const CUSTOM_COLOR = pricing.custom_color_surcharge || 3000;
+  const IVORY_MULT = pricing.windowsill_ivory_multiplier || pricing.ivory_color_multiplier || 1.03;
+  const CUSTOM_COLOR = pricing.windowsill_custom_color_surcharge || pricing.custom_color_surcharge || 3000;
 
   const stdColors = colorNames || STANDARD_COLORS;
   const qty = Math.max(1, Math.floor(params.quantity));
@@ -450,9 +450,12 @@ export function validateBacksplashParams(params: BacksplashParams): BacksplashVa
 export function calculateBacksplash(params: BacksplashParams, pricing: Record<string, number>, colorNames?: string[]): CalculationResult {
   const PRICE_PER_M2 = pricing.backsplash_price_per_m2 || 53200;
   const INSTALL_PER_M2 = pricing.backsplash_install_per_m2 || 7000;
-  const MIN_INSTALL = pricing.min_install_price || 10000;
-  const IVORY_MULT = pricing.ivory_color_multiplier || 1.03;
-  const CUSTOM_COLOR = pricing.custom_color_surcharge || 3000;
+  const MIN_INSTALL = pricing.backsplash_min_install || pricing.min_install_price || 10000;
+  const IVORY_MULT = pricing.backsplash_ivory_multiplier || pricing.ivory_color_multiplier || 1.03;
+  const CUSTOM_COLOR = pricing.backsplash_custom_color_surcharge || pricing.custom_color_surcharge || 3000;
+  const MAX_ELEMENT_LENGTH = pricing.backsplash_max_element_length || 3500;
+  const LIFT_THRESHOLD = pricing.backsplash_lift_threshold || 2500;
+  const STANDARD_THICKNESS = pricing.backsplash_standard_thickness || 15;
 
   const stdColors = colorNames || STANDARD_COLORS;
   const qty = Math.max(1, Math.floor(params.quantity || 1));
@@ -462,18 +465,18 @@ export function calculateBacksplash(params: BacksplashParams, pricing: Record<st
   const area = parseFloat(((params.width * params.height) / 1_000_000).toFixed(3));
 
   // Transport elements
-  const numElements = Math.ceil(params.width / 3500);
+  const numElements = Math.ceil(params.width / MAX_ELEMENT_LENGTH);
   const elementWidth = Math.ceil(params.width / numElements);
 
   // Lift warning
   let liftWarning: string | undefined;
-  if (elementWidth > 2500) {
+  if (elementWidth > LIFT_THRESHOLD) {
     liftWarning = `⚠️ Элемент длиной ${elementWidth} мм может не влезть в лифт. Рекомендуем заказать услуги грузчиков для подъёма на этаж.`;
   }
 
   // Custom thickness warning
   let customThicknessWarning: string | undefined;
-  if (thickness < 15) {
+  if (thickness < STANDARD_THICKNESS) {
     customThicknessWarning = `Запрошена толщина ${thickness} мм (менее стандартных 15 мм). Требуется согласование с менеджером.`;
   }
 
@@ -551,13 +554,13 @@ export function validateStairParams(params: StairParams): StairValidationError[]
 }
 
 export function calculateStair(params: StairParams, pricing: Record<string, number>, colorNames?: string[]): CalculationResult {
-  const PRICE_PER_M2 = pricing.base_price_per_m2 || 53200;
-  const DENSITY = 2400;
-  const INSTALL_PER_KG = pricing.install_price_per_kg || 112;
-  const MIN_INSTALL = pricing.min_install_price || 10000;
-  const CUSTOM_COLOR = pricing.custom_color_surcharge || 3000;
-  const THICK_40_MULT = pricing.thickness_40_multiplier || 1.1;
-  const IVORY_MULT = pricing.ivory_color_multiplier || 1.03;
+  const PRICE_PER_M2 = pricing.stair_price_per_m2 || 53200;
+  const DENSITY = pricing.stair_density || 2400;
+  const INSTALL_PER_KG = pricing.stair_install_per_kg || pricing.install_price_per_kg || 112;
+  const MIN_INSTALL = pricing.stair_min_install || pricing.min_install_price || 10000;
+  const CUSTOM_COLOR = pricing.stair_custom_color_surcharge || pricing.custom_color_surcharge || 3000;
+  const THICK_40_MULT = pricing.stair_thickness_40_multiplier || pricing.thickness_40_multiplier || 1.1;
+  const IVORY_MULT = pricing.stair_ivory_multiplier || pricing.ivory_color_multiplier || 1.03;
 
   const stdColors = colorNames || STANDARD_COLORS;
   const qty = Math.max(1, Math.floor(params.quantity));
@@ -667,13 +670,13 @@ export function validateStepSlabParams(params: StepSlabParams): StepSlabValidati
 }
 
 export function calculateStepSlab(params: StepSlabParams, pricing: Record<string, number>, colorNames?: string[]): CalculationResult {
-  const DENSITY = 2400;
+  const DENSITY = pricing.stepslab_density || 2400;
   const PRICE_PER_M2_COLD = pricing.stepslab_price_per_m2 || 25300;
   const PRICE_PER_M2_HEATED = pricing.stepslab_heated_price_per_m2 || 33350;
-  const CUSTOM_COLOR = pricing.custom_color_surcharge || 3000;
-  const IVORY_MULT = pricing.ivory_color_multiplier || 1.03;
-  const WATTS_PER_M2 = 200 / 0.54; // ≈ 370.37 Вт/м²
-  const SUBSTRATE_THICKNESS = 20;
+  const CUSTOM_COLOR = pricing.stepslab_custom_color_surcharge || pricing.custom_color_surcharge || 3000;
+  const IVORY_MULT = pricing.stepslab_ivory_multiplier || pricing.ivory_color_multiplier || 1.03;
+  const WATTS_PER_M2 = pricing.stepslab_watts_per_m2 || 370;
+  const SUBSTRATE_THICKNESS = pricing.stepslab_substrate_thickness || 20;
 
   const stdColors = colorNames || STANDARD_COLORS;
   const area = (params.length * params.width) / 1_000_000;
@@ -781,22 +784,22 @@ export function validateSinkParams(params: SinkParams): SinkValidationError[] {
 }
 
 export function calculateSink(params: SinkParams, pricing: Record<string, number>, colorNames?: string[]): CalculationResult {
-  const PRICE_PER_SQM = pricing.base_price_per_m2 || 53200;
-  const DENSITY = pricing.density || 2350;
-  const INSTALL_PER_KG = pricing.install_price_per_kg || 112;
-  const MIN_INSTALL = pricing.min_install_price || 12000;
-  const CUSTOM_COLOR = pricing.custom_color_surcharge || 3000;
+  const PRICE_PER_SQM = pricing.sink_base_price_per_m2 || pricing.base_price_per_m2 || 53200;
+  const DENSITY = pricing.sink_density || pricing.density || 2350;
+  const INSTALL_PER_KG = pricing.sink_install_per_kg || pricing.install_price_per_kg || 112;
+  const MIN_INSTALL = pricing.sink_min_install || pricing.min_install_price || 12000;
+  const CUSTOM_COLOR = pricing.sink_custom_color_surcharge || pricing.custom_color_surcharge || 3000;
   const OVERHANG_MARKUP = pricing.sink_overhang_markup || 0.15;
   const BOWL_MARKUP = pricing.sink_bowl_markup || 1.5;
   const DRAIN_SLOTTED_PER_M = pricing.sink_drain_slotted_per_m || 6000;
-  const IVORY_MARKUP = pricing.ivory_color_multiplier || 1.03;
+  const IVORY_MARKUP = pricing.sink_ivory_multiplier || pricing.ivory_color_multiplier || 1.03;
   const BRACKET_STANDARD_PER_M = pricing.bracket_standard_per_m || 1200;
   const BRACKET_REINFORCED_PER_M = pricing.bracket_reinforced_per_m || 1500;
-  const THICKNESS_PLATE = 30; // mm, always fixed
-  const THICKNESS_BOWL_WALL = 20;
-  const THICKNESS_BOWL_BOTTOM = 20;
-  const EDGE_MARGIN = 70;
-  const MIN_GAP_BETWEEN_BOWLS = 80;
+  const THICKNESS_PLATE = pricing.sink_plate_thickness || 30;
+  const THICKNESS_BOWL_WALL = pricing.sink_bowl_wall_thickness || 20;
+  const THICKNESS_BOWL_BOTTOM = pricing.sink_bowl_bottom_thickness || 20;
+  const EDGE_MARGIN = pricing.sink_edge_margin || 70;
+  const MIN_GAP_BETWEEN_BOWLS = pricing.sink_gap_between_bowls || 80;
 
   const stdColors = colorNames || STANDARD_COLORS;
   const optionItems: { name: string; price: number }[] = [];

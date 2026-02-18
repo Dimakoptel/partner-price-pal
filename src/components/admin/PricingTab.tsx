@@ -17,6 +17,8 @@ const CATEGORY_LABELS: Record<string, string> = {
   stepslab: "Пошаговая плита",
 };
 
+const CATEGORY_ORDER = ["general", "countertop", "sink", "windowsill", "backsplash", "stair", "stepslab"];
+
 interface Props {
   allSettings: any[];
   loading: boolean;
@@ -52,10 +54,16 @@ export default function PricingTab({ allSettings, loading }: Props) {
     if (!grouped[s.category]) grouped[s.category] = [];
     grouped[s.category].push(s);
   });
+  // Sort categories by defined order
+  const sortedEntries = Object.entries(grouped).sort(([a], [b]) => {
+    const ia = CATEGORY_ORDER.indexOf(a);
+    const ib = CATEGORY_ORDER.indexOf(b);
+    return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+  });
 
   return (
     <div className="space-y-3">
-      {Object.entries(grouped).map(([category, items]) => (
+      {sortedEntries.map(([category, items]) => (
         <Collapsible
           key={category}
           open={openCategories[category] ?? false}
