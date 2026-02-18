@@ -7,6 +7,7 @@ import ColorsTab from "@/components/admin/ColorsTab";
 import CompanySettingsTab from "@/components/admin/CompanySettingsTab";
 import CalculationsTab from "@/components/admin/CalculationsTab";
 import PrintTemplateTab from "@/components/admin/PrintTemplateTab";
+import UsersTab from "@/components/admin/UsersTab";
 
 export default function AdminPage() {
   const { allSettings, loading } = usePricing();
@@ -24,6 +25,7 @@ export default function AdminPage() {
             <TabsTrigger value="pricing">Цены</TabsTrigger>
             <TabsTrigger value="colors">Цвета</TabsTrigger>
             <TabsTrigger value="company">Контакты</TabsTrigger>
+            <TabsTrigger value="users">Пользователи</TabsTrigger>
             <TabsTrigger value="calculations">Расчёты</TabsTrigger>
             <TabsTrigger value="template">Шаблон печати</TabsTrigger>
           </TabsList>
@@ -31,6 +33,7 @@ export default function AdminPage() {
           <TabsContent value="pricing"><PricingTab allSettings={allSettings} loading={loading} /></TabsContent>
           <TabsContent value="colors"><ColorsTab /></TabsContent>
           <TabsContent value="company"><CompanySettingsTab /></TabsContent>
+          <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="calculations"><CalculationsTab /></TabsContent>
           <TabsContent value="template"><PrintTemplateTab /></TabsContent>
         </Tabs>
