@@ -49,6 +49,19 @@ export function buildShareText(result: CalculationResult, cs?: CompanySettingsAc
   if (result.supportPrice) {
     text += `${result.supportLabel || "Кронштейн"} (при необходимости): ${formatPrice(result.supportPrice)} ₽\n`;
   }
+  if (result.riserLabel && result.riserPrice) {
+    text += `\n${result.riserLabel}\n`;
+    text += `Стоимость подступенков: ${formatPrice(result.riserPrice)} ₽\n`;
+    if (result.quantity > 1 && result.riserPricePerUnit) {
+      text += `Цена подступенка за 1 шт.: ${formatPrice(result.riserPricePerUnit)} ₽\n`;
+    }
+    if (result.riserWeightPerItem) {
+      text += `Вес подступенка за 1 шт.: ${result.riserWeightPerItem} кг\n`;
+    }
+    if (result.riserWeight) {
+      text += `Общий вес подступенков: ${result.riserWeight} кг\n`;
+    }
+  }
   if (result.installationNote) {
     text += `\n${result.installationNote}\n`;
   } else {
@@ -57,7 +70,7 @@ export function buildShareText(result: CalculationResult, cs?: CompanySettingsAc
   text += `\n📌 УСЛОВИЯ\n`;
   const days = cs?.getSetting("production_days") || "20";
   const warranty = cs?.getSetting("warranty_years") || "1";
-  if (!result.installationNote) {
+  if (result.supportPrice) {
     text += `• Кронштейн и монтаж приобретаются при необходимости\n`;
   }
   text += `• Доставка и грузчики — отдельно\n`;
@@ -102,6 +115,17 @@ export function buildPrintHtml(result: CalculationResult, cs?: CompanySettingsAc
       </tr>`
     : "";
 
+  const riserLine = (result.riserLabel && result.riserPrice)
+    ? `<tr>
+        <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;">
+          <div style="font-size:14px;color:#333;">${result.riserLabel}</div>
+          ${result.quantity > 1 && result.riserPricePerUnit ? `<div style="font-size:11px;color:#888;margin-top:2px;">${result.quantity} шт. × ${formatPrice(result.riserPricePerUnit)} ₽</div>` : ""}
+          ${result.riserWeightPerItem ? `<div style="font-size:11px;color:#888;margin-top:2px;">Вес за 1 шт.: ${result.riserWeightPerItem} кг${result.riserWeight && result.quantity > 1 ? ` · Общий: ${result.riserWeight} кг` : ""}</div>` : ""}
+        </td>
+        <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600;white-space:nowrap;">${formatPrice(result.riserPrice)} ₽</td>
+      </tr>`
+    : "";
+
   const headerContactLines: string[] = [];
   if (phone) headerContactLines.push(phone);
   if (phoneExtra) headerContactLines.push(phoneExtra);
@@ -117,14 +141,18 @@ export function buildPrintHtml(result: CalculationResult, cs?: CompanySettingsAc
     : [site, telegram ? `Telegram: ${telegram}` : "", whatsapp ? `WhatsApp: ${whatsapp}` : ""].filter(Boolean);
 
   // Conditions: use custom or default
+  const defaultConditions = [];
+  if (result.supportPrice) {
+    defaultConditions.push("Кронштейн и монтаж приобретаются при необходимости");
+  }
+  defaultConditions.push(
+    "Доставка и услуги грузчиков — по тарифам партнёров (оплачиваются отдельно)",
+    `Срок изготовления: от ${prodDays} рабочих дней`,
+    `Гарантия: ${warranty} год на изделие`,
+  );
   const conditionLines = customConditions
     ? customConditions.split("\n").filter(Boolean)
-    : [
-        "Кронштейн и монтаж приобретаются при необходимости",
-        "Доставка и услуги грузчиков — по тарифам партнёров (оплачиваются отдельно)",
-        `Срок изготовления: от ${prodDays} рабочих дней`,
-        `Гарантия: ${warranty} год на изделие`,
-      ];
+    : defaultConditions;
 
   return `<!DOCTYPE html>
 <html lang="ru">
@@ -180,6 +208,7 @@ export function buildPrintHtml(result: CalculationResult, cs?: CompanySettingsAc
       </td>
       <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600;white-space:nowrap;">${formatPrice(result.totalPrice)} ₽</td>
     </tr>
+    ${riserLine}
     ${supportLine}
     ${result.installationNote ? `
     <tr>
@@ -383,6 +412,35 @@ export default function ResultPanel({ result, onSave, saving, companySettings, s
           </>
         )}
 
+        {/* Riser as separate nomenclature */}
+        {result.riserLabel && result.riserPrice != null && result.riserPrice > 0 && (
+          <div className="p-3 rounded-lg bg-secondary/30 border border-border/30 space-y-1">
+            <div className="text-xs font-medium text-foreground">{result.riserLabel}</div>
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Стоимость подступенков</span>
+              <span className="whitespace-nowrap ml-4">{formatPrice(result.riserPrice)} ₽</span>
+            </div>
+            {result.quantity > 1 && result.riserPricePerUnit != null && (
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Цена за 1 шт.</span>
+                <span className="whitespace-nowrap ml-4">{formatPrice(result.riserPricePerUnit)} ₽</span>
+              </div>
+            )}
+            {result.riserWeightPerItem != null && (
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Вес подступенка за 1 шт.</span>
+                <span className="whitespace-nowrap ml-4">{result.riserWeightPerItem} кг</span>
+              </div>
+            )}
+            {result.riserWeight != null && result.quantity > 1 && (
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Общий вес подступенков</span>
+                <span className="whitespace-nowrap ml-4">{result.riserWeight} кг</span>
+              </div>
+            )}
+          </div>
+        )}
+
         {result.supportPrice != null && result.supportPrice > 0 && (
           <div className="flex justify-between">
             <span className="text-muted-foreground text-xs">{result.supportLabel || "Кронштейн"} <span className="text-[10px]">(при необходимости)</span></span>
@@ -404,7 +462,9 @@ export default function ResultPanel({ result, onSave, saving, companySettings, s
       </div>
 
       <div className="mt-6 p-3 rounded-lg bg-secondary/50 text-xs text-muted-foreground space-y-1">
-        <p>• Кронштейн и монтаж приобретаются при необходимости</p>
+        {result.supportPrice != null && result.supportPrice > 0 && (
+          <p>• Кронштейн и монтаж приобретаются при необходимости</p>
+        )}
         <p>• Доставка и грузчики оплачиваются отдельно</p>
         <p>• Срок изготовления: от {prodDays} рабочих дней</p>
         <p>• Гарантия: 1 год</p>

@@ -15,10 +15,10 @@ import {
   CalculationResult,
   calculateCountertop,
   calculateSink,
-  calculateSimpleProduct,
   calculateStepSlab,
   calculateWindowsill,
   calculateBacksplash,
+  calculateStair,
 } from "@/lib/calculator";
 import { toast } from "sonner";
 
@@ -64,8 +64,10 @@ export default function CalculatorPage() {
       res = calculateWindowsill(params, settings, colorNames);
     } else if (selectedProduct === "backsplash") {
       res = calculateBacksplash(params, settings, colorNames);
+    } else if (selectedProduct === "stair") {
+      res = calculateStair(params, settings, colorNames);
     } else {
-      res = calculateSimpleProduct(selectedProduct, params, settings, colorNames);
+      return; // no other product types
     }
     setResult(res);
     setTimeout(() => {

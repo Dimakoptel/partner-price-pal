@@ -56,9 +56,23 @@ export interface SimpleProductParams {
   thickness: number;
   color: string;
   quantity: number;
-  hasRiser?: boolean;
-  riserHeight?: number;
   isHeated?: boolean;
+}
+
+export interface StairParams {
+  length: number;
+  width: number;
+  thickness: number; // 30, 35, 40
+  color: string;
+  quantity: number;
+  hasRiser: boolean;
+  riserHeight: number; // 100-300, default 180
+  riserThickness: number; // 15-20, default 15
+}
+
+export interface StairValidationError {
+  field: string;
+  message: string;
 }
 
 export interface StepSlabParams {
@@ -111,6 +125,12 @@ export interface CalculationResult {
   elementWidth?: number;
   liftWarning?: string;
   customThicknessWarning?: string;
+  // Stair riser as separate nomenclature
+  riserLabel?: string;
+  riserPrice?: number;
+  riserPricePerUnit?: number;
+  riserWeight?: number;
+  riserWeightPerItem?: number;
 }
 
 export interface CountertopValidationError {
@@ -486,7 +506,7 @@ export function calculateBacksplash(params: BacksplashParams, pricing: Record<st
 
   // Label
   const actualThickness = thickness;
-  let label = `Фартук кухонный COZY ART ${params.width} × ${params.height} × ${actualThickness} мм`;
+  let label = `Фартук индивидуальный (кухня, ванна) COZY ART ${params.width} × ${params.height} × ${actualThickness} мм`;
   label += `, архитектурный бетон, цвет ${params.color}`;
   if (numElements > 1) {
     label += `, частей ${numElements}`;
@@ -516,69 +536,116 @@ export function calculateBacksplash(params: BacksplashParams, pricing: Record<st
   };
 }
 
-export function calculateSimpleProduct(
-  type: ProductType,
-  params: SimpleProductParams,
-  pricing: Record<string, number>,
-  colorNames?: string[]
-): CalculationResult {
-  const priceKeyMap: Record<string, string> = {
-    stair: "stair_price_per_m2",
-  };
-  const labelMap: Record<string, string> = {
-    stair: "Ступень",
-  };
+export function validateStairParams(params: StairParams): StairValidationError[] {
+  const errors: StairValidationError[] = [];
+  if (!params.length || params.length <= 0) errors.push({ field: "length", message: "Не указана длина ступени" });
+  if (!params.width || params.width <= 0) errors.push({ field: "width", message: "Не указана ширина ступени" });
+  if (params.thickness < 30) errors.push({ field: "thickness", message: `Толщина ступени ${params.thickness} мм — меньше допустимого (30 мм)` });
+  if (params.thickness > 40) errors.push({ field: "thickness", message: `Толщина ступени ${params.thickness} мм — больше допустимого (40 мм)` });
+  if (params.thickness % 5 !== 0) errors.push({ field: "thickness", message: `Толщина ступени ${params.thickness} мм — не кратна 5 мм. Допустимые значения: 30, 35, 40 мм.` });
+  if (params.hasRiser) {
+    if (params.riserHeight < 100) errors.push({ field: "riserHeight", message: `Высота подступенка ${params.riserHeight} мм — меньше минимальных 100 мм` });
+    if (params.riserHeight > 300) errors.push({ field: "riserHeight", message: `Высота подступенка ${params.riserHeight} мм — больше максимальных 300 мм` });
+  }
+  return errors;
+}
 
-  const PRICE_PER_M2 = pricing[priceKeyMap[type]] || 50000;
-  const DENSITY = pricing.density || 2350;
+export function calculateStair(params: StairParams, pricing: Record<string, number>, colorNames?: string[]): CalculationResult {
+  const PRICE_PER_M2 = pricing.base_price_per_m2 || 53200;
+  const DENSITY = 2400;
   const INSTALL_PER_KG = pricing.install_price_per_kg || 112;
   const MIN_INSTALL = pricing.min_install_price || 10000;
   const CUSTOM_COLOR = pricing.custom_color_surcharge || 3000;
-  const RISER_PRICE_M2 = pricing.stair_riser_price_per_m2 || 40000;
+  const THICK_40_MULT = pricing.thickness_40_multiplier || 1.1;
+  const IVORY_MULT = pricing.ivory_color_multiplier || 1.03;
 
   const stdColors = colorNames || STANDARD_COLORS;
-  const area = (params.length * params.width) / 1_000_000;
+  const qty = Math.max(1, Math.floor(params.quantity));
   const thickness = params.thickness || 30;
-  const volume = area * (thickness / 1000);
-  let basePrice = area * PRICE_PER_M2;
+  const riserThickness = Math.min(20, Math.max(15, params.riserThickness || 15));
+
+  // Area of one tread
+  const areaTread = (params.length * params.width) / 1_000_000;
+
+  // Base price per item
+  let treadPrice = areaTread * PRICE_PER_M2;
+  if (thickness === 40) treadPrice *= THICK_40_MULT;
+
+  const isIvory = params.color.toLowerCase() === "белоснежный";
+  const isCustom = !isIvory && !stdColors.map(c => c.toLowerCase()).includes(params.color.toLowerCase());
+
+  if (isIvory) treadPrice *= IVORY_MULT;
 
   const optionItems: { name: string; price: number }[] = [];
   let optionPrice = 0;
 
-  const isCustom = !stdColors.map(c => c.toLowerCase()).includes(params.color.toLowerCase()) && params.color.toLowerCase() !== "белоснежный";
+  // Custom color fee per item
+  let customColorFeePerItem = 0;
   if (isCustom) {
-    optionPrice += CUSTOM_COLOR;
+    customColorFeePerItem = CUSTOM_COLOR;
+    optionPrice += CUSTOM_COLOR * qty;
     optionItems.push({ name: `Нестандартный цвет: ${params.color}`, price: CUSTOM_COLOR });
   }
-  if (params.color.toLowerCase() === "белоснежный") {
-    basePrice *= (pricing.ivory_color_multiplier || 1.03);
+
+  // Weight of one tread
+  const volTread = (params.length * params.width * thickness) / 1_000_000_000;
+  const treadWeightPerItem = Math.round(volTread * DENSITY);
+  const totalTreadWeight = treadWeightPerItem * qty;
+
+  // Riser (separate nomenclature)
+  let riserLabel: string | undefined;
+  let riserPrice = 0;
+  let riserPricePerUnit = 0;
+  let riserWeightPerItem = 0;
+  let totalRiserWeight = 0;
+
+  if (params.hasRiser && params.riserHeight > 0) {
+    const areaRiser = (params.length * params.riserHeight) / 1_000_000;
+    let riserPricePerItem = areaRiser * PRICE_PER_M2;
+    if (isIvory) riserPricePerItem *= IVORY_MULT;
+    riserPricePerUnit = Math.round(riserPricePerItem);
+    riserPrice = riserPricePerUnit * qty;
+
+    const volRiser = (params.length * params.riserHeight * riserThickness) / 1_000_000_000;
+    riserWeightPerItem = Math.round(volRiser * DENSITY);
+    totalRiserWeight = riserWeightPerItem * qty;
+
+    riserLabel = `Подступенок ${params.length} × ${params.riserHeight} × ${riserThickness} мм`;
   }
 
-  // Stair riser
-  if (type === "stair" && params.hasRiser && params.riserHeight && params.riserHeight > 0) {
-    const riserArea = (params.length * params.riserHeight) / 1_000_000;
-    const riserCost = riserArea * RISER_PRICE_M2;
-    optionPrice += riserCost;
-    optionItems.push({ name: `Подступенок ${params.riserHeight} мм`, price: Math.round(riserCost) });
-  }
+  // Total weight (treads + risers)
+  const totalWeight = totalTreadWeight + totalRiserWeight;
 
-  const qty = Math.max(1, params.quantity);
-  const totalPrice = Math.round((basePrice + optionPrice) * qty);
-  const totalWeight = Math.round(volume * DENSITY * qty);
-  const installationPrice = Math.max(MIN_INSTALL, Math.round(totalWeight * INSTALL_PER_KG));
+  // Installation on total weight
+  const installByWeight = Math.round(totalWeight * INSTALL_PER_KG);
+  const installationPrice = Math.max(MIN_INSTALL, installByWeight);
+
+  // Total prices
+  const totalTreadPrice = Math.round(treadPrice * qty);
+  const totalPrice = totalTreadPrice + riserPrice + Math.round(optionPrice);
+
+  // Label
+  let label = `Ступень индивидуальная COZY ART ${params.length} × ${params.width} × ${thickness} мм`;
+  label += `, архитектурный бетон, цвет ${params.color}`;
 
   return {
-    productLabel: labelMap[type] || type,
-    area: +area.toFixed(4),
+    productLabel: label,
+    area: +areaTread.toFixed(4),
     weight: totalWeight,
-    basePrice: Math.round(basePrice * qty),
-    optionPrice: Math.round(optionPrice * qty),
+    weightPerItem: treadWeightPerItem,
+    basePrice: totalTreadPrice,
+    optionPrice: Math.round(optionPrice),
     optionItems,
     totalPrice,
     installationPrice,
     grandTotal: totalPrice + installationPrice,
     quantity: qty,
-    pricePerUnit: Math.round(totalPrice / qty),
+    pricePerUnit: Math.round(treadPrice + customColorFeePerItem),
+    riserLabel,
+    riserPrice,
+    riserPricePerUnit,
+    riserWeight: totalRiserWeight > 0 ? totalRiserWeight : undefined,
+    riserWeightPerItem: riserWeightPerItem > 0 ? riserWeightPerItem : undefined,
   };
 }
 
