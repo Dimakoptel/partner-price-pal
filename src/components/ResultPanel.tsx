@@ -73,20 +73,25 @@ export function buildShareText(result: CalculationResult, cs?: CompanySettingsAc
   return text;
 }
 
-export function handlePrint(result: CalculationResult, cs?: CompanySettingsAccessor, specialist?: SpecialistInfo) {
+export function buildPrintHtml(result: CalculationResult, cs?: CompanySettingsAccessor, specialist?: SpecialistInfo) {
   const phone = cs?.getSetting("phone_main") || "";
   const phoneExtra = cs?.getSetting("phone_extra") || "";
   const email = cs?.getSetting("email") || "";
   const site = cs?.getSetting("website") || "";
   const address = cs?.getSetting("address") || "";
   const workHours = cs?.getSetting("work_hours") || "";
-  const prodDays = cs?.getSetting("production_days") || "20";
-  const warranty = cs?.getSetting("warranty_years") || "1";
   const telegram = cs?.getSetting("telegram") || "";
   const whatsapp = cs?.getSetting("whatsapp") || "";
 
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
+  // Template settings
+  const companyName = cs?.getSetting("print_company_name") || "COZY ART";
+  const subtitle = cs?.getSetting("print_company_subtitle") || "архитектурный бетон";
+  const logoUrl = cs?.getSetting("print_logo_url") || "";
+  const customFooterLeft = cs?.getSetting("print_footer_left") || "";
+  const customFooterRight = cs?.getSetting("print_footer_right") || "";
+  const customConditions = cs?.getSetting("print_conditions") || "";
+  const prodDays = cs?.getSetting("production_days") || "20";
+  const warranty = cs?.getSetting("warranty_years") || "1";
 
   const supportLine = result.supportPrice
     ? `<tr>
@@ -102,20 +107,30 @@ export function handlePrint(result: CalculationResult, cs?: CompanySettingsAcces
   if (phoneExtra) headerContactLines.push(phoneExtra);
   if (email) headerContactLines.push(email);
 
-  const footerLeftLines: string[] = [];
-  if (address) footerLeftLines.push(address);
-  if (workHours) footerLeftLines.push(workHours);
+  // Footer: use custom or fallback to dynamic contacts
+  const footerLeftLines: string[] = customFooterLeft
+    ? customFooterLeft.split("\n").filter(Boolean)
+    : [address, workHours].filter(Boolean);
 
-  const footerRightLines: string[] = [];
-  if (site) footerRightLines.push(site);
-  if (telegram) footerRightLines.push(`Telegram: ${telegram}`);
-  if (whatsapp) footerRightLines.push(`WhatsApp: ${whatsapp}`);
+  const footerRightLines: string[] = customFooterRight
+    ? customFooterRight.split("\n").filter(Boolean)
+    : [site, telegram ? `Telegram: ${telegram}` : "", whatsapp ? `WhatsApp: ${whatsapp}` : ""].filter(Boolean);
 
-  printWindow.document.write(`<!DOCTYPE html>
+  // Conditions: use custom or default
+  const conditionLines = customConditions
+    ? customConditions.split("\n").filter(Boolean)
+    : [
+        "Кронштейн и монтаж приобретаются при необходимости",
+        "Доставка и услуги грузчиков — по тарифам партнёров (оплачиваются отдельно)",
+        `Срок изготовления: от ${prodDays} рабочих дней`,
+        `Гарантия: ${warranty} год на изделие`,
+      ];
+
+  return `<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<title>COZY ART — Расчёт стоимости</title>
+<title>${companyName} — Расчёт стоимости</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -124,6 +139,7 @@ export function handlePrint(result: CalculationResult, cs?: CompanySettingsAcces
   .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:32px; padding-bottom:20px; border-bottom:3px solid #1a1a1a; }
   .logo { font-size:28px; font-weight:700; letter-spacing:2px; color:#1a1a1a; }
   .logo-sub { font-size:11px; color:#888; letter-spacing:3px; text-transform:uppercase; margin-top:2px; }
+  .logo-img { max-height:60px; max-width:200px; object-fit:contain; margin-bottom:4px; }
   .header-contacts { text-align:right; font-size:12px; color:#555; line-height:1.8; }
   .section-title { font-size:11px; text-transform:uppercase; letter-spacing:2px; color:#888; margin-bottom:12px; font-weight:600; }
   .nomenclature { background:#f8f8f8; border-left:4px solid #1a1a1a; padding:16px 20px; margin-bottom:28px; font-size:14px; line-height:1.7; color:#333; }
@@ -146,8 +162,9 @@ export function handlePrint(result: CalculationResult, cs?: CompanySettingsAcces
 <div class="page">
   <div class="header">
     <div>
-      <div class="logo">COZY ART</div>
-      <div class="logo-sub">архитектурный бетон</div>
+      ${logoUrl ? `<img src="${logoUrl}" class="logo-img" alt="Logo"><br>` : ""}
+      <div class="logo">${companyName}</div>
+      <div class="logo-sub">${subtitle}</div>
     </div>
     ${headerContactLines.length > 0 ? `<div class="header-contacts">${headerContactLines.join("<br>")}</div>` : ""}
   </div>
@@ -188,10 +205,7 @@ export function handlePrint(result: CalculationResult, cs?: CompanySettingsAcces
   <div class="section-title">Условия</div>
   <div class="conditions">
     <ul>
-      <li>Кронштейн и монтаж приобретаются при необходимости</li>
-      <li>Доставка и услуги грузчиков — по тарифам партнёров (оплачиваются отдельно)</li>
-      <li>Срок изготовления: от ${prodDays} рабочих дней</li>
-      <li>Гарантия: ${warranty} год на изделие</li>
+      ${conditionLines.map(l => `<li>${l}</li>`).join("\n      ")}
     </ul>
   </div>
 
@@ -210,7 +224,13 @@ export function handlePrint(result: CalculationResult, cs?: CompanySettingsAcces
     ${footerRightLines.length > 0 ? `<div class="footer-col" style="text-align:right;">${footerRightLines.join("<br>")}</div>` : ""}
   </div>
 </div>
-</body></html>`);
+</body></html>`;
+}
+
+export function handlePrint(result: CalculationResult, cs?: CompanySettingsAccessor, specialist?: SpecialistInfo) {
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) return;
+  printWindow.document.write(buildPrintHtml(result, cs, specialist));
   printWindow.document.close();
   printWindow.print();
 }
@@ -231,15 +251,49 @@ export function shareVia(platform: string, result: CalculationResult, cs?: Compa
   window.open(url, "_blank");
 }
 
-export function handleSaveFile(result: CalculationResult, calcName?: string) {
-  const text = buildShareText(result);
-  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${calcName || "расчёт"}.txt`;
-  a.click();
-  URL.revokeObjectURL(url);
+export async function handleSaveFile(result: CalculationResult, calcName?: string, cs?: CompanySettingsAccessor, specialist?: SpecialistInfo) {
+  const html = buildPrintHtml(result, cs, specialist);
+
+  // Create a temporary container for html2pdf
+  const container = document.createElement("div");
+  container.innerHTML = html;
+  // Extract just the body content
+  const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+  if (bodyMatch) {
+    container.innerHTML = bodyMatch[1];
+  }
+  container.style.position = "fixed";
+  container.style.left = "-9999px";
+  container.style.top = "0";
+  container.style.width = "700px";
+  container.style.fontFamily = "Inter, sans-serif";
+  document.body.appendChild(container);
+
+  try {
+    const html2pdf = (await import("html2pdf.js")).default;
+    await html2pdf()
+      .set({
+        margin: [10, 10, 10, 10],
+        filename: `${calcName || "расчёт"}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      })
+      .from(container)
+      .save();
+  } catch {
+    // Fallback to txt if pdf fails
+    const text = buildShareText(result, cs);
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${calcName || "расчёт"}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } finally {
+    document.body.removeChild(container);
+  }
 }
 
 interface Props {
@@ -354,7 +408,7 @@ export default function ResultPanel({ result, onSave, saving, companySettings, s
           <Printer className="w-4 h-4" />
           Печать
         </Button>
-        <Button size="sm" variant="secondary" onClick={() => handleSaveFile(result, calcName)} className="gap-1.5">
+        <Button size="sm" variant="secondary" onClick={() => handleSaveFile(result, calcName, companySettings, specialist)} className="gap-1.5">
           <Download className="w-4 h-4" />
           Сохранить файл
         </Button>

@@ -6,6 +6,7 @@ import PricingTab from "@/components/admin/PricingTab";
 import ColorsTab from "@/components/admin/ColorsTab";
 import CompanySettingsTab from "@/components/admin/CompanySettingsTab";
 import CalculationsTab from "@/components/admin/CalculationsTab";
+import PrintTemplateTab from "@/components/admin/PrintTemplateTab";
 
 export default function AdminPage() {
   const { allSettings, loading } = usePricing();
@@ -19,17 +20,19 @@ export default function AdminPage() {
         </motion.div>
 
         <Tabs defaultValue="pricing" className="space-y-6">
-          <TabsList className="bg-secondary">
+          <TabsList className="bg-secondary flex-wrap">
             <TabsTrigger value="pricing">Цены</TabsTrigger>
             <TabsTrigger value="colors">Цвета</TabsTrigger>
             <TabsTrigger value="company">Контакты</TabsTrigger>
             <TabsTrigger value="calculations">Расчёты</TabsTrigger>
+            <TabsTrigger value="template">Шаблон печати</TabsTrigger>
           </TabsList>
 
           <TabsContent value="pricing"><PricingTab allSettings={allSettings} loading={loading} /></TabsContent>
           <TabsContent value="colors"><ColorsTab /></TabsContent>
           <TabsContent value="company"><CompanySettingsTab /></TabsContent>
           <TabsContent value="calculations"><CalculationsTab /></TabsContent>
+          <TabsContent value="template"><PrintTemplateTab /></TabsContent>
         </Tabs>
       </div>
     </AppLayout>
