@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { CountertopParams, SinkParams, SimpleProductParams, StepSlabParams, ProductType, validateSinkParams, SinkValidationError, validateCountertopParams, CountertopValidationError, validateStepSlabParams, StepSlabValidationError } from "@/lib/calculator";
+import { CountertopParams, SinkParams, SimpleProductParams, StepSlabParams, WindowsillParams, ProductType, validateSinkParams, SinkValidationError, validateCountertopParams, CountertopValidationError, validateStepSlabParams, StepSlabValidationError, validateWindowsillParams, WindowsillValidationError } from "@/lib/calculator";
 import { Calculator, AlertTriangle } from "lucide-react";
 
 interface Props {
@@ -44,7 +44,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
   const [riserHeight, setRiserHeight] = useState(150);
   const [isHeated, setIsHeated] = useState(false);
   const [thicknessConcrete, setThicknessConcrete] = useState(40);
-  const [validationErrors, setValidationErrors] = useState<(SinkValidationError | CountertopValidationError | StepSlabValidationError)[]>([]);
+  const [validationErrors, setValidationErrors] = useState<(SinkValidationError | CountertopValidationError | StepSlabValidationError | WindowsillValidationError)[]>([]);
   const finalColor = color === "другой" ? customColor : color;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -85,6 +85,17 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
         length, width, thicknessConcrete, color: finalColor, quantity, isHeated,
       };
       const errors = validateStepSlabParams(params);
+      if (errors.length > 0) {
+        setValidationErrors(errors);
+        return;
+      }
+      onCalculate(params);
+    } else if (productType === "windowsill") {
+      const params: WindowsillParams = {
+        length, width, thickness, color: finalColor, quantity,
+        drops: { front: dropFront, left: dropLeft, right: dropRight },
+      };
+      const errors = validateWindowsillParams(params);
       if (errors.length > 0) {
         setValidationErrors(errors);
         return;
@@ -150,10 +161,17 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
               )}
             </div>
           )}
-          {(productType === "countertop" || productType === "windowsill" || productType === "backsplash" || productType === "stair") && (
+          {(productType === "countertop" || productType === "backsplash" || productType === "stair") && (
             <div>
               <Label className="text-xs">Толщина (мм)</Label>
               <Input type="number" value={thickness} onChange={(e) => setThickness(+e.target.value)} min={20} max={50} className={inputClass} />
+            </div>
+          )}
+          {productType === "windowsill" && (
+            <div>
+              <Label className="text-xs">Толщина (мм)</Label>
+              <Input type="number" value={thickness} onChange={(e) => setThickness(+e.target.value)} min={15} max={50} className={inputClass} />
+              <p className="text-[10px] text-muted-foreground mt-1">Диапазон: 15–50 мм (по умолчанию 30)</p>
             </div>
           )}
 
@@ -184,6 +202,28 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
             <div>
               <Label className="text-xs">Справа</Label>
               <Input type="number" value={dropRight} onChange={(e) => setDropRight(+e.target.value)} min={0} max={300} className={inputClass} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Windowsill drops - front, left, right only (no back) */}
+      {productType === "windowsill" && (
+        <div>
+          <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Опуски (мм)</h3>
+          <p className="text-[10px] text-muted-foreground mb-2">Задняя сторона примыкает к стене — опуск сзади не поддерживается</p>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label className="text-xs">Спереди</Label>
+              <Input type="number" value={dropFront} onChange={(e) => setDropFront(+e.target.value)} min={0} max={200} className={inputClass} />
+            </div>
+            <div>
+              <Label className="text-xs">Слева</Label>
+              <Input type="number" value={dropLeft} onChange={(e) => setDropLeft(+e.target.value)} min={0} max={200} className={inputClass} />
+            </div>
+            <div>
+              <Label className="text-xs">Справа</Label>
+              <Input type="number" value={dropRight} onChange={(e) => setDropRight(+e.target.value)} min={0} max={200} className={inputClass} />
             </div>
           </div>
         </div>

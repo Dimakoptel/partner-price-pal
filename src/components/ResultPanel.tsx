@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { CalculationResult } from "@/lib/calculator";
 import { Button } from "@/components/ui/button";
-import { Printer, Share2, Save, MessageCircle, Mail, Download } from "lucide-react";
+import { Printer, Share2, Save, MessageCircle, Mail } from "lucide-react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -412,10 +412,6 @@ export default function ResultPanel({ result, onSave, saving, companySettings, s
         <Button size="sm" variant="secondary" onClick={() => handlePrint(result, companySettings, specialist)} className="gap-1.5">
           <Printer className="w-4 h-4" />
           Печать
-        </Button>
-        <Button size="sm" variant="secondary" onClick={() => handleSaveFile(result, calcName, companySettings, specialist)} className="gap-1.5">
-          <Download className="w-4 h-4" />
-          Сохранить файл
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

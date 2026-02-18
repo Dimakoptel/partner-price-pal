@@ -270,6 +270,135 @@ export function calculateCountertop(params: CountertopParams, pricing: Record<st
   };
 }
 
+export interface WindowsillParams {
+  length: number;
+  width: number;
+  thickness: number;
+  color: string;
+  quantity: number;
+  drops: { front: number; left: number; right: number };
+}
+
+export interface WindowsillValidationError {
+  field: string;
+  message: string;
+}
+
+export function validateWindowsillParams(params: WindowsillParams): WindowsillValidationError[] {
+  const errors: WindowsillValidationError[] = [];
+  if (!params.length || params.length <= 0) errors.push({ field: "length", message: "Не указана длина подоконника" });
+  if (!params.width || params.width <= 0) errors.push({ field: "width", message: "Не указана ширина подоконника" });
+  if (params.thickness < 15) errors.push({ field: "thickness", message: `Толщина ${params.thickness} мм меньше минимальных 15 мм` });
+  if (params.thickness > 50) errors.push({ field: "thickness", message: `Толщина ${params.thickness} мм превышает максимальные 50 мм` });
+  for (const [side, h] of Object.entries(params.drops)) {
+    if (h > 200) {
+      const sideLabel = side === "front" ? "спереди" : side === "left" ? "слева" : "справа";
+      errors.push({ field: `drop_${side}`, message: `Высота опуска ${sideLabel} (${h} мм) не может превышать 200 мм` });
+    }
+  }
+  return errors;
+}
+
+export function calculateWindowsill(params: WindowsillParams, pricing: Record<string, number>, colorNames?: string[]): CalculationResult {
+  const PRICE_PER_M2 = pricing.windowsill_price_per_m2 || 53200;
+  const DENSITY = pricing.density || 2350;
+  const INSTALL_PER_KG = pricing.install_price_per_kg || 112;
+  const MIN_INSTALL = pricing.min_install_price || 10000;
+  const DROP_MULT = pricing.windowsill_drop_multiplier || 1.15;
+  const IVORY_MULT = pricing.ivory_color_multiplier || 1.03;
+  const CUSTOM_COLOR = pricing.custom_color_surcharge || 3000;
+
+  const stdColors = colorNames || STANDARD_COLORS;
+  const qty = Math.max(1, Math.floor(params.quantity));
+  const thickness = params.thickness || 30;
+
+  // Area & base price
+  const areaMain = (params.length * params.width) / 1_000_000;
+  let basePrice = areaMain * PRICE_PER_M2;
+
+  // Drops
+  const optionItems: { name: string; price: number }[] = [];
+  let dropsPrice = 0;
+
+  const dropEntries: [string, number, number][] = [
+    ["front", params.drops.front, params.length],
+    ["left", params.drops.left, params.width],
+    ["right", params.drops.right, params.width],
+  ];
+
+  for (const [side, h, len] of dropEntries) {
+    if (h > 0) {
+      const dropArea = (len * h) / 1_000_000;
+      const cost = dropArea * PRICE_PER_M2 * DROP_MULT;
+      dropsPrice += cost;
+      const sideLabel = side === "front" ? "спереди" : side === "left" ? "слева" : "справа";
+      optionItems.push({ name: `Опуск ${sideLabel} ${h} мм`, price: Math.round(cost) });
+    }
+  }
+
+  let itemPrice = basePrice + dropsPrice;
+
+  // Color modifiers
+  const isIvory = params.color.toLowerCase() === "белоснежный";
+  const isCustom = !isIvory && !stdColors.map(c => c.toLowerCase()).includes(params.color.toLowerCase());
+
+  if (isIvory) {
+    const premium = Math.round(itemPrice * (IVORY_MULT - 1));
+    itemPrice += premium;
+    optionItems.push({ name: `Наценка «белоснежный» +3%`, price: premium });
+  }
+  if (isCustom) {
+    itemPrice += CUSTOM_COLOR;
+    optionItems.push({ name: `Нестандартный цвет: ${params.color}`, price: CUSTOM_COLOR });
+  }
+
+  const totalPrice = Math.round(itemPrice * qty);
+
+  // Volume & weight
+  const volMain = (params.length * params.width * thickness) / 1_000_000_000;
+  let volDrops = 0;
+  for (const [, h, len] of dropEntries) {
+    if (h > 0) {
+      volDrops += (len * thickness * h) / 1_000_000_000;
+    }
+  }
+  const totalVol = (volMain + volDrops) * qty;
+  const totalWeight = Math.round(totalVol * DENSITY * 10) / 10;
+
+  // Installation
+  const installByWeight = Math.round(totalWeight * INSTALL_PER_KG);
+  const installationPrice = Math.max(MIN_INSTALL, installByWeight);
+
+  // Label
+  let label = `Подоконник индивидуальный COZY ART ${params.length} × ${params.width} × ${thickness} мм`;
+  const activeDrops: string[] = [];
+  for (const [side, h] of Object.entries(params.drops)) {
+    if (h > 0) {
+      const sideLabel = side === "front" ? "спереди" : side === "left" ? "слева" : "справа";
+      activeDrops.push(`${sideLabel} ${h}`);
+    }
+  }
+  if (activeDrops.length > 0) label += `, опуски (${activeDrops.join(", ")}) мм`;
+  label += `, архитектурный бетон, цвет ${params.color}`;
+
+  const optionPriceTotal = Math.round((dropsPrice + (isIvory ? Math.round((basePrice + dropsPrice) * (IVORY_MULT - 1)) : 0) + (isCustom ? CUSTOM_COLOR : 0)) * qty);
+
+  return {
+    productLabel: label,
+    area: +areaMain.toFixed(4),
+    weight: totalWeight,
+    weightPerItem: qty > 1 ? Math.round((volMain + volDrops) * DENSITY * 10) / 10 : undefined,
+    basePrice: Math.round(basePrice * qty),
+    optionPrice: optionPriceTotal,
+    optionItems,
+    totalPrice,
+    installationPrice,
+    grandTotal: totalPrice + installationPrice,
+    quantity: qty,
+    pricePerUnit: Math.round(itemPrice),
+  };
+}
+
 export function calculateSimpleProduct(
   type: ProductType,
   params: SimpleProductParams,
@@ -277,16 +406,12 @@ export function calculateSimpleProduct(
   colorNames?: string[]
 ): CalculationResult {
   const priceKeyMap: Record<string, string> = {
-    windowsill: "windowsill_price_per_m2",
     backsplash: "backsplash_price_per_m2",
     stair: "stair_price_per_m2",
-    stepslab: "stepslab_price_per_m2",
   };
   const labelMap: Record<string, string> = {
-    windowsill: "Подоконник",
     backsplash: "Фартук",
     stair: "Ступень",
-    stepslab: "Пошаговая плита",
   };
 
   const PRICE_PER_M2 = pricing[priceKeyMap[type]] || 50000;
@@ -295,7 +420,6 @@ export function calculateSimpleProduct(
   const MIN_INSTALL = pricing.min_install_price || 10000;
   const CUSTOM_COLOR = pricing.custom_color_surcharge || 3000;
   const RISER_PRICE_M2 = pricing.stair_riser_price_per_m2 || 40000;
-  const HEATED_SURCHARGE = pricing.stepslab_heated_surcharge || 5000;
 
   const stdColors = colorNames || STANDARD_COLORS;
   const area = (params.length * params.width) / 1_000_000;
@@ -370,9 +494,9 @@ export function calculateStepSlab(params: StepSlabParams, pricing: Record<string
   const SUBSTRATE_THICKNESS = 20;
 
   const stdColors = colorNames || STANDARD_COLORS;
-  const thicknessTotal = params.isHeated ? params.thicknessConcrete + SUBSTRATE_THICKNESS : params.thicknessConcrete;
   const area = (params.length * params.width) / 1_000_000;
-  const volumePerItem = (params.length / 1000) * (params.width / 1000) * (thicknessTotal / 1000);
+  // Weight uses only concrete thickness — heating substrate doesn't change weight
+  const volumePerItem = (params.length / 1000) * (params.width / 1000) * (params.thicknessConcrete / 1000);
   const qty = Math.max(1, Math.floor(params.quantity));
 
   const pricePerM2 = params.isHeated ? PRICE_PER_M2_HEATED : PRICE_PER_M2_COLD;
@@ -405,6 +529,7 @@ export function calculateStepSlab(params: StepSlabParams, pricing: Record<string
   }
 
   // Build label
+  const thicknessTotal = params.isHeated ? params.thicknessConcrete + SUBSTRATE_THICKNESS : params.thicknessConcrete;
   let label = `Плита пошаговая COZY ART ${params.length} × ${params.width} × ${thicknessTotal} мм`;
   if (params.isHeated) {
     label += ` (бетон ${params.thicknessConcrete} мм + подложка ${SUBSTRATE_THICKNESS} мм)`;
