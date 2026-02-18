@@ -256,12 +256,17 @@ export async function handleSaveFile(result: CalculationResult, calcName?: strin
 
   // Create a temporary container for html2pdf
   const container = document.createElement("div");
-  container.innerHTML = html;
-  // Extract just the body content
+  // Extract styles and body content separately
+  const styleMatch = html.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
   const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-  if (bodyMatch) {
-    container.innerHTML = bodyMatch[1];
+  if (styleMatch) {
+    const styleEl = document.createElement("style");
+    styleEl.textContent = styleMatch[1];
+    container.appendChild(styleEl);
   }
+  const content = document.createElement("div");
+  content.innerHTML = bodyMatch ? bodyMatch[1] : html;
+  container.appendChild(content);
   container.style.position = "fixed";
   container.style.left = "-9999px";
   container.style.top = "0";
