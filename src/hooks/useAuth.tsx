@@ -11,6 +11,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string, phone?: string, telegram?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
+  isApproved: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,14 +22,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<{ full_name: string; phone?: string; telegram?: string } | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isApproved, setIsApproved] = useState(false);
 
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
-      .select("full_name, phone, telegram")
+      .select("full_name, phone, telegram, is_approved")
       .eq("user_id", userId)
       .single();
-    setProfile(data);
+    if (data) {
+      setProfile({ full_name: data.full_name || "", phone: data.phone || undefined, telegram: data.telegram || undefined });
+      setIsApproved(data.is_approved === true);
+    }
   };
 
   const fetchRole = async (userId: string) => {
@@ -51,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setProfile(null);
         setIsAdmin(false);
+        setIsApproved(false);
       }
       setLoading(false);
     });
@@ -95,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, session, loading, profile, signIn, signUp, signOut, isAdmin }}
+      value={{ user, session, loading, profile, signIn, signUp, signOut, isAdmin, isApproved }}
     >
       {children}
     </AuthContext.Provider>

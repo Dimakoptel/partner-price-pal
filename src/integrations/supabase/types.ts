@@ -79,6 +79,7 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          is_approved: boolean
           phone: string | null
           role: string
           telegram: string | null
@@ -89,6 +90,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          is_approved?: boolean
           phone?: string | null
           role?: string
           telegram?: string | null
@@ -99,6 +101,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          is_approved?: boolean
           phone?: string | null
           role?: string
           telegram?: string | null

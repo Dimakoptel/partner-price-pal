@@ -35,7 +35,7 @@ export default function AuthPage() {
       }
       const { error } = await signUp(email, password, fullName, phone, telegram);
       if (error) setError(error.message);
-      else setSuccess("Проверьте почту для подтверждения регистрации.");
+      else setSuccess("Регистрация прошла успешно! Проверьте почту для подтверждения. После подтверждения email администратор одобрит ваш доступ.");
     }
     setLoading(false);
   };
