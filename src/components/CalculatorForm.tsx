@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { CountertopParams, SinkParams, SimpleProductParams, ProductType, validateSinkParams, SinkValidationError, validateCountertopParams, CountertopValidationError } from "@/lib/calculator";
+import { CountertopParams, SinkParams, SimpleProductParams, StepSlabParams, ProductType, validateSinkParams, SinkValidationError, validateCountertopParams, CountertopValidationError, validateStepSlabParams, StepSlabValidationError } from "@/lib/calculator";
 import { Calculator, AlertTriangle } from "lucide-react";
 
 interface Props {
@@ -43,7 +43,8 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
   const [hasRiser, setHasRiser] = useState(false);
   const [riserHeight, setRiserHeight] = useState(150);
   const [isHeated, setIsHeated] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<(SinkValidationError | CountertopValidationError)[]>([]);
+  const [thicknessConcrete, setThicknessConcrete] = useState(40);
+  const [validationErrors, setValidationErrors] = useState<(SinkValidationError | CountertopValidationError | StepSlabValidationError)[]>([]);
   const finalColor = color === "другой" ? customColor : color;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -79,12 +80,21 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
         return;
       }
       onCalculate(params);
+    } else if (productType === "stepslab") {
+      const params: StepSlabParams = {
+        length, width, thicknessConcrete, color: finalColor, quantity, isHeated,
+      };
+      const errors = validateStepSlabParams(params);
+      if (errors.length > 0) {
+        setValidationErrors(errors);
+        return;
+      }
+      onCalculate(params);
     } else {
       const params: SimpleProductParams = {
         length, width, thickness, color: finalColor, quantity,
         hasRiser: productType === "stair" ? hasRiser : undefined,
         riserHeight: productType === "stair" && hasRiser ? riserHeight : undefined,
-        isHeated: productType === "stepslab" ? isHeated : undefined,
       };
       onCalculate(params);
     }
@@ -128,7 +138,19 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
             </>
           )}
 
-          {(productType === "countertop" || productType === "windowsill" || productType === "backsplash" || productType === "stair" || productType === "stepslab") && (
+          {productType === "stepslab" && (
+            <div>
+              <Label className="text-xs">Толщина бетона (мм)</Label>
+              <Input type="number" value={thicknessConcrete} onChange={(e) => setThicknessConcrete(+e.target.value)} min={40} max={60} className={inputClass} />
+              {isHeated && (
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Общая толщина: {thicknessConcrete + 20} мм (бетон {thicknessConcrete} + подложка 20)
+                  {thicknessConcrete + 20 > 80 && <span className="text-destructive ml-1">⚠️ макс. 80 мм</span>}
+                </p>
+              )}
+            </div>
+          )}
+          {(productType === "countertop" || productType === "windowsill" || productType === "backsplash" || productType === "stair") && (
             <div>
               <Label className="text-xs">Толщина (мм)</Label>
               <Input type="number" value={thickness} onChange={(e) => setThickness(+e.target.value)} min={20} max={50} className={inputClass} />

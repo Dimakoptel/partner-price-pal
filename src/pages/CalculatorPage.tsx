@@ -16,6 +16,7 @@ import {
   calculateCountertop,
   calculateSink,
   calculateSimpleProduct,
+  calculateStepSlab,
 } from "@/lib/calculator";
 import { toast } from "sonner";
 
@@ -55,6 +56,8 @@ export default function CalculatorPage() {
       res = calculateCountertop(params, settings, colorNames);
     } else if (selectedProduct === "sink") {
       res = calculateSink(params, settings, colorNames);
+    } else if (selectedProduct === "stepslab") {
+      res = calculateStepSlab(params, settings, colorNames);
     } else {
       res = calculateSimpleProduct(selectedProduct, params, settings, colorNames);
     }

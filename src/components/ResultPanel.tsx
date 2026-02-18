@@ -29,17 +29,37 @@ export function buildShareText(result: CalculationResult, cs?: CompanySettingsAc
   let text = `🧾 Расчёт стоимости\n\n`;
   text += `${result.productLabel}\n`;
   text += `Стоимость изделия: ${formatPrice(result.totalPrice)} ₽\n`;
+  if (result.quantity > 1) {
+    text += `Цена за 1 шт.: ${formatPrice(result.pricePerUnit)} ₽\n`;
+  }
   if (result.weight > 0) {
-    text += `Ориентировочный вес: ${result.weight} кг\n`;
+    if (result.quantity > 1 && result.weightPerItem) {
+      text += `Ориентировочный вес за 1 шт.: ${result.weightPerItem} кг\n`;
+      text += `Ориентировочный общий вес: ${result.weight} кг\n`;
+    } else {
+      text += `Ориентировочный вес: ${result.weight} кг\n`;
+    }
+  }
+  if (result.energyConsumptionPerItem && result.energyConsumptionPerItem > 0) {
+    text += `Энергопотребление 1 шт.: ${result.energyConsumptionPerItem} Вт\n`;
+    if (result.quantity > 1 && result.energyConsumption) {
+      text += `Общее энергопотребление: ${result.energyConsumption} Вт\n`;
+    }
   }
   if (result.supportPrice) {
     text += `${result.supportLabel || "Кронштейн"} (при необходимости): ${formatPrice(result.supportPrice)} ₽\n`;
   }
-  text += `Монтаж (при необходимости): ${formatPrice(result.installationPrice)} ₽\n`;
+  if (result.installationNote) {
+    text += `\n${result.installationNote}\n`;
+  } else {
+    text += `Монтаж (при необходимости): ${formatPrice(result.installationPrice)} ₽\n`;
+  }
   text += `\n📌 УСЛОВИЯ\n`;
   const days = cs?.getSetting("production_days") || "20";
   const warranty = cs?.getSetting("warranty_years") || "1";
-  text += `• Кронштейн и монтаж приобретаются при необходимости\n`;
+  if (!result.installationNote) {
+    text += `• Кронштейн и монтаж приобретаются при необходимости\n`;
+  }
   text += `• Доставка и грузчики — отдельно\n`;
   text += `• Срок изготовления: от ${days} рабочих дней\n`;
   text += `• Гарантия: ${warranty} год\n`;
@@ -144,15 +164,23 @@ export function handlePrint(result: CalculationResult, cs?: CompanySettingsAcces
       <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600;white-space:nowrap;">${formatPrice(result.totalPrice)} ₽</td>
     </tr>
     ${supportLine}
+    ${result.installationNote ? `
+    <tr>
+      <td colspan="2" style="padding:12px 0;border-bottom:1px solid #e5e5e5;">
+        <div style="font-size:14px;color:#333;font-weight:500;">Монтажные работы</div>
+        <div style="font-size:12px;color:#666;margin-top:4px;white-space:pre-line;">${result.installationNote}</div>
+      </td>
+    </tr>` : `
     <tr>
       <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;">
         <div style="font-size:14px;color:#333;">Монтажные работы <span style="font-size:11px;color:#888;">(при необходимости)</span></div>
       </td>
       <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600;white-space:nowrap;">${formatPrice(result.installationPrice)} ₽</td>
-    </tr>
+    </tr>`}
     <tr>
       <td colspan="2" style="padding:8px 0;font-size:12px;color:#555;">
-        Ориентировочный вес: <strong>${result.weight} кг</strong>
+        ${result.quantity > 1 && result.weightPerItem ? `Ориентировочный вес за 1 шт.: <strong>${result.weightPerItem} кг</strong> · Общий вес: <strong>${result.weight} кг</strong>` : `Ориентировочный вес: <strong>${result.weight} кг</strong>`}
+        ${result.energyConsumptionPerItem && result.energyConsumptionPerItem > 0 ? `<br>Энергопотребление 1 шт.: <strong>${result.energyConsumptionPerItem} Вт</strong>${result.quantity > 1 && result.energyConsumption ? ` · Общее: <strong>${result.energyConsumption} Вт</strong>` : ""}` : ""}
       </td>
     </tr>
   </table>
@@ -256,9 +284,26 @@ export default function ResultPanel({ result, onSave, saving, companySettings, s
 
         {result.weight > 0 && (
           <div className="flex justify-between text-xs">
-            <span className="text-muted-foreground">Ориентировочный вес</span>
+            <span className="text-muted-foreground">
+              Ориентировочный вес{result.quantity > 1 && result.weightPerItem ? ` (${result.weightPerItem} кг × ${result.quantity} шт.)` : ""}
+            </span>
             <span className="whitespace-nowrap ml-4">{result.weight} кг</span>
           </div>
+        )}
+
+        {result.energyConsumptionPerItem != null && result.energyConsumptionPerItem > 0 && (
+          <>
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Энергопотребление 1 шт.</span>
+              <span className="whitespace-nowrap ml-4">{result.energyConsumptionPerItem} Вт</span>
+            </div>
+            {result.quantity > 1 && result.energyConsumption != null && (
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Общее энергопотребление</span>
+                <span className="whitespace-nowrap ml-4">{result.energyConsumption} Вт</span>
+              </div>
+            )}
+          </>
         )}
 
         {result.supportPrice != null && result.supportPrice > 0 && (
@@ -268,10 +313,17 @@ export default function ResultPanel({ result, onSave, saving, companySettings, s
           </div>
         )}
 
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Монтаж <span className="text-[10px]">(при необходимости)</span></span>
-          <span className="whitespace-nowrap ml-4">{formatPrice(result.installationPrice)} ₽</span>
-        </div>
+        {result.installationNote ? (
+          <div className="text-xs text-muted-foreground p-2 rounded bg-secondary/30 border border-border/30">
+            <span className="font-medium text-foreground">Монтажные работы</span>
+            <p className="mt-1 whitespace-pre-line">{result.installationNote}</p>
+          </div>
+        ) : (
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Монтаж <span className="text-[10px]">(при необходимости)</span></span>
+            <span className="whitespace-nowrap ml-4">{formatPrice(result.installationPrice)} ₽</span>
+          </div>
+        )}
       </div>
 
       <div className="mt-6 p-3 rounded-lg bg-secondary/50 text-xs text-muted-foreground space-y-1">

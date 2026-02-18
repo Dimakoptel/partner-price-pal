@@ -155,16 +155,28 @@ export default function HistoryPage() {
                       <span className="whitespace-nowrap ml-4">{calc.result.weight} кг</span>
                     </div>
                   )}
+                  {calc.result.energyConsumptionPerItem > 0 && (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Энергопотребление</span>
+                      <span className="whitespace-nowrap ml-4">{calc.result.energyConsumption || calc.result.energyConsumptionPerItem} Вт</span>
+                    </div>
+                  )}
                   {calc.result.supportPrice > 0 && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Кронштейн <span className="text-[10px]">(при необходимости)</span></span>
                       <span className="whitespace-nowrap ml-4">{formatPrice(calc.result.supportPrice)} ₽</span>
                     </div>
                   )}
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Монтаж <span className="text-[10px]">(при необходимости)</span></span>
-                    <span className="whitespace-nowrap ml-4">{formatPrice(calc.result.installationPrice)} ₽</span>
-                  </div>
+                  {calc.result.installationNote ? (
+                    <div className="text-xs text-muted-foreground mt-1">
+                      <span className="font-medium text-foreground">Монтаж:</span> уточняется у менеджера
+                    </div>
+                  ) : (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Монтаж <span className="text-[10px]">(при необходимости)</span></span>
+                      <span className="whitespace-nowrap ml-4">{formatPrice(calc.result.installationPrice)} ₽</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Action buttons */}
