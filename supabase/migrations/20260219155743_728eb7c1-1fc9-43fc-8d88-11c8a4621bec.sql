@@ -1,0 +1,1 @@
+ALTER TABLE public.standard_colors ADD COLUMN show_in_print boolean NOT NULL DEFAULT true;

@@ -7,6 +7,7 @@ export interface StandardColor {
   sort_order: number;
   is_active: boolean;
   image_url?: string;
+  show_in_print?: boolean;
 }
 
 export function useColors() {

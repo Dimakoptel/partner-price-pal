@@ -99,6 +99,7 @@ export function buildShareText(result: CalculationResult, cs?: CompanySettingsAc
 export interface ColorForPrint {
   name: string;
   image_url?: string;
+  show_in_print?: boolean;
 }
 
 export function buildPrintHtml(result: CalculationResult, cs?: CompanySettingsAccessor, specialist?: SpecialistInfo, colorsForPrint?: ColorForPrint[]) {
@@ -230,11 +231,13 @@ export function buildPrintHtml(result: CalculationResult, cs?: CompanySettingsAc
       <td colspan="2" style="padding:12px 0;border-bottom:1px solid #e5e5e5;">
         <div style="font-size:14px;color:#333;font-weight:500;">Монтажные работы</div>
         <div style="font-size:12px;color:#666;margin-top:4px;white-space:pre-line;">${result.installationNote}</div>
+        <div style="font-size:11px;color:#888;margin-top:4px;font-style:italic;">Оплата монтажных работ производится в день завершения монтажа специалисту по монтажу</div>
       </td>
     </tr>` : `
     <tr>
       <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;">
         <div style="font-size:14px;color:#333;">Монтажные работы <span style="font-size:11px;color:#888;">(при необходимости)</span></div>
+        <div style="font-size:11px;color:#888;margin-top:4px;font-style:italic;">Оплата монтажных работ производится в день завершения монтажа специалисту по монтажу</div>
       </td>
       <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600;white-space:nowrap;">${formatPrice(result.installationPrice)} ₽</td>
     </tr>`}
@@ -268,19 +271,21 @@ export function buildPrintHtml(result: CalculationResult, cs?: CompanySettingsAc
     const colorPhotoW = parseInt(cs?.getSetting("print_color_photo_width") || "80") || 80;
     const colorPhotoH = parseInt(cs?.getSetting("print_color_photo_height") || "80") || 80;
     const colorGap = parseInt(cs?.getSetting("print_color_gap") || "12") || 12;
-    const colorsWithImages = (colorsForPrint || []).filter(c => c.image_url);
+    const customNote = cs?.getSetting("print_color_custom_note") || "";
+    const colorsWithImages = (colorsForPrint || []).filter(c => c.image_url && c.show_in_print !== false);
     if (showColors !== "да" || colorsWithImages.length === 0) return "";
     return `
-    <div style="margin-top:20px;margin-bottom:20px;">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#888;margin-bottom:12px;font-weight:600;">Палитра цветов</div>
-      <div style="display:flex;flex-wrap:wrap;gap:${colorGap}px;">
+    <div style="margin-top:24px;margin-bottom:20px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#888;margin-bottom:12px;font-weight:600;">Стандартные цвета COZY ART</div>
+      <div style="display:flex;flex-wrap:wrap;gap:${colorGap}px;justify-content:flex-start;">
         ${colorsWithImages.map(c => `
-          <div style="text-align:center;width:${colorPhotoW}px;">
-            <img src="${DOMPurify.sanitize(c.image_url || "")}" alt="${DOMPurify.sanitize(c.name)}" style="width:${colorPhotoW}px;height:${colorPhotoH}px;object-fit:cover;border-radius:4px;border:1px solid #e5e5e5;" />
+          <div style="text-align:center;width:${colorPhotoW}px;flex-shrink:0;">
+            <img src="${DOMPurify.sanitize(c.image_url || "")}" alt="${DOMPurify.sanitize(c.name)}" style="width:${colorPhotoW}px;height:${colorPhotoH}px;object-fit:cover;border-radius:6px;border:1px solid #e5e5e5;" />
             <div style="font-size:10px;color:#555;margin-top:4px;line-height:1.3;word-break:break-word;">${DOMPurify.sanitize(c.name)}</div>
           </div>
         `).join("")}
       </div>
+      ${customNote ? `<div style="font-size:10px;color:#999;margin-top:8px;font-style:italic;">${DOMPurify.sanitize(customNote)}</div>` : ""}
     </div>`;
   })()}
 
@@ -293,11 +298,40 @@ export function buildPrintHtml(result: CalculationResult, cs?: CompanySettingsAc
 }
 
 export function handlePrint(result: CalculationResult, cs?: CompanySettingsAccessor, specialist?: SpecialistInfo, colorsForPrint?: ColorForPrint[]) {
+  const html = buildPrintHtml(result, cs, specialist, colorsForPrint);
+
+  // Preload images to avoid blank photos on first print
+  const imgUrls = (colorsForPrint || []).filter(c => c.image_url && c.show_in_print !== false).map(c => c.image_url!);
+  const logoUrl = cs?.getSetting("print_logo_url") || "";
+  if (logoUrl) imgUrls.push(logoUrl);
+
   const printWindow = window.open("", "_blank");
   if (!printWindow) return;
-  printWindow.document.write(buildPrintHtml(result, cs, specialist, colorsForPrint));
+  printWindow.document.write(html);
   printWindow.document.close();
-  printWindow.print();
+
+  if (imgUrls.length === 0) {
+    printWindow.print();
+    return;
+  }
+
+  // Wait for all images to load before printing
+  const images = printWindow.document.querySelectorAll("img");
+  let loaded = 0;
+  const total = images.length;
+  const onLoad = () => {
+    loaded++;
+    if (loaded >= total) printWindow.print();
+  };
+  images.forEach(img => {
+    if (img.complete) { onLoad(); }
+    else {
+      img.addEventListener("load", onLoad);
+      img.addEventListener("error", onLoad);
+    }
+  });
+  // Fallback timeout
+  setTimeout(() => printWindow.print(), 3000);
 }
 
 export function shareVia(platform: string, result: CalculationResult, cs?: CompanySettingsAccessor) {

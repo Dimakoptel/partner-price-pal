@@ -150,6 +150,7 @@ export type Database = {
           image_url: string | null
           is_active: boolean
           name: string
+          show_in_print: boolean
           sort_order: number
         }
         Insert: {
@@ -158,6 +159,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           name: string
+          show_in_print?: boolean
           sort_order?: number
         }
         Update: {
@@ -166,6 +168,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           name?: string
+          show_in_print?: boolean
           sort_order?: number
         }
         Relationships: []

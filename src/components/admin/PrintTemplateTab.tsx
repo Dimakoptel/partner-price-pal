@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Save, Check, Upload, Eye, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,7 +22,8 @@ const TEMPLATE_KEYS = [
   { key: "print_color_photo_width", label: "Ширина фото цвета (px)", defaultValue: "80", category: "print_template" },
   { key: "print_color_photo_height", label: "Высота фото цвета (px)", defaultValue: "80", category: "print_template" },
   { key: "print_color_gap", label: "Отступ между цветами (px)", defaultValue: "12", category: "print_template" },
-  { key: "print_color_show", label: "Показывать палитру (да/нет)", defaultValue: "да", category: "print_template" },
+  { key: "print_color_show", label: "Показывать палитру цветов", defaultValue: "да", category: "print_template" },
+  { key: "print_color_custom_note", label: "Примечание о подборе цвета", defaultValue: "Возможен подбор индивидуального цвета по каталогу RAL", category: "print_template" },
 ];
 
 export default function PrintTemplateTab() {
@@ -255,9 +257,25 @@ export default function PrintTemplateTab() {
       {/* Color palette settings */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.07 }} className="glass-panel p-5">
         <h2 className="text-base font-semibold mb-4 text-primary">Палитра цветов в подвале</h2>
-        <p className="text-xs text-muted-foreground mb-4">Фото цветов загружаются во вкладке «Цвета». Здесь настраиваются размеры и отображение.</p>
+        <p className="text-xs text-muted-foreground mb-4">Фото цветов загружаются во вкладке «Цвета». Там же выбирается какие цвета отображать в печати.</p>
         <div className="space-y-4">
-          {TEMPLATE_KEYS.filter(t => t.key.startsWith("print_color_")).map(tmpl => {
+          {/* Switch for show/hide */}
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">Показывать палитру цветов</Label>
+            <Switch
+              checked={getValue("print_color_show").toLowerCase() === "да"}
+              onCheckedChange={async (checked) => {
+                const val = checked ? "да" : "нет";
+                setEditValues(p => ({ ...p, print_color_show: val }));
+                // Auto-save
+                const exists = settings.find(s => s.key === "print_color_show");
+                if (exists) await updateSetting("print_color_show", val);
+                else await addSetting("print_color_show", "Показывать палитру цветов", val, "print_template");
+                toast.success("Сохранено");
+              }}
+            />
+          </div>
+          {TEMPLATE_KEYS.filter(t => t.key.startsWith("print_color_") && t.key !== "print_color_show").map(tmpl => {
             const value = getValue(tmpl.key);
             const isEditing = editValues[tmpl.key] !== undefined;
             return (
