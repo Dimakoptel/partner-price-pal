@@ -11,6 +11,7 @@ import BoxCalculatorPage from "./pages/BoxCalculatorPage";
 import HistoryPage from "./pages/HistoryPage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
+import DocsPage from "./pages/DocsPage";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/" element={<CalculatorPage />} />
               <Route path="/box" element={<BoxCalculatorPage />} />
               <Route path="/history" element={<HistoryPage />} />
+              <Route path="/docs" element={<DocsPage />} />
             </Route>
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminPage />} />
