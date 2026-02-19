@@ -38,7 +38,7 @@ export default function CalculatorPage() {
   const resultRef = useRef<HTMLDivElement>(null);
 
   const colorNames = colors.map((c) => c.name);
-  const colorsForPrint = colors.map((c) => ({ name: c.name, image_url: c.image_url }));
+  const colorsForPrint = colors.map((c) => ({ name: c.name, image_url: c.image_url, show_in_print: c.show_in_print }));
 
   const handleSelectProduct = (t: string) => {
     setSelectedProduct(t as ProductType);

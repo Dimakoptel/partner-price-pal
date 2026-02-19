@@ -3,7 +3,9 @@ import { motion } from "framer-motion";
 import { useColors, StandardColor } from "@/hooks/useColors";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Upload, ImageIcon } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Plus, Trash2, Upload, ImageIcon, Printer } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -74,6 +76,17 @@ export default function ColorsTab() {
               )}
             </div>
             <span className={`flex-1 text-sm ${c.is_active ? "" : "text-muted-foreground line-through"}`}>{c.name}</span>
+            {/* Print toggle */}
+            <div className="flex items-center gap-1.5" title="Показывать в печати">
+              <Printer className="w-3.5 h-3.5 text-muted-foreground" />
+              <Switch
+                checked={c.show_in_print !== false}
+                onCheckedChange={async (checked) => {
+                  await updateColor(c.id, { show_in_print: checked } as any);
+                  fetchAllColors().then(setAllColors);
+                }}
+              />
+            </div>
             {/* Upload photo button */}
             <Button
               size="sm"
