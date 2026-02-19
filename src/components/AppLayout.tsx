@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useLocation } from "react-router-dom";
-import { Calculator, Settings, LogOut, User, History, Sun, Moon } from "lucide-react";
+import { Calculator, Settings, LogOut, User, History, Sun, Moon, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
@@ -40,6 +40,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <span className="hidden sm:inline">История</span>
               </Button>
             </Link>
+
+            <Link to="/box">
+              <Button variant={location.pathname === "/box" ? "secondary" : "ghost"} size="sm" className="gap-2">
+                <Package className="w-4 h-4" />
+                <span className="hidden sm:inline">Ящик</span>
+              </Button>
+            </Link>
+
+
 
             {isAdmin && (
               <Link to="/admin">
