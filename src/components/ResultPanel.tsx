@@ -96,7 +96,12 @@ export function buildShareText(result: CalculationResult, cs?: CompanySettingsAc
   return text;
 }
 
-export function buildPrintHtml(result: CalculationResult, cs?: CompanySettingsAccessor, specialist?: SpecialistInfo) {
+export interface ColorForPrint {
+  name: string;
+  image_url?: string;
+}
+
+export function buildPrintHtml(result: CalculationResult, cs?: CompanySettingsAccessor, specialist?: SpecialistInfo, colorsForPrint?: ColorForPrint[]) {
   const phone = cs?.getSetting("phone_main") || "";
   const phoneExtra = cs?.getSetting("phone_extra") || "";
   const email = cs?.getSetting("email") || "";
@@ -258,6 +263,27 @@ export function buildPrintHtml(result: CalculationResult, cs?: CompanySettingsAc
   </div>
   ` : ""}
 
+  ${(() => {
+    const showColors = (cs?.getSetting("print_color_show") || "да").toLowerCase();
+    const colorPhotoW = parseInt(cs?.getSetting("print_color_photo_width") || "80") || 80;
+    const colorPhotoH = parseInt(cs?.getSetting("print_color_photo_height") || "80") || 80;
+    const colorGap = parseInt(cs?.getSetting("print_color_gap") || "12") || 12;
+    const colorsWithImages = (colorsForPrint || []).filter(c => c.image_url);
+    if (showColors !== "да" || colorsWithImages.length === 0) return "";
+    return `
+    <div style="margin-top:20px;margin-bottom:20px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#888;margin-bottom:12px;font-weight:600;">Палитра цветов</div>
+      <div style="display:flex;flex-wrap:wrap;gap:${colorGap}px;">
+        ${colorsWithImages.map(c => `
+          <div style="text-align:center;width:${colorPhotoW}px;">
+            <img src="${DOMPurify.sanitize(c.image_url || "")}" alt="${DOMPurify.sanitize(c.name)}" style="width:${colorPhotoW}px;height:${colorPhotoH}px;object-fit:cover;border-radius:4px;border:1px solid #e5e5e5;" />
+            <div style="font-size:10px;color:#555;margin-top:4px;line-height:1.3;word-break:break-word;">${DOMPurify.sanitize(c.name)}</div>
+          </div>
+        `).join("")}
+      </div>
+    </div>`;
+  })()}
+
   <div class="footer">
     ${footerLeftLines.length > 0 ? `<div class="footer-col">${footerLeftLines.join("<br>")}</div>` : ""}
     ${footerRightLines.length > 0 ? `<div class="footer-col" style="text-align:right;">${footerRightLines.join("<br>")}</div>` : ""}
@@ -266,10 +292,10 @@ export function buildPrintHtml(result: CalculationResult, cs?: CompanySettingsAc
 </body></html>`;
 }
 
-export function handlePrint(result: CalculationResult, cs?: CompanySettingsAccessor, specialist?: SpecialistInfo) {
+export function handlePrint(result: CalculationResult, cs?: CompanySettingsAccessor, specialist?: SpecialistInfo, colorsForPrint?: ColorForPrint[]) {
   const printWindow = window.open("", "_blank");
   if (!printWindow) return;
-  printWindow.document.write(buildPrintHtml(result, cs, specialist));
+  printWindow.document.write(buildPrintHtml(result, cs, specialist, colorsForPrint));
   printWindow.document.close();
   printWindow.print();
 }
@@ -308,9 +334,10 @@ interface Props {
   companySettings?: CompanySettingsAccessor;
   specialist?: SpecialistInfo;
   calcName?: string;
+  colorsForPrint?: ColorForPrint[];
 }
 
-export default function ResultPanel({ result, onSave, saving, companySettings, specialist, calcName }: Props) {
+export default function ResultPanel({ result, onSave, saving, companySettings, specialist, calcName, colorsForPrint }: Props) {
   const prodDays = companySettings?.getSetting("production_days") || "20";
 
   return (
@@ -458,7 +485,7 @@ export default function ResultPanel({ result, onSave, saving, companySettings, s
             {saving ? "Сохранено" : "Сохранить"}
           </Button>
         )}
-        <Button size="sm" variant="secondary" onClick={() => handlePrint(result, companySettings, specialist)} className="gap-1.5">
+        <Button size="sm" variant="secondary" onClick={() => handlePrint(result, companySettings, specialist, colorsForPrint)} className="gap-1.5">
           <Printer className="w-4 h-4" />
           Печать
         </Button>

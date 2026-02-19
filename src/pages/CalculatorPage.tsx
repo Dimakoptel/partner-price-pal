@@ -38,6 +38,7 @@ export default function CalculatorPage() {
   const resultRef = useRef<HTMLDivElement>(null);
 
   const colorNames = colors.map((c) => c.name);
+  const colorsForPrint = colors.map((c) => ({ name: c.name, image_url: c.image_url }));
 
   const handleSelectProduct = (t: string) => {
     setSelectedProduct(t as ProductType);
@@ -141,6 +142,7 @@ export default function CalculatorPage() {
                     email: user?.email || undefined,
                     telegram: profile?.telegram || undefined,
                   }}
+                  colorsForPrint={colorsForPrint}
                 />
               </div>
             )}
