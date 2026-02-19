@@ -6,6 +6,7 @@ export interface StandardColor {
   name: string;
   sort_order: number;
   is_active: boolean;
+  image_url?: string;
 }
 
 export function useColors() {

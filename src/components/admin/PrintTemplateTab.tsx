@@ -18,6 +18,10 @@ const TEMPLATE_KEYS = [
   { key: "print_footer_left", label: "Подвал (левая часть)", defaultValue: "", category: "print_template" },
   { key: "print_footer_right", label: "Подвал (правая часть)", defaultValue: "", category: "print_template" },
   { key: "print_conditions", label: "Условия (каждое с новой строки)", defaultValue: "Кронштейн и монтаж приобретаются при необходимости\nДоставка и услуги грузчиков — по тарифам партнёров\nГарантия: 1 год на изделие", category: "print_template" },
+  { key: "print_color_photo_width", label: "Ширина фото цвета (px)", defaultValue: "80", category: "print_template" },
+  { key: "print_color_photo_height", label: "Высота фото цвета (px)", defaultValue: "80", category: "print_template" },
+  { key: "print_color_gap", label: "Отступ между цветами (px)", defaultValue: "12", category: "print_template" },
+  { key: "print_color_show", label: "Показывать палитру (да/нет)", defaultValue: "да", category: "print_template" },
 ];
 
 export default function PrintTemplateTab() {
@@ -213,7 +217,7 @@ export default function PrintTemplateTab() {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="glass-panel p-5">
         <h2 className="text-base font-semibold mb-4 text-primary">Шапка и подвал</h2>
         <div className="space-y-4">
-          {TEMPLATE_KEYS.filter(t => t.key !== "print_logo_url" && t.key !== "print_conditions").map(tmpl => {
+          {TEMPLATE_KEYS.filter(t => t.key !== "print_logo_url" && t.key !== "print_conditions" && !t.key.startsWith("print_color_")).map(tmpl => {
             const value = getValue(tmpl.key);
             const isEditing = editValues[tmpl.key] !== undefined;
             const isTextarea = tmpl.key.includes("footer");
@@ -236,6 +240,35 @@ export default function PrintTemplateTab() {
                     placeholder={tmpl.defaultValue}
                   />
                 )}
+                {isEditing && (
+                  <Button size="sm" onClick={() => handleSave(tmpl.key)} disabled={saving[tmpl.key]} className="mt-1 gap-1.5">
+                    {saving[tmpl.key] ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+                    Сохранить
+                  </Button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </motion.div>
+
+      {/* Color palette settings */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.07 }} className="glass-panel p-5">
+        <h2 className="text-base font-semibold mb-4 text-primary">Палитра цветов в подвале</h2>
+        <p className="text-xs text-muted-foreground mb-4">Фото цветов загружаются во вкладке «Цвета». Здесь настраиваются размеры и отображение.</p>
+        <div className="space-y-4">
+          {TEMPLATE_KEYS.filter(t => t.key.startsWith("print_color_")).map(tmpl => {
+            const value = getValue(tmpl.key);
+            const isEditing = editValues[tmpl.key] !== undefined;
+            return (
+              <div key={tmpl.key}>
+                <Label className="text-sm font-medium">{tmpl.label}</Label>
+                <Input
+                  value={value}
+                  onChange={(e) => setEditValues(p => ({ ...p, [tmpl.key]: e.target.value }))}
+                  className="mt-1 bg-secondary border-border"
+                  placeholder={tmpl.defaultValue}
+                />
                 {isEditing && (
                   <Button size="sm" onClick={() => handleSave(tmpl.key)} disabled={saving[tmpl.key]} className="mt-1 gap-1.5">
                     {saving[tmpl.key] ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}

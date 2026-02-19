@@ -298,6 +298,7 @@ CREATE TABLE IF NOT EXISTS public.standard_colors (
   name TEXT NOT NULL,
   sort_order INTEGER NOT NULL DEFAULT 0,
   is_active BOOLEAN NOT NULL DEFAULT true,
+  image_url TEXT DEFAULT '',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
