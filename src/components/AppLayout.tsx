@@ -4,12 +4,14 @@ import { Calculator, Settings, LogOut, User, History, Sun, Moon, Package, BookOp
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
+import { usePermissions } from "@/hooks/usePermissions";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, profile, signOut, isAdmin } = useAuth();
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const { getSetting } = useCompanySettings();
+  const { hasAccess } = usePermissions();
 
   const logoUrl = getSetting("print_logo_url");
 
@@ -27,49 +29,58 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </Link>
 
           <nav className="flex items-center gap-1">
-            <Link to="/">
-              <Button variant={location.pathname === "/" ? "secondary" : "ghost"} size="sm" className="gap-2">
-                <Calculator className="w-4 h-4" />
-                <span className="hidden sm:inline">Расчёт</span>
-              </Button>
-            </Link>
+            {hasAccess("calculator") && (
+              <Link to="/">
+                <Button variant={location.pathname === "/" ? "secondary" : "ghost"} size="sm" className="gap-2">
+                  <Calculator className="w-4 h-4" />
+                  <span className="hidden sm:inline">Расчёт</span>
+                </Button>
+              </Link>
+            )}
 
-            <Link to="/history">
-              <Button variant={location.pathname === "/history" ? "secondary" : "ghost"} size="sm" className="gap-2">
-                <History className="w-4 h-4" />
-                <span className="hidden sm:inline">История</span>
-              </Button>
-            </Link>
+            {hasAccess("history") && (
+              <Link to="/history">
+                <Button variant={location.pathname === "/history" ? "secondary" : "ghost"} size="sm" className="gap-2">
+                  <History className="w-4 h-4" />
+                  <span className="hidden sm:inline">История</span>
+                </Button>
+              </Link>
+            )}
 
-            <Link to="/box">
-              <Button variant={location.pathname === "/box" ? "secondary" : "ghost"} size="sm" className="gap-2">
-                <Package className="w-4 h-4" />
-                <span className="hidden sm:inline">Ящик</span>
-              </Button>
-            </Link>
+            {hasAccess("box_calculator") && (
+              <Link to="/box">
+                <Button variant={location.pathname === "/box" ? "secondary" : "ghost"} size="sm" className="gap-2">
+                  <Package className="w-4 h-4" />
+                  <span className="hidden sm:inline">Ящик</span>
+                </Button>
+              </Link>
+            )}
 
-            <Link to="/docs">
-              <Button variant={location.pathname === "/docs" ? "secondary" : "ghost"} size="sm" className="gap-2">
-                <BookOpen className="w-4 h-4" />
-                <span className="hidden sm:inline">Инструкция</span>
-              </Button>
-            </Link>
+            {hasAccess("docs") && (
+              <Link to="/docs">
+                <Button variant={location.pathname === "/docs" ? "secondary" : "ghost"} size="sm" className="gap-2">
+                  <BookOpen className="w-4 h-4" />
+                  <span className="hidden sm:inline">Инструкция</span>
+                </Button>
+              </Link>
+            )}
+
+            {(isAdmin || hasAccess("clients")) && (
+              <Link to="/clients">
+                <Button variant={location.pathname === "/clients" ? "secondary" : "ghost"} size="sm" className="gap-2">
+                  <Users className="w-4 h-4" />
+                  <span className="hidden sm:inline">Клиенты</span>
+                </Button>
+              </Link>
+            )}
 
             {isAdmin && (
-              <>
-                <Link to="/clients">
-                  <Button variant={location.pathname === "/clients" ? "secondary" : "ghost"} size="sm" className="gap-2">
-                    <Users className="w-4 h-4" />
-                    <span className="hidden sm:inline">Клиенты</span>
-                  </Button>
-                </Link>
-                <Link to="/admin">
-                  <Button variant={location.pathname === "/admin" ? "secondary" : "ghost"} size="sm" className="gap-2">
-                    <Settings className="w-4 h-4" />
-                    <span className="hidden sm:inline">Админ</span>
-                  </Button>
-                </Link>
-              </>
+              <Link to="/admin">
+                <Button variant={location.pathname === "/admin" ? "secondary" : "ghost"} size="sm" className="gap-2">
+                  <Settings className="w-4 h-4" />
+                  <span className="hidden sm:inline">Админ</span>
+                </Button>
+              </Link>
             )}
 
             <Button variant="ghost" size="sm" onClick={toggleTheme} className="ml-1">
