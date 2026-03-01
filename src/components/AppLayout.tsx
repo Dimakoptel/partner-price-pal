@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useLocation } from "react-router-dom";
-import { Calculator, Settings, LogOut, User, History, Sun, Moon, Package, BookOpen } from "lucide-react";
+import { Calculator, Settings, LogOut, User, History, Sun, Moon, Package, BookOpen, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
@@ -56,12 +56,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </Link>
 
             {isAdmin && (
-              <Link to="/admin">
-                <Button variant={location.pathname === "/admin" ? "secondary" : "ghost"} size="sm" className="gap-2">
-                  <Settings className="w-4 h-4" />
-                  <span className="hidden sm:inline">Админ</span>
-                </Button>
-              </Link>
+              <>
+                <Link to="/clients">
+                  <Button variant={location.pathname === "/clients" ? "secondary" : "ghost"} size="sm" className="gap-2">
+                    <Users className="w-4 h-4" />
+                    <span className="hidden sm:inline">Клиенты</span>
+                  </Button>
+                </Link>
+                <Link to="/admin">
+                  <Button variant={location.pathname === "/admin" ? "secondary" : "ghost"} size="sm" className="gap-2">
+                    <Settings className="w-4 h-4" />
+                    <span className="hidden sm:inline">Админ</span>
+                  </Button>
+                </Link>
+              </>
             )}
 
             <Button variant="ghost" size="sm" onClick={toggleTheme} className="ml-1">
