@@ -221,24 +221,32 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
       {productType === "countertop" && (
         <div>
           <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Опуски (мм)</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs">Спереди</Label>
-              <NumericInput value={dropFront} onValueChange={setDropFront} min={0} max={300} className={inputClass} />
+          {isRound ? (
+            <div className="max-w-[200px]">
+              <Label className="text-xs">По периметру</Label>
+              <NumericInput value={dropFront} onValueChange={(v) => { setDropFront(v); setDropBack(0); setDropLeft(0); setDropRight(0); }} min={0} max={300} className={inputClass} />
+              <p className="text-[10px] text-muted-foreground mt-1">Единый опуск по всему периметру круглой столешницы</p>
             </div>
-            <div>
-              <Label className="text-xs">Сзади</Label>
-              <NumericInput value={dropBack} onValueChange={setDropBack} min={0} max={300} className={inputClass} />
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Спереди</Label>
+                <NumericInput value={dropFront} onValueChange={setDropFront} min={0} max={300} className={inputClass} />
+              </div>
+              <div>
+                <Label className="text-xs">Сзади</Label>
+                <NumericInput value={dropBack} onValueChange={setDropBack} min={0} max={300} className={inputClass} />
+              </div>
+              <div>
+                <Label className="text-xs">Слева</Label>
+                <NumericInput value={dropLeft} onValueChange={setDropLeft} min={0} max={300} className={inputClass} />
+              </div>
+              <div>
+                <Label className="text-xs">Справа</Label>
+                <NumericInput value={dropRight} onValueChange={setDropRight} min={0} max={300} className={inputClass} />
+              </div>
             </div>
-            <div>
-              <Label className="text-xs">Слева</Label>
-              <NumericInput value={dropLeft} onValueChange={setDropLeft} min={0} max={300} className={inputClass} />
-            </div>
-            <div>
-              <Label className="text-xs">Справа</Label>
-              <NumericInput value={dropRight} onValueChange={setDropRight} min={0} max={300} className={inputClass} />
-            </div>
-          </div>
+          )}
         </div>
       )}
 

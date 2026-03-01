@@ -229,20 +229,28 @@ export function calculateCountertop(params: CountertopParams, pricing: Record<st
   }
 
   // Drops
-  for (const [side, h] of Object.entries(params.drops)) {
+  if (params.isRound && params.diameter) {
+    // Round countertop: only front drop used as "perimeter drop"
+    const h = params.drops.front;
     if (h > 0) {
-      let len: number;
-      if (params.isRound && params.diameter) {
-        len = Math.PI * params.diameter;
-      } else {
-        len = side === "front" || side === "back" ? params.length : params.width;
-      }
+      const len = Math.PI * params.diameter;
       const dArea = (len * h) / 1_000_000;
       const cost = dArea * BASE_PRICE * DROP_MULT;
       optionPrice += cost;
-      const sideLabel = side === "front" ? "спереди" : side === "back" ? "сзади" : side === "left" ? "слева" : "справа";
-      optionItems.push({ name: `Опуск ${sideLabel} ${h} мм`, price: Math.round(cost) });
+      optionItems.push({ name: `Опуск по периметру ${h} мм`, price: Math.round(cost) });
       volume += (len * h * params.thickness) / 1_000_000_000;
+    }
+  } else {
+    for (const [side, h] of Object.entries(params.drops)) {
+      if (h > 0) {
+        const len = side === "front" || side === "back" ? params.length : params.width;
+        const dArea = (len * h) / 1_000_000;
+        const cost = dArea * BASE_PRICE * DROP_MULT;
+        optionPrice += cost;
+        const sideLabel = side === "front" ? "спереди" : side === "back" ? "сзади" : side === "left" ? "слева" : "справа";
+        optionItems.push({ name: `Опуск ${sideLabel} ${h} мм`, price: Math.round(cost) });
+        volume += (len * h * params.thickness) / 1_000_000_000;
+      }
     }
   }
 
@@ -271,14 +279,20 @@ export function calculateCountertop(params: CountertopParams, pricing: Record<st
   }
 
   // Add drops to label
-  const activeDrops: string[] = [];
-  for (const [side, h] of Object.entries(params.drops)) {
-    if (h > 0) {
-      const sideLabel = side === "front" ? "спереди" : side === "back" ? "сзади" : side === "left" ? "слева" : "справа";
-      activeDrops.push(`${sideLabel} ${h}`);
+  if (params.isRound) {
+    if (params.drops.front > 0) {
+      label += `, опуск по периметру ${params.drops.front} мм`;
     }
+  } else {
+    const activeDrops: string[] = [];
+    for (const [side, h] of Object.entries(params.drops)) {
+      if (h > 0) {
+        const sideLabel = side === "front" ? "спереди" : side === "back" ? "сзади" : side === "left" ? "слева" : "справа";
+        activeDrops.push(`${sideLabel} ${h}`);
+      }
+    }
+    if (activeDrops.length > 0) label += `, опуски (${activeDrops.join(", ")}) мм`;
   }
-  if (activeDrops.length > 0) label += `, опуски (${activeDrops.join(", ")}) мм`;
 
   // Add supports to label
   const activeSupports: string[] = [];
