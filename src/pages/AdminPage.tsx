@@ -9,7 +9,8 @@ import CalculationsTab from "@/components/admin/CalculationsTab";
 import PrintTemplateTab from "@/components/admin/PrintTemplateTab";
 import ProductIconsTab from "@/components/admin/ProductIconsTab";
 import UsersTab from "@/components/admin/UsersTab";
-import { DollarSign, Palette, Users, FileText } from "lucide-react";
+import AccessGroupsTab from "@/components/admin/AccessGroupsTab";
+import { DollarSign, Palette, Users, FileText, ShieldCheck } from "lucide-react";
 
 export default function AdminPage() {
   const { allSettings, loading } = usePricing();
@@ -43,6 +44,14 @@ export default function AdminPage() {
 
             <div className="w-px h-5 bg-border mx-1 hidden sm:block" />
 
+            {/* Доступ */}
+            <div className="flex items-center gap-0.5">
+              <span className="text-[10px] text-muted-foreground px-1.5 hidden sm:inline"><ShieldCheck className="w-3 h-3 inline -mt-0.5" /> Доступ</span>
+              <TabsTrigger value="access" className="text-xs">Группы доступа</TabsTrigger>
+            </div>
+
+            <div className="w-px h-5 bg-border mx-1 hidden sm:block" />
+
             {/* Настройки и документы */}
             <div className="flex items-center gap-0.5">
               <span className="text-[10px] text-muted-foreground px-1.5 hidden sm:inline"><FileText className="w-3 h-3 inline -mt-0.5" /> Настройки</span>
@@ -56,6 +65,7 @@ export default function AdminPage() {
           <TabsContent value="icons"><ProductIconsTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="calculations"><CalculationsTab /></TabsContent>
+          <TabsContent value="access"><AccessGroupsTab /></TabsContent>
           <TabsContent value="company"><CompanySettingsTab /></TabsContent>
           <TabsContent value="template"><PrintTemplateTab /></TabsContent>
         </Tabs>

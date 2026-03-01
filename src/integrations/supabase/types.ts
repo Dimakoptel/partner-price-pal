@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_groups: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       company_settings: {
         Row: {
           category: string
@@ -43,6 +64,35 @@ export type Database = {
           value?: string
         }
         Relationships: []
+      }
+      group_permissions: {
+        Row: {
+          allowed: boolean
+          group_id: string
+          id: string
+          module: string
+        }
+        Insert: {
+          allowed?: boolean
+          group_id: string
+          id?: string
+          module: string
+        }
+        Update: {
+          allowed?: boolean
+          group_id?: string
+          id?: string
+          module?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_permissions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "access_groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pricing_settings: {
         Row: {
@@ -173,6 +223,35 @@ export type Database = {
         }
         Relationships: []
       }
+      user_group_assignments: {
+        Row: {
+          assigned_at: string
+          group_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          group_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          group_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_group_assignments_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "access_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -196,6 +275,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_module_access: {
+        Args: { _module: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
