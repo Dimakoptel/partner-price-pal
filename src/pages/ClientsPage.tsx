@@ -1,63 +1,179 @@
+import { useState, useMemo } from "react";
 import AppLayout from "@/components/AppLayout";
 import { motion } from "framer-motion";
-import { Users, UserPlus, Search, BarChart3 } from "lucide-react";
+import { Users, UserPlus, Search, Pencil, Trash2, Phone, Mail, Building2, MessageCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-
-const PLANNED_FEATURES = [
-  { icon: UserPlus, title: "База клиентов", desc: "Карточки клиентов с контактами, историей заказов и заметками" },
-  { icon: Search, title: "Поиск и фильтры", desc: "Быстрый поиск по имени, телефону, статусу заказа" },
-  { icon: BarChart3, title: "Аналитика", desc: "Статистика по клиентам, повторные заказы, средний чек" },
-];
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useClients, type Client } from "@/hooks/useClients";
+import ClientFormDialog from "@/components/clients/ClientFormDialog";
 
 export default function ClientsPage() {
+  const { clients, isLoading, addClient, updateClient, deleteClient } = useClients();
+  const [search, setSearch] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return clients;
+    const q = search.toLowerCase();
+    return clients.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        c.phone?.toLowerCase().includes(q) ||
+        c.email?.toLowerCase().includes(q) ||
+        c.company?.toLowerCase().includes(q) ||
+        c.telegram?.toLowerCase().includes(q)
+    );
+  }, [clients, search]);
+
+  const handleSubmit = (data: any) => {
+    if (editingClient) {
+      updateClient.mutate({ id: editingClient.id, ...data }, { onSuccess: () => { setDialogOpen(false); setEditingClient(null); } });
+    } else {
+      addClient.mutate(data, { onSuccess: () => setDialogOpen(false) });
+    }
+  };
+
+  const openEdit = (client: Client) => {
+    setEditingClient(client);
+    setDialogOpen(true);
+  };
+
+  const openNew = () => {
+    setEditingClient(null);
+    setDialogOpen(true);
+  };
+
   return (
     <AppLayout>
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2.5 rounded-xl bg-primary/10">
-              <Users className="w-6 h-6 text-primary" />
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-primary/10">
+                <Users className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">Клиенты</h1>
+                <p className="text-sm text-muted-foreground">База клиентов — {clients.length} записей</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold">Клиенты</h1>
-              <p className="text-sm text-muted-foreground">CRM — управление клиентской базой</p>
-            </div>
+            <Button onClick={openNew} className="gap-2">
+              <UserPlus className="w-4 h-4" /> Добавить
+            </Button>
           </div>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mt-8"
-        >
-          <div className="rounded-xl border border-dashed border-border bg-secondary/30 p-8 text-center mb-8">
-            <Users className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
-            <h2 className="text-lg font-semibold mb-2">Раздел в разработке</h2>
-            <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              CRM-модуль для работы с клиентами находится в стадии разработки. 
-              Здесь будет полноценная система управления клиентской базой.
-            </p>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Поиск по имени, телефону, email, компании..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
           </div>
+        </motion.div>
 
-          <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Планируемый функционал</h3>
-          <div className="grid gap-3">
-            {PLANNED_FEATURES.map((f, i) => (
-              <motion.div key={f.title} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 + i * 0.1 }}>
-                <Card className="bg-secondary/50 border-border/50">
-                  <CardContent className="flex items-start gap-3 p-4">
-                    <f.icon className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                    <div>
-                      <p className="font-medium text-sm">{f.title}</p>
-                      <p className="text-xs text-muted-foreground">{f.desc}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          {isLoading ? (
+            <div className="text-center py-12 text-muted-foreground">Загрузка...</div>
+          ) : filtered.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="py-12 text-center">
+                <Users className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
+                <p className="text-muted-foreground text-sm">
+                  {search ? "Ничего не найдено" : "Клиентов пока нет. Нажмите «Добавить» чтобы создать первого."}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Имя</TableHead>
+                    <TableHead>Контакты</TableHead>
+                    <TableHead>Компания</TableHead>
+                    <TableHead className="w-[100px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map((client) => (
+                    <TableRow key={client.id} className="cursor-pointer" onClick={() => openEdit(client)}>
+                      <TableCell className="font-medium">{client.name}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                          {client.phone && (
+                            <span className="inline-flex items-center gap-1">
+                              <Phone className="w-3 h-3" /> {client.phone}
+                            </span>
+                          )}
+                          {client.email && (
+                            <span className="inline-flex items-center gap-1">
+                              <Mail className="w-3 h-3" /> {client.email}
+                            </span>
+                          )}
+                          {client.telegram && (
+                            <span className="inline-flex items-center gap-1">
+                              <MessageCircle className="w-3 h-3" /> {client.telegram}
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {client.company && (
+                          <span className="inline-flex items-center gap-1">
+                            <Building2 className="w-3 h-3 text-muted-foreground" /> {client.company}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(client)}>
+                            <Pencil className="w-3.5 h-3.5" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Удалить клиента?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Клиент «{client.name}» будет удалён без возможности восстановления.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Отмена</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => deleteClient.mutate(client.id)}>Удалить</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          )}
         </motion.div>
       </div>
+
+      <ClientFormDialog
+        open={dialogOpen}
+        onOpenChange={(v) => { setDialogOpen(v); if (!v) setEditingClient(null); }}
+        client={editingClient}
+        onSubmit={handleSubmit}
+        isPending={addClient.isPending || updateClient.isPending}
+      />
     </AppLayout>
   );
 }
