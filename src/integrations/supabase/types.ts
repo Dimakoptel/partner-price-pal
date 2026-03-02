@@ -107,6 +107,95 @@ export type Database = {
         }
         Relationships: []
       }
+      deal_activities: {
+        Row: {
+          action: string
+          created_at: string
+          deal_id: string
+          details: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          deal_id: string
+          details?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          deal_id?: string
+          details?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_activities_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deals: {
+        Row: {
+          amount: number | null
+          client_id: string | null
+          closed_at: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          responsible_id: string
+          stage_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number | null
+          client_id?: string | null
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          responsible_id: string
+          stage_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number | null
+          client_id?: string | null
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          responsible_id?: string
+          stage_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_permissions: {
         Row: {
           allowed: boolean
@@ -135,6 +224,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pipeline_stages: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          is_closed: boolean
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_closed?: boolean
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_closed?: boolean
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
       }
       pricing_settings: {
         Row: {
@@ -205,6 +321,7 @@ export type Database = {
       saved_calculations: {
         Row: {
           calc_name: string
+          client_id: string | null
           created_at: string
           id: string
           params: Json
@@ -215,6 +332,7 @@ export type Database = {
         }
         Insert: {
           calc_name?: string
+          client_id?: string | null
           created_at?: string
           id?: string
           params: Json
@@ -225,6 +343,7 @@ export type Database = {
         }
         Update: {
           calc_name?: string
+          client_id?: string | null
           created_at?: string
           id?: string
           params?: Json
@@ -233,7 +352,15 @@ export type Database = {
           result?: Json
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "saved_calculations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       standard_colors: {
         Row: {
@@ -264,6 +391,69 @@ export type Database = {
           sort_order?: number
         }
         Relationships: []
+      }
+      tasks: {
+        Row: {
+          assigned_to: string
+          client_id: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          deal_id: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to: string
+          client_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          deal_id?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string
+          client_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          deal_id?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_group_assignments: {
         Row: {
