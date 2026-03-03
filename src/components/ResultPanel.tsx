@@ -73,8 +73,7 @@ export function buildShareText(result: CalculationResult, cs?: CompanySettingsAc
     }
   }
   if (result.boxLabel && result.boxPrice) {
-    text += `\n📦 ${result.boxLabel}\n`;
-    text += `Стоимость ящика: ${formatPrice(result.boxPrice)} ₽\n`;
+    text += `${result.boxLabel}: ${formatPrice(result.boxPrice)} ₽\n`;
   }
   if (result.installationNote) {
     text += `\n${result.installationNote}\n`;
@@ -229,6 +228,12 @@ export function buildPrintHtml(result: CalculationResult, cs?: CompanySettingsAc
       <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600;white-space:nowrap;">${formatPrice(result.totalPrice)} ₽</td>
     </tr>
     ${riserLine}
+    ${(result.boxLabel && result.boxPrice) ? `<tr>
+        <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;">
+          <div style="font-size:14px;color:#333;">${result.boxLabel}</div>
+        </td>
+        <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600;white-space:nowrap;">${formatPrice(result.boxPrice)} ₽</td>
+      </tr>` : ''}
     ${supportLine}
     ${result.installationNote ? `
     <tr>
@@ -477,14 +482,11 @@ export default function ResultPanel({ result, onSave, saving, companySettings, s
           </div>
         )}
 
-        {/* Transportation box */}
+        {/* Transportation box — as regular line item before installation */}
         {result.boxLabel && result.boxPrice != null && result.boxPrice > 0 && (
-          <div className="p-3 rounded-lg bg-secondary/30 border border-border/30 space-y-1">
-            <div className="text-xs font-medium text-foreground">📦 {result.boxLabel}</div>
-            <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">Стоимость ящика</span>
-              <span className="font-medium whitespace-nowrap ml-4">{formatPrice(result.boxPrice)} ₽</span>
-            </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">{result.boxLabel}</span>
+            <span className="font-medium whitespace-nowrap ml-4">{formatPrice(result.boxPrice)} ₽</span>
           </div>
         )}
 

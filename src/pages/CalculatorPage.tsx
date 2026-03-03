@@ -20,7 +20,7 @@ import {
   calculateBacksplash,
   calculateStair,
 } from "@/lib/calculator";
-import { calculateBox, loadMaterials } from "@/lib/boxCalculator";
+import { calculateBox, MaterialSettings } from "@/lib/boxCalculator";
 import { toast } from "sonner";
 
 export default function CalculatorPage() {
@@ -75,13 +75,52 @@ export default function CalculatorPage() {
 
     // Calculate transportation box if requested
     if (needsBox) {
-      const itemL = calcParams.length || calcParams.width || calcParams.diameter || 1000;
-      const itemW = calcParams.width || calcParams.length || 600;
-      const itemH = calcParams.thickness || calcParams.thicknessConcrete || 30;
-      const materials = loadMaterials();
-      const boxResult = calculateBox(itemL, itemW, itemH, 1, materials);
-      res.boxLabel = `Ящик транспортировочный (${boxResult.dimensions.ospBottomL.toFixed(0)}×${boxResult.dimensions.ospBottomW.toFixed(0)}×${boxResult.dimensions.ospLongSideH.toFixed(0)} мм)`;
-      res.boxPrice = boxResult.costs.total;
+      // For round products (countertop), use diameter for both L and W
+      let itemL: number, itemW: number, itemH: number;
+      if (calcParams.isRound && calcParams.diameter) {
+        itemL = calcParams.diameter;
+        itemW = calcParams.diameter;
+      } else if (selectedProduct === "backsplash") {
+        itemL = calcParams.width || 2500; // backsplash "width" is actually the long side
+        itemW = calcParams.height || 600;
+      } else {
+        itemL = calcParams.length || calcParams.width || 1000;
+        itemW = calcParams.width || calcParams.length || 600;
+      }
+      itemH = calcParams.thickness || calcParams.thicknessConcrete || 30;
+
+      // Build materials from pricing settings (DB)
+      const foamThickness = (res.weight / res.quantity) <= 50 ? 10 : 20;
+      const boxMaterials: MaterialSettings = {
+        osp: {
+          length: settings.box_osp_length || 2500,
+          width: settings.box_osp_width || 1250,
+          thickness: settings.box_osp_thickness || 9,
+          price: settings.box_osp_price || 565,
+        },
+        foam: {
+          length: settings.box_foam_length || 1185,
+          width: settings.box_foam_width || 585,
+          thickness: foamThickness,
+          price: settings.box_foam_price || 110,
+        },
+        beam: {
+          width: settings.box_beam_width || 40,
+          height: settings.box_beam_height || 30,
+          standardLength: settings.box_beam_length || 3000,
+          price: settings.box_beam_price || 200,
+        },
+      };
+
+      const qty = res.quantity || 1;
+      const boxResult = calculateBox(itemL, itemW, itemH, qty, boxMaterials);
+      const workMultiplier = settings.box_work_multiplier || 0.6;
+      const materialCost = boxResult.costs.total;
+      const totalBoxPrice = Math.round(materialCost * (1 + workMultiplier));
+
+      res.boxLabel = `Ящик транспортировочный (${boxResult.dimensions.ospBottomL.toFixed(0)}×${boxResult.dimensions.ospBottomW.toFixed(0)}×${boxResult.dimensions.ospLongSideH.toFixed(0)} мм), пеноплекс ${foamThickness} мм`;
+      res.boxPrice = totalBoxPrice;
+      res.grandTotal += totalBoxPrice;
     }
 
     setResult(res);
