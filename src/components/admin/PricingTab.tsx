@@ -15,9 +15,10 @@ const CATEGORY_LABELS: Record<string, string> = {
   backsplash: "Фартук",
   stair: "Ступени",
   stepslab: "Пошаговая плита",
+  box: "Транспортировочный ящик",
 };
 
-const CATEGORY_ORDER = ["general", "countertop", "sink", "windowsill", "backsplash", "stair", "stepslab"];
+const CATEGORY_ORDER = ["general", "countertop", "sink", "windowsill", "backsplash", "stair", "stepslab", "box"];
 
 interface Props {
   allSettings: any[];
