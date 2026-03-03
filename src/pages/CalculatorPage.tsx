@@ -20,6 +20,7 @@ import {
   calculateBacksplash,
   calculateStair,
 } from "@/lib/calculator";
+import { calculateBox, loadMaterials } from "@/lib/boxCalculator";
 import { toast } from "sonner";
 
 export default function CalculatorPage() {
@@ -51,25 +52,38 @@ export default function CalculatorPage() {
 
   const handleCalculate = (params: any) => {
     if (!selectedProduct) return;
+    const { needsBox, ...calcParams } = params;
     setCurrentParams(params);
     setSaved(false);
 
     let res: CalculationResult;
     if (selectedProduct === "countertop") {
-      res = calculateCountertop(params, settings, colorNames);
+      res = calculateCountertop(calcParams, settings, colorNames);
     } else if (selectedProduct === "sink") {
-      res = calculateSink(params, settings, colorNames);
+      res = calculateSink(calcParams, settings, colorNames);
     } else if (selectedProduct === "stepslab") {
-      res = calculateStepSlab(params, settings, colorNames);
+      res = calculateStepSlab(calcParams, settings, colorNames);
     } else if (selectedProduct === "windowsill") {
-      res = calculateWindowsill(params, settings, colorNames);
+      res = calculateWindowsill(calcParams, settings, colorNames);
     } else if (selectedProduct === "backsplash") {
-      res = calculateBacksplash(params, settings, colorNames);
+      res = calculateBacksplash(calcParams, settings, colorNames);
     } else if (selectedProduct === "stair") {
-      res = calculateStair(params, settings, colorNames);
+      res = calculateStair(calcParams, settings, colorNames);
     } else {
-      return; // no other product types
+      return;
     }
+
+    // Calculate transportation box if requested
+    if (needsBox) {
+      const itemL = calcParams.length || calcParams.width || calcParams.diameter || 1000;
+      const itemW = calcParams.width || calcParams.length || 600;
+      const itemH = calcParams.thickness || calcParams.thicknessConcrete || 30;
+      const materials = loadMaterials();
+      const boxResult = calculateBox(itemL, itemW, itemH, 1, materials);
+      res.boxLabel = `Ящик транспортировочный (${boxResult.dimensions.ospBottomL.toFixed(0)}×${boxResult.dimensions.ospBottomW.toFixed(0)}×${boxResult.dimensions.ospLongSideH.toFixed(0)} мм)`;
+      res.boxPrice = boxResult.costs.total;
+    }
+
     setResult(res);
     setTimeout(() => {
       resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });

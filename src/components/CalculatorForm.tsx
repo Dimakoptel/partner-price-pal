@@ -48,6 +48,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
   const [riserThickness, setRiserThickness] = useState(15);
   const [isHeated, setIsHeated] = useState(false);
   const [thicknessConcrete, setThicknessConcrete] = useState(40);
+  const [needsBox, setNeedsBox] = useState(false);
   const [validationErrors, setValidationErrors] = useState<(SinkValidationError | CountertopValidationError | StepSlabValidationError | WindowsillValidationError | BacksplashValidationError | StairValidationError)[]>([]);
   const finalColor = color === "другой" ? customColor : color;
 
@@ -63,7 +64,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
       };
       const errors = validateCountertopParams(params);
       if (errors.length > 0) { setValidationErrors(errors); return; }
-      onCalculate(params);
+      onCalculate({ ...params, needsBox });
     } else if (productType === "sink") {
       const params: SinkParams = {
         length, width, quantity, overhangHeight,
@@ -76,14 +77,14 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
       };
       const errors = validateSinkParams(params);
       if (errors.length > 0) { setValidationErrors(errors); return; }
-      onCalculate(params);
+      onCalculate({ ...params, needsBox });
     } else if (productType === "stepslab") {
       const params: StepSlabParams = {
         length, width, thicknessConcrete, color: finalColor, quantity, isHeated,
       };
       const errors = validateStepSlabParams(params);
       if (errors.length > 0) { setValidationErrors(errors); return; }
-      onCalculate(params);
+      onCalculate({ ...params, needsBox });
     } else if (productType === "windowsill") {
       const params: WindowsillParams = {
         length, width, thickness, color: finalColor, quantity,
@@ -91,14 +92,14 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
       };
       const errors = validateWindowsillParams(params);
       if (errors.length > 0) { setValidationErrors(errors); return; }
-      onCalculate(params);
+      onCalculate({ ...params, needsBox });
     } else if (productType === "backsplash") {
       const params: BacksplashParams = {
         width: backsplashWidth, height: backsplashHeight, thickness, color: finalColor, quantity,
       };
       const errors = validateBacksplashParams(params);
       if (errors.length > 0) { setValidationErrors(errors); return; }
-      onCalculate(params);
+      onCalculate({ ...params, needsBox });
     } else if (productType === "stair") {
       const params: StairParams = {
         length, width, thickness, color: finalColor, quantity,
@@ -108,7 +109,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
       };
       const errors = validateStairParams(params);
       if (errors.length > 0) { setValidationErrors(errors); return; }
-      onCalculate(params);
+      onCalculate({ ...params, needsBox });
     }
   };
 
@@ -425,6 +426,15 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
           />
         )}
       </div>
+      {/* Transportation box */}
+      <div>
+        <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Транспортировка</h3>
+        <div className="flex items-center gap-3">
+          <Switch checked={needsBox} onCheckedChange={setNeedsBox} />
+          <Label className="text-sm">Требуется транспортировочный ящик</Label>
+        </div>
+      </div>
+
       {validationErrors.length > 0 && (
         <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 space-y-2">
           {validationErrors.map((err, i) => (
