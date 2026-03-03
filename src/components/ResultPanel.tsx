@@ -72,6 +72,10 @@ export function buildShareText(result: CalculationResult, cs?: CompanySettingsAc
       text += `Общий вес подступенков: ${result.riserWeight} кг\n`;
     }
   }
+  if (result.boxLabel && result.boxPrice) {
+    text += `\n📦 ${result.boxLabel}\n`;
+    text += `Стоимость ящика: ${formatPrice(result.boxPrice)} ₽\n`;
+  }
   if (result.installationNote) {
     text += `\n${result.installationNote}\n`;
   } else {
@@ -470,6 +474,17 @@ export default function ResultPanel({ result, onSave, saving, companySettings, s
                 <span className="whitespace-nowrap ml-4">{result.riserWeight} кг</span>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Transportation box */}
+        {result.boxLabel && result.boxPrice != null && result.boxPrice > 0 && (
+          <div className="p-3 rounded-lg bg-secondary/30 border border-border/30 space-y-1">
+            <div className="text-xs font-medium text-foreground">📦 {result.boxLabel}</div>
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Стоимость ящика</span>
+              <span className="font-medium whitespace-nowrap ml-4">{formatPrice(result.boxPrice)} ₽</span>
+            </div>
           </div>
         )}
 

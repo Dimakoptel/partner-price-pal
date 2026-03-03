@@ -131,6 +131,9 @@ export interface CalculationResult {
   riserPricePerUnit?: number;
   riserWeight?: number;
   riserWeightPerItem?: number;
+  // Transportation box
+  boxLabel?: string;
+  boxPrice?: number;
 }
 
 export interface CountertopValidationError {
