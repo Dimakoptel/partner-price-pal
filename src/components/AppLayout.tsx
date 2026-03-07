@@ -36,8 +36,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const visibleNav = NAV_ITEMS.filter((item) => {
     if (item.adminOnly) return isAdmin;
-    if (item.adminOrModule) return isAdmin || hasAccess(item.module);
-    return hasAccess(item.module);
+    if (item.adminOrModule) return isAdmin || (item.module && hasAccess(item.module));
+    return item.module ? hasAccess(item.module) : true;
   });
 
   return (
