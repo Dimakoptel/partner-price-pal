@@ -1,8 +1,9 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useLocation } from "react-router-dom";
 import {
-  Calculator, Settings, LogOut, User, History,
-  Sun, Moon, Package, BookOpen, Users, Menu, X
+  Calculator, Settings, LogOut, History,
+  Sun, Moon, Package, BookOpen, Users, Menu,
+  Factory, Warehouse, ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
@@ -12,15 +13,61 @@ import { useState } from "react";
 
 import type { ModuleKey } from "@/hooks/usePermissions";
 
-const NAV_ITEMS: Array<{
-  path: string; label: string; icon: typeof Calculator;
-  module?: ModuleKey; adminOnly?: boolean; adminOrModule?: boolean;
-}> = [
-  { path: "/", label: "Расчёт", icon: Calculator, module: "calculator" },
-  { path: "/history", label: "История", icon: History, module: "history" },
-  { path: "/box", label: "Ящик", icon: Package, module: "box_calculator" },
+interface NavItem {
+  path: string;
+  label: string;
+  icon: typeof Calculator;
+  module?: ModuleKey;
+  adminOnly?: boolean;
+  adminOrModule?: boolean;
+}
+
+interface NavGroup {
+  key: string;
+  label: string;
+  icon: typeof Calculator;
+  items: NavItem[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    key: "calculators",
+    label: "Калькуляторы",
+    icon: Calculator,
+    items: [
+      { path: "/", label: "Расчёт изделия", icon: Calculator, module: "calculator" },
+      { path: "/box", label: "Ящик", icon: Package, module: "box_calculator" },
+      { path: "/history", label: "История", icon: History, module: "history" },
+    ],
+  },
+  {
+    key: "production",
+    label: "Производство",
+    icon: Factory,
+    items: [
+      { path: "/production", label: "Производство", icon: Factory, module: "calculator" },
+    ],
+  },
+  {
+    key: "warehouse",
+    label: "Склад",
+    icon: Warehouse,
+    items: [
+      { path: "/warehouse", label: "Склад", icon: Warehouse, module: "calculator" },
+    ],
+  },
+  {
+    key: "clients",
+    label: "Управление клиентами",
+    icon: Users,
+    items: [
+      { path: "/clients", label: "Клиенты", icon: Users, module: "clients", adminOrModule: true },
+    ],
+  },
+];
+
+const STANDALONE_ITEMS: NavItem[] = [
   { path: "/docs", label: "Инструкция", icon: BookOpen, module: "docs" },
-  { path: "/clients", label: "Клиенты", icon: Users, module: "clients", adminOrModule: true },
   { path: "/admin", label: "Администрирование", icon: Settings, adminOnly: true },
 ];
 
@@ -31,14 +78,35 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { getSetting } = useCompanySettings();
   const { hasAccess } = usePermissions();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
+    // Auto-expand group containing active route
+    const initial: Record<string, boolean> = {};
+    for (const group of NAV_GROUPS) {
+      if (group.items.some((item) => item.path === location.pathname)) {
+        initial[group.key] = true;
+      }
+    }
+    return initial;
+  });
 
   const logoUrl = getSetting("print_logo_url");
 
-  const visibleNav = NAV_ITEMS.filter((item) => {
+  const canSeeItem = (item: NavItem) => {
     if (item.adminOnly) return isAdmin;
     if (item.adminOrModule) return isAdmin || (item.module && hasAccess(item.module));
     return item.module ? hasAccess(item.module) : true;
-  });
+  };
+
+  const toggleGroup = (key: string) => {
+    setExpandedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const visibleGroups = NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter(canSeeItem),
+  })).filter((group) => group.items.length > 0);
+
+  const visibleStandalone = STANDALONE_ITEMS.filter(canSeeItem);
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -52,18 +120,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-56 bg-sidebar flex flex-col border-r border-sidebar-border shrink-0 transition-transform lg:translate-x-0 ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-60 bg-sidebar flex flex-col border-r border-sidebar-border shrink-0 transition-transform lg:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Logo */}
-        <div className="px-6 py-6 border-b border-sidebar-border">
+        <div className="px-5 py-5 border-b border-sidebar-border">
           <Link to="/" className="block" onClick={() => setMobileOpen(false)}>
             {logoUrl ? (
               <img src={logoUrl} alt="Logo" className="h-8 max-w-[140px] object-contain brightness-0 invert" />
             ) : (
               <div>
-                <span className="text-[10px] tracking-[0.3em] text-sidebar-muted uppercase block mb-1">MES</span>
+                <span className="text-[10px] tracking-[0.3em] text-sidebar-muted uppercase block mb-0.5">MES</span>
                 <span className="text-lg font-light tracking-wide text-sidebar-accent-foreground">COZY ART</span>
               </div>
             )}
@@ -71,25 +139,97 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 py-6 px-3 space-y-0.5 overflow-y-auto">
-          {visibleNav.map((item) => {
-            const isActive = location.pathname === item.path;
+        <nav className="flex-1 py-4 px-3 overflow-y-auto space-y-1">
+          {visibleGroups.map((group) => {
+            const isExpanded = expandedGroups[group.key] ?? false;
+            const hasActiveChild = group.items.some((item) => item.path === location.pathname);
+            const isSingleItem = group.items.length === 1;
+
+            // Single-item groups render as a direct link
+            if (isSingleItem) {
+              const item = group.items[0];
+              const isActive = location.pathname === item.path;
+              return (
+                <Link
+                  key={group.key}
+                  to={item.path}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2.5 text-sm transition-all ${
+                    isActive
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/50"
+                  }`}
+                >
+                  <group.icon className={`w-4 h-4 ${isActive ? "text-sidebar-accent-foreground" : "text-sidebar-muted"}`} />
+                  <span className="font-light tracking-wide">{group.label}</span>
+                </Link>
+              );
+            }
+
+            // Multi-item groups render as collapsible
             return (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 text-sm transition-all ${
-                  isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/50"
-                }`}
-              >
-                <item.icon className={`w-4 h-4 ${isActive ? "text-sidebar-accent-foreground" : "text-sidebar-muted"}`} />
-                <span className="font-light tracking-wide">{item.label}</span>
-              </Link>
+              <div key={group.key}>
+                <button
+                  onClick={() => toggleGroup(group.key)}
+                  className={`flex items-center gap-3 px-3 py-2.5 text-sm transition-all w-full ${
+                    hasActiveChild && !isExpanded
+                      ? "text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/50"
+                  }`}
+                >
+                  <group.icon className={`w-4 h-4 ${hasActiveChild ? "text-sidebar-accent-foreground" : "text-sidebar-muted"}`} />
+                  <span className="font-light tracking-wide flex-1 text-left">{group.label}</span>
+                  <ChevronDown className={`w-3.5 h-3.5 text-sidebar-muted transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                </button>
+                {isExpanded && (
+                  <div className="ml-4 pl-3 border-l border-sidebar-border space-y-0.5 mt-0.5 mb-1">
+                    {group.items.map((item) => {
+                      const isActive = location.pathname === item.path;
+                      return (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          onClick={() => setMobileOpen(false)}
+                          className={`flex items-center gap-3 px-3 py-2 text-sm transition-all ${
+                            isActive
+                              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                              : "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/50"
+                          }`}
+                        >
+                          <item.icon className={`w-3.5 h-3.5 ${isActive ? "text-sidebar-accent-foreground" : "text-sidebar-muted"}`} />
+                          <span className="font-light tracking-wide">{item.label}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
+
+          {/* Divider */}
+          {visibleStandalone.length > 0 && (
+            <div className="pt-2 mt-2 border-t border-sidebar-border space-y-0.5">
+              {visibleStandalone.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setMobileOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-2.5 text-sm transition-all ${
+                      isActive
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/50"
+                    }`}
+                  >
+                    <item.icon className={`w-4 h-4 ${isActive ? "text-sidebar-accent-foreground" : "text-sidebar-muted"}`} />
+                    <span className="font-light tracking-wide">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </nav>
 
         {/* Theme + User */}

@@ -13,6 +13,8 @@ import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 import DocsPage from "./pages/DocsPage";
 import ClientsPage from "./pages/ClientsPage";
+import ProductionPage from "./pages/ProductionPage";
+import WarehousePage from "./pages/WarehousePage";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +39,8 @@ const App = () => (
               <Route path="/box" element={<BoxCalculatorPage />} />
               <Route path="/history" element={<HistoryPage />} />
               <Route path="/docs" element={<DocsPage />} />
+              <Route path="/production" element={<ProductionPage />} />
+              <Route path="/warehouse" element={<WarehousePage />} />
             </Route>
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminPage />} />
