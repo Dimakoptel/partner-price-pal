@@ -10,7 +10,12 @@ import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useState } from "react";
 
-const NAV_ITEMS = [
+import type { ModuleKey } from "@/hooks/usePermissions";
+
+const NAV_ITEMS: Array<{
+  path: string; label: string; icon: typeof Calculator;
+  module?: ModuleKey; adminOnly?: boolean; adminOrModule?: boolean;
+}> = [
   { path: "/", label: "Расчёт", icon: Calculator, module: "calculator" },
   { path: "/history", label: "История", icon: History, module: "history" },
   { path: "/box", label: "Ящик", icon: Package, module: "box_calculator" },
