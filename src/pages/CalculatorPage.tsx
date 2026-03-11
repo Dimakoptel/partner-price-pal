@@ -22,6 +22,7 @@ import {
 } from "@/lib/calculator";
 import { calculateBox, MaterialSettings } from "@/lib/boxCalculator";
 import { toast } from "sonner";
+import { useLeads } from "@/hooks/useLeads";
 
 export default function CalculatorPage() {
   const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null);
