@@ -36,6 +36,7 @@ export default function CalculatorPage() {
   const { saveCalculation } = useCalculations();
   const { getSetting } = useCompanySettings();
   const { user, profile } = useAuth();
+  const { createLead } = useLeads();
   const formRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
