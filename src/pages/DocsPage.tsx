@@ -125,7 +125,7 @@ export default function DocsPage() {
 
         <Section title="История расчётов" icon={History}>
           <Step n={1}>
-            Перейдите во вкладку <strong>«История»</strong> в верхнем меню.
+            Перейдите в <strong>«Калькуляторы» → «История»</strong> в боковом меню.
           </Step>
           <Step n={2}>
             Вы увидите <strong>календарь</strong> с отмеченными датами, в которые были сделаны расчёты.
