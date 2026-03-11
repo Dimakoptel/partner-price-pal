@@ -36,7 +36,7 @@ export default function DocsPage() {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <h1 className="text-2xl font-bold mb-1">Инструкция</h1>
           <p className="text-muted-foreground text-sm mb-6">
-            Подробное руководство по работе с системой COZY ART
+            Подробное руководство по работе с системой MES COZY ART
           </p>
         </motion.div>
 
