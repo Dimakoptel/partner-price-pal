@@ -13,43 +13,85 @@ import { Button } from "@/components/ui/button";
 interface Props {
   open: boolean;
   onClose: () => void;
-  onConfirm: (name: string) => void;
+  onConfirm: (data: { calcName: string; clientName: string; clientPhone: string; clientEmail: string }) => void;
   saving?: boolean;
 }
 
 export default function SaveCalculationDialog({ open, onClose, onConfirm, saving }: Props) {
-  const [name, setName] = useState("");
+  const [calcName, setCalcName] = useState("");
+  const [clientName, setClientName] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
 
   const handleConfirm = () => {
-    if (!name.trim()) return;
-    onConfirm(name.trim());
-    setName("");
+    if (!calcName.trim()) return;
+    onConfirm({
+      calcName: calcName.trim(),
+      clientName: clientName.trim() || calcName.trim(),
+      clientPhone: clientPhone.trim(),
+      clientEmail: clientEmail.trim(),
+    });
+    setCalcName("");
+    setClientName("");
+    setClientPhone("");
+    setClientEmail("");
   };
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Сохранить расчёт</DialogTitle>
+          <DialogTitle>Сохранить расчёт и создать лид</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 py-2">
-          <Label htmlFor="calc-name">Название расчёта <span className="text-destructive">*</span></Label>
-          <Input
-            id="calc-name"
-            placeholder="Например: Иванов И.И., ванная комната"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleConfirm()}
-            autoFocus
-          />
+          <div className="space-y-1.5">
+            <Label htmlFor="calc-name">Название расчёта <span className="text-destructive">*</span></Label>
+            <Input
+              id="calc-name"
+              placeholder="Например: Столешница для ванной"
+              value={calcName}
+              onChange={(e) => setCalcName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleConfirm()}
+              autoFocus
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="client-name">Имя клиента</Label>
+            <Input
+              id="client-name"
+              placeholder="Иванов Иван Иванович"
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="client-phone">Телефон</Label>
+              <Input
+                id="client-phone"
+                placeholder="+7 900 000 00 00"
+                value={clientPhone}
+                onChange={(e) => setClientPhone(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="client-email">Email</Label>
+              <Input
+                id="client-email"
+                placeholder="client@email.com"
+                value={clientEmail}
+                onChange={(e) => setClientEmail(e.target.value)}
+              />
+            </div>
+          </div>
           <p className="text-xs text-muted-foreground">
-            Укажите имя клиента или описание для идентификации расчёта
+            При сохранении автоматически создаётся лид в разделе «Продажи»
           </p>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Отмена</Button>
-          <Button onClick={handleConfirm} disabled={!name.trim() || saving}>
-            {saving ? "Сохранение..." : "Сохранить"}
+          <Button onClick={handleConfirm} disabled={!calcName.trim() || saving}>
+            {saving ? "Сохранение..." : "Сохранить и создать лид"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ProtectedRoute, AdminRoute } from "@/components/ProtectedRoute";
 import AuthPage from "./pages/AuthPage";
+import Index from "./pages/Index";
 import CalculatorPage from "./pages/CalculatorPage";
 import BoxCalculatorPage from "./pages/BoxCalculatorPage";
 import HistoryPage from "./pages/HistoryPage";
@@ -35,16 +36,17 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<AuthRedirect />} />
             <Route element={<ProtectedRoute />}>
-              <Route path="/" element={<CalculatorPage />} />
+              <Route path="/" element={<Index />} />
+              <Route path="/calculator" element={<CalculatorPage />} />
               <Route path="/box" element={<BoxCalculatorPage />} />
               <Route path="/history" element={<HistoryPage />} />
               <Route path="/docs" element={<DocsPage />} />
               <Route path="/production" element={<ProductionPage />} />
               <Route path="/warehouse" element={<WarehousePage />} />
+              <Route path="/sales" element={<ClientsPage />} />
             </Route>
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminPage />} />
-              <Route path="/clients" element={<ClientsPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

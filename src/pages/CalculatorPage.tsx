@@ -22,6 +22,7 @@ import {
 } from "@/lib/calculator";
 import { calculateBox, MaterialSettings } from "@/lib/boxCalculator";
 import { toast } from "sonner";
+import { useLeads } from "@/hooks/useLeads";
 
 export default function CalculatorPage() {
   const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null);
@@ -35,6 +36,7 @@ export default function CalculatorPage() {
   const { saveCalculation } = useCalculations();
   const { getSetting } = useCompanySettings();
   const { user, profile } = useAuth();
+  const { createLead } = useLeads();
   const formRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -133,18 +135,28 @@ export default function CalculatorPage() {
     setShowSaveDialog(true);
   };
 
-  const handleSaveConfirm = async (calcName: string) => {
+  const handleSaveConfirm = async (data: { calcName: string; clientName: string; clientPhone: string; clientEmail: string }) => {
     if (!result || !selectedProduct || !currentParams) return;
     setSavingName(true);
-    const { error } = await saveCalculation(selectedProduct, result.productLabel, currentParams, result, calcName);
+    const { error } = await saveCalculation(selectedProduct, result.productLabel, currentParams, result, data.calcName);
+    if (error) {
+      setSavingName(false);
+      setShowSaveDialog(false);
+      toast.error("Ошибка сохранения");
+      return;
+    }
+    // Create lead
+    await createLead({
+      client_name: data.clientName,
+      client_phone: data.clientPhone || undefined,
+      client_email: data.clientEmail || undefined,
+      amount: result.grandTotal || 0,
+      notes: `${result.productLabel} — ${data.calcName}`,
+    });
     setSavingName(false);
     setShowSaveDialog(false);
-    if (error) {
-      toast.error("Ошибка сохранения");
-    } else {
-      setSaved(true);
-      toast.success("Расчёт сохранён");
-    }
+    setSaved(true);
+    toast.success("Расчёт сохранён, лид создан");
   };
 
   if (loading) {
