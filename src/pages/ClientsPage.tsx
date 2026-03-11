@@ -56,8 +56,8 @@ export default function ClientsPage() {
               <Users className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">CRM</h1>
-              <p className="text-sm text-muted-foreground">Клиенты, сделки и задачи</p>
+              <h1 className="text-2xl font-bold">Продажи</h1>
+              <p className="text-sm text-muted-foreground">Лиды, клиенты, сделки и задачи</p>
             </div>
           </div>
         </motion.div>
