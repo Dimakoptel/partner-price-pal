@@ -38,40 +38,73 @@ export type Database = {
       clients: {
         Row: {
           address: string | null
+          client_type: string
+          commission_rate: number | null
           company: string | null
           created_at: string
           created_by: string
+          credit_limit: number | null
+          discount_default: number | null
           email: string | null
           id: string
+          inn: string | null
+          is_active: boolean
+          manager_id: string | null
           name: string
           notes: string | null
+          payment_terms: string
           phone: string | null
+          pricing_type: string
+          region: string | null
+          source: string | null
           telegram: string | null
           updated_at: string
         }
         Insert: {
           address?: string | null
+          client_type?: string
+          commission_rate?: number | null
           company?: string | null
           created_at?: string
           created_by: string
+          credit_limit?: number | null
+          discount_default?: number | null
           email?: string | null
           id?: string
+          inn?: string | null
+          is_active?: boolean
+          manager_id?: string | null
           name: string
           notes?: string | null
+          payment_terms?: string
           phone?: string | null
+          pricing_type?: string
+          region?: string | null
+          source?: string | null
           telegram?: string | null
           updated_at?: string
         }
         Update: {
           address?: string | null
+          client_type?: string
+          commission_rate?: number | null
           company?: string | null
           created_at?: string
           created_by?: string
+          credit_limit?: number | null
+          discount_default?: number | null
           email?: string | null
           id?: string
+          inn?: string | null
+          is_active?: boolean
+          manager_id?: string | null
           name?: string
           notes?: string | null
+          payment_terms?: string
           phone?: string | null
+          pricing_type?: string
+          region?: string | null
+          source?: string | null
           telegram?: string | null
           updated_at?: string
         }
@@ -228,13 +261,20 @@ export type Database = {
       leads: {
         Row: {
           amount: number | null
+          assigned_manager_id: string | null
+          budget: number | null
           calculation_id: string | null
           client_email: string | null
+          client_id: string | null
           client_name: string
           client_phone: string | null
+          converted_to_order_id: string | null
           created_at: string
           id: string
+          lost_reason: string | null
           notes: string | null
+          product_interest: string | null
+          region: string | null
           source: string
           status: string
           updated_at: string
@@ -242,13 +282,20 @@ export type Database = {
         }
         Insert: {
           amount?: number | null
+          assigned_manager_id?: string | null
+          budget?: number | null
           calculation_id?: string | null
           client_email?: string | null
+          client_id?: string | null
           client_name?: string
           client_phone?: string | null
+          converted_to_order_id?: string | null
           created_at?: string
           id?: string
+          lost_reason?: string | null
           notes?: string | null
+          product_interest?: string | null
+          region?: string | null
           source?: string
           status?: string
           updated_at?: string
@@ -256,13 +303,20 @@ export type Database = {
         }
         Update: {
           amount?: number | null
+          assigned_manager_id?: string | null
+          budget?: number | null
           calculation_id?: string | null
           client_email?: string | null
+          client_id?: string | null
           client_name?: string
           client_phone?: string | null
+          converted_to_order_id?: string | null
           created_at?: string
           id?: string
+          lost_reason?: string | null
           notes?: string | null
+          product_interest?: string | null
+          region?: string | null
           source?: string
           status?: string
           updated_at?: string
@@ -274,6 +328,107 @@ export type Database = {
             columns: ["calculation_id"]
             isOneToOne: false
             referencedRelation: "saved_calculations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          agent_id: string | null
+          client_id: string | null
+          completed_at: string | null
+          created_at: string
+          delivery_address: string | null
+          delivery_date: string | null
+          delivery_method: string | null
+          discount_percent: number | null
+          id: string
+          items: Json
+          lead_id: string | null
+          notes: string | null
+          number: string
+          order_type: string
+          paid_amount: number
+          responsible_id: string
+          status: string
+          total_amount: number
+          tracking_number: string | null
+          updated_at: string
+          warranty_months: number | null
+        }
+        Insert: {
+          agent_id?: string | null
+          client_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          delivery_address?: string | null
+          delivery_date?: string | null
+          delivery_method?: string | null
+          discount_percent?: number | null
+          id?: string
+          items?: Json
+          lead_id?: string | null
+          notes?: string | null
+          number?: string
+          order_type?: string
+          paid_amount?: number
+          responsible_id: string
+          status?: string
+          total_amount?: number
+          tracking_number?: string | null
+          updated_at?: string
+          warranty_months?: number | null
+        }
+        Update: {
+          agent_id?: string | null
+          client_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          delivery_address?: string | null
+          delivery_date?: string | null
+          delivery_method?: string | null
+          discount_percent?: number | null
+          id?: string
+          items?: Json
+          lead_id?: string | null
+          notes?: string | null
+          number?: string
+          order_type?: string
+          paid_amount?: number
+          responsible_id?: string
+          status?: string
+          total_amount?: number
+          tracking_number?: string | null
+          updated_at?: string
+          warranty_months?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
             referencedColumns: ["id"]
           },
         ]
