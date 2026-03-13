@@ -1,21 +1,37 @@
 import { useState, useMemo } from "react";
 import AppLayout from "@/components/AppLayout";
 import { motion } from "framer-motion";
-import { Users, UserPlus, Search, Pencil, Trash2, Phone, Mail, Building2, MessageCircle, LayoutGrid, List, CheckSquare } from "lucide-react";
+import { Users, UserPlus, Search, Pencil, Trash2, Phone, Mail, Building2, MessageCircle, LayoutGrid, List, CheckSquare, Target, ShoppingCart, Badge as BadgeIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useClients, type Client } from "@/hooks/useClients";
+import { useLeads } from "@/hooks/useLeads";
+import { useOrders } from "@/hooks/useOrders";
 import ClientFormDialog from "@/components/clients/ClientFormDialog";
 import ClientDetailDialog from "@/components/crm/ClientDetailDialog";
 import PipelineBoard from "@/components/crm/PipelineBoard";
 import TaskList from "@/components/crm/TaskList";
+import LeadsTab from "@/components/sales/LeadsTab";
+import OrdersTab from "@/components/sales/OrdersTab";
+
+const CLIENT_TYPE_LABELS: Record<string, string> = {
+  b2c: "B2C",
+  b2b: "B2B",
+  agent: "Агент",
+  designer: "Дизайнер",
+  partner: "Партнёр",
+  developer: "Застройщик",
+};
 
 export default function ClientsPage() {
   const { clients, isLoading, addClient, updateClient, deleteClient } = useClients();
+  const { leads } = useLeads();
+  const { orders } = useOrders();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -31,7 +47,8 @@ export default function ClientsPage() {
         c.phone?.toLowerCase().includes(q) ||
         c.email?.toLowerCase().includes(q) ||
         c.company?.toLowerCase().includes(q) ||
-        c.telegram?.toLowerCase().includes(q)
+        c.telegram?.toLowerCase().includes(q) ||
+        (c as any).inn?.toLowerCase().includes(q)
     );
   }, [clients, search]);
 
@@ -52,28 +69,48 @@ export default function ClientsPage() {
       <div className="max-w-6xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2.5 rounded-xl bg-primary/10">
-              <Users className="w-6 h-6 text-primary" />
+            <div className="p-2.5 bg-primary/10">
+              <Target className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Продажи</h1>
-              <p className="text-sm text-muted-foreground">Лиды, клиенты, сделки и задачи</p>
+              <h1 className="text-2xl font-light tracking-tight">Продажи</h1>
+              <p className="text-sm text-muted-foreground">Лиды, заказы, клиенты, воронка и задачи</p>
             </div>
           </div>
         </motion.div>
 
-        <Tabs defaultValue="pipeline" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="pipeline" className="gap-1.5">
-              <LayoutGrid className="w-4 h-4" /> Воронка
+        <Tabs defaultValue="leads" className="space-y-4">
+          <TabsList className="bg-secondary h-auto gap-1 p-1.5 flex-wrap">
+            <TabsTrigger value="leads" className="text-xs gap-1.5">
+              <Target className="w-3 h-3" /> Лиды ({leads.length})
             </TabsTrigger>
-            <TabsTrigger value="clients" className="gap-1.5">
-              <List className="w-4 h-4" /> Клиенты ({clients.length})
+            <TabsTrigger value="orders" className="text-xs gap-1.5">
+              <ShoppingCart className="w-3 h-3" /> Заказы ({orders.length})
             </TabsTrigger>
-            <TabsTrigger value="tasks" className="gap-1.5">
-              <CheckSquare className="w-4 h-4" /> Задачи
+            <TabsTrigger value="pipeline" className="text-xs gap-1.5">
+              <LayoutGrid className="w-3 h-3" /> Воронка
+            </TabsTrigger>
+            <TabsTrigger value="clients" className="text-xs gap-1.5">
+              <Users className="w-3 h-3" /> Клиенты ({clients.length})
+            </TabsTrigger>
+            <TabsTrigger value="tasks" className="text-xs gap-1.5">
+              <CheckSquare className="w-3 h-3" /> Задачи
             </TabsTrigger>
           </TabsList>
+
+          {/* ===== LEADS TAB ===== */}
+          <TabsContent value="leads">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              <LeadsTab />
+            </motion.div>
+          </TabsContent>
+
+          {/* ===== ORDERS TAB ===== */}
+          <TabsContent value="orders">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              <OrdersTab />
+            </motion.div>
+          </TabsContent>
 
           {/* ===== PIPELINE TAB ===== */}
           <TabsContent value="pipeline">
@@ -88,7 +125,7 @@ export default function ClientsPage() {
               <div className="flex items-center gap-3 mb-4">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input placeholder="Поиск по имени, телефону, email..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+                  <Input placeholder="Поиск по имени, телефону, email, ИНН..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
                 </div>
                 <Button onClick={openNew} className="gap-2 shrink-0">
                   <UserPlus className="w-4 h-4" /> Добавить
@@ -107,11 +144,12 @@ export default function ClientsPage() {
                   </CardContent>
                 </Card>
               ) : (
-                <Card>
+                <div className="border border-border">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Имя</TableHead>
+                        <TableHead>Тип</TableHead>
                         <TableHead>Контакты</TableHead>
                         <TableHead>Компания</TableHead>
                         <TableHead className="w-[100px]"></TableHead>
@@ -121,6 +159,11 @@ export default function ClientsPage() {
                       {filtered.map((client) => (
                         <TableRow key={client.id} className="cursor-pointer" onClick={() => openDetail(client)}>
                           <TableCell className="font-medium">{client.name}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-[10px]">
+                              {CLIENT_TYPE_LABELS[(client as any).client_type] || "B2C"}
+                            </Badge>
+                          </TableCell>
                           <TableCell>
                             <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                               {client.phone && <span className="inline-flex items-center gap-1"><Phone className="w-3 h-3" /> {client.phone}</span>}
@@ -159,7 +202,7 @@ export default function ClientsPage() {
                       ))}
                     </TableBody>
                   </Table>
-                </Card>
+                </div>
               )}
             </motion.div>
           </TabsContent>

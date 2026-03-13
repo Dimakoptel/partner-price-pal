@@ -4,21 +4,38 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Client } from "@/hooks/useClients";
+
+const CLIENT_TYPES = [
+  { value: "b2c", label: "B2C (частное лицо)" },
+  { value: "b2b", label: "B2B (компания)" },
+  { value: "agent", label: "Агент" },
+  { value: "designer", label: "Дизайнер" },
+  { value: "partner", label: "Партнёр" },
+  { value: "developer", label: "Застройщик" },
+];
+
+const PRICING_TYPES = [
+  { value: "retail", label: "Розница" },
+  { value: "wholesale1", label: "Опт 1" },
+  { value: "wholesale2", label: "Опт 2" },
+  { value: "dealer", label: "Дилер" },
+  { value: "agent", label: "Агентский" },
+];
+
+const PAYMENT_TERMS = [
+  { value: "prepay", label: "Предоплата" },
+  { value: "postpay", label: "Постоплата" },
+  { value: "delay30", label: "Отсрочка 30 дн." },
+  { value: "delay60", label: "Отсрочка 60 дн." },
+];
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   client?: Client | null;
-  onSubmit: (data: {
-    name: string;
-    phone: string;
-    email: string;
-    telegram: string;
-    company: string;
-    address: string;
-    notes: string;
-  }) => void;
+  onSubmit: (data: any) => void;
   isPending: boolean;
 }
 
@@ -31,6 +48,15 @@ export default function ClientFormDialog({ open, onOpenChange, client, onSubmit,
     company: "",
     address: "",
     notes: "",
+    client_type: "b2c",
+    inn: "",
+    pricing_type: "retail",
+    discount_default: "",
+    credit_limit: "",
+    payment_terms: "prepay",
+    commission_rate: "",
+    region: "",
+    source: "",
   });
 
   useEffect(() => {
@@ -43,57 +69,168 @@ export default function ClientFormDialog({ open, onOpenChange, client, onSubmit,
         company: client.company ?? "",
         address: client.address ?? "",
         notes: client.notes ?? "",
+        client_type: (client as any).client_type ?? "b2c",
+        inn: (client as any).inn ?? "",
+        pricing_type: (client as any).pricing_type ?? "retail",
+        discount_default: (client as any).discount_default?.toString() ?? "",
+        credit_limit: (client as any).credit_limit?.toString() ?? "",
+        payment_terms: (client as any).payment_terms ?? "prepay",
+        commission_rate: (client as any).commission_rate?.toString() ?? "",
+        region: (client as any).region ?? "",
+        source: (client as any).source ?? "",
       });
     } else {
-      setForm({ name: "", phone: "", email: "", telegram: "", company: "", address: "", notes: "" });
+      setForm({
+        name: "", phone: "", email: "", telegram: "", company: "", address: "", notes: "",
+        client_type: "b2c", inn: "", pricing_type: "retail", discount_default: "",
+        credit_limit: "", payment_terms: "prepay", commission_rate: "", region: "", source: "",
+      });
     }
   }, [client, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) return;
-    onSubmit(form);
+    onSubmit({
+      ...form,
+      discount_default: parseFloat(form.discount_default) || 0,
+      credit_limit: parseFloat(form.credit_limit) || 0,
+      commission_rate: parseFloat(form.commission_rate) || 0,
+      inn: form.inn || null,
+      source: form.source || null,
+      region: form.region || null,
+    });
   };
+
+  const isAgent = form.client_type === "agent";
+  const isB2B = ["b2b", "developer", "partner"].includes(form.client_type);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{client ? "Редактировать клиента" : "Новый клиент"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div>
-            <Label htmlFor="name">Имя / ФИО *</Label>
-            <Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+          {/* Type & Name */}
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label className="text-xs">Тип *</Label>
+              <Select value={form.client_type} onValueChange={(v) => setForm({ ...form, client_type: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {CLIENT_TYPES.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="col-span-2">
+              <Label className="text-xs">Имя / ФИО *</Label>
+              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+            </div>
+          </div>
+
+          {/* Contacts */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Телефон</Label>
+              <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            </div>
+            <div>
+              <Label className="text-xs">Email</Label>
+              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="phone">Телефон</Label>
-              <Input id="phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <Label className="text-xs">Telegram</Label>
+              <Input value={form.telegram} onChange={(e) => setForm({ ...form, telegram: e.target.value })} />
             </div>
             <div>
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <Label className="text-xs">Компания</Label>
+              <Input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+
+          {/* B2B fields */}
+          {(isB2B || isAgent) && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">ИНН</Label>
+                <Input value={form.inn} onChange={(e) => setForm({ ...form, inn: e.target.value })} placeholder="1234567890" />
+              </div>
+              <div>
+                <Label className="text-xs">Регион</Label>
+                <Input value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value })} placeholder="Новосибирская обл." />
+              </div>
+            </div>
+          )}
+
+          {/* Pricing */}
+          <div className="grid grid-cols-3 gap-3">
             <div>
-              <Label htmlFor="telegram">Telegram</Label>
-              <Input id="telegram" value={form.telegram} onChange={(e) => setForm({ ...form, telegram: e.target.value })} />
+              <Label className="text-xs">Тип цен</Label>
+              <Select value={form.pricing_type} onValueChange={(v) => setForm({ ...form, pricing_type: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {PRICING_TYPES.map((p) => (
+                    <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
-              <Label htmlFor="company">Компания</Label>
-              <Input id="company" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
+              <Label className="text-xs">Скидка (%)</Label>
+              <Input type="number" value={form.discount_default} onChange={(e) => setForm({ ...form, discount_default: e.target.value })} placeholder="0" />
             </div>
+            <div>
+              <Label className="text-xs">Условия оплаты</Label>
+              <Select value={form.payment_terms} onValueChange={(v) => setForm({ ...form, payment_terms: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {PAYMENT_TERMS.map((p) => (
+                    <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Agent commission */}
+          {isAgent && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Комиссия агента (%)</Label>
+                <Input type="number" value={form.commission_rate} onChange={(e) => setForm({ ...form, commission_rate: e.target.value })} placeholder="10" />
+              </div>
+              <div>
+                <Label className="text-xs">Кредитный лимит (₽)</Label>
+                <Input type="number" value={form.credit_limit} onChange={(e) => setForm({ ...form, credit_limit: e.target.value })} placeholder="0" />
+              </div>
+            </div>
+          )}
+
+          {isB2B && (
+            <div>
+              <Label className="text-xs">Кредитный лимит (₽)</Label>
+              <Input type="number" value={form.credit_limit} onChange={(e) => setForm({ ...form, credit_limit: e.target.value })} placeholder="0" />
+            </div>
+          )}
+
+          <div>
+            <Label className="text-xs">Адрес</Label>
+            <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
           </div>
           <div>
-            <Label htmlFor="address">Адрес</Label>
-            <Input id="address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+            <Label className="text-xs">Источник</Label>
+            <Input value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} placeholder="Сайт, выставка, рекомендация..." />
           </div>
           <div>
-            <Label htmlFor="notes">Заметки</Label>
-            <Textarea id="notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} />
+            <Label className="text-xs">Заметки</Label>
+            <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} />
           </div>
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Отмена</Button>
             <Button type="submit" disabled={isPending || !form.name.trim()}>
