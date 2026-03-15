@@ -339,6 +339,78 @@ export type Database = {
           },
         ]
       }
+      nomenclature: {
+        Row: {
+          category: string
+          characteristics: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          drawing_url: string | null
+          id: string
+          is_active: boolean
+          name: string
+          photo_url: string | null
+          price_dealer: number | null
+          price_partner: number | null
+          price_rrp: number | null
+          price_wholesale: number | null
+          show_in_pricelist: boolean
+          size_mm: string | null
+          sku: string
+          sort_order: number
+          unit: string
+          updated_at: string
+          weight_kg: number | null
+        }
+        Insert: {
+          category?: string
+          characteristics?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          drawing_url?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          photo_url?: string | null
+          price_dealer?: number | null
+          price_partner?: number | null
+          price_rrp?: number | null
+          price_wholesale?: number | null
+          show_in_pricelist?: boolean
+          size_mm?: string | null
+          sku?: string
+          sort_order?: number
+          unit?: string
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Update: {
+          category?: string
+          characteristics?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          drawing_url?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          photo_url?: string | null
+          price_dealer?: number | null
+          price_partner?: number | null
+          price_rrp?: number | null
+          price_wholesale?: number | null
+          show_in_pricelist?: boolean
+          size_mm?: string | null
+          sku?: string
+          sort_order?: number
+          unit?: string
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           agent_id: string | null
