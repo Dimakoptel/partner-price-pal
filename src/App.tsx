@@ -16,6 +16,7 @@ import DocsPage from "./pages/DocsPage";
 import ClientsPage from "./pages/ClientsPage";
 import ProductionPage from "./pages/ProductionPage";
 import WarehousePage from "./pages/WarehousePage";
+import PriceListPage from "./pages/PriceListPage";
 
 const queryClient = new QueryClient();
 
