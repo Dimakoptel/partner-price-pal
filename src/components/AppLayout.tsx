@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
   Calculator, Settings, LogOut, History,
   Sun, Moon, BookOpen, Menu,
-  Factory, Warehouse, ChevronDown, TrendingUp, Home
+  Factory, Warehouse, ChevronDown, TrendingUp, Home, FileSpreadsheet
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
