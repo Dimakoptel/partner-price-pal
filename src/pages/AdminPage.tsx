@@ -111,6 +111,9 @@ export default function AdminPage() {
               <TabsTrigger value="nomenclature" className="text-xs gap-1.5">
                 <LayoutList className="w-3 h-3" /> Номенклатура
               </TabsTrigger>
+              <TabsTrigger value="categories" className="text-xs gap-1.5">
+                <LayoutList className="w-3 h-3" /> Категории товаров
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="contractors">
               <div className="border border-border p-8 bg-card text-center">
