@@ -120,11 +120,10 @@ export default function AdminPage() {
               </div>
             </TabsContent>
             <TabsContent value="nomenclature">
-              <div className="border border-border p-8 bg-card text-center">
-                <LayoutList className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-                <h3 className="text-sm font-medium mb-1">Номенклатура</h3>
-                <p className="text-xs text-muted-foreground">Справочник материалов, готовых изделий и услуг</p>
-              </div>
+              <NomenclatureTab />
+            </TabsContent>
+            <TabsContent value="categories">
+              <CategoriesTab />
             </TabsContent>
           </Tabs>
         )}
