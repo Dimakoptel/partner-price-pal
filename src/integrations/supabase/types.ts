@@ -411,6 +411,39 @@ export type Database = {
         }
         Relationships: []
       }
+      nomenclature_colors: {
+        Row: {
+          color_id: string
+          id: string
+          nomenclature_id: string
+        }
+        Insert: {
+          color_id: string
+          id?: string
+          nomenclature_id: string
+        }
+        Update: {
+          color_id?: string
+          id?: string
+          nomenclature_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nomenclature_colors_color_id_fkey"
+            columns: ["color_id"]
+            isOneToOne: false
+            referencedRelation: "standard_colors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nomenclature_colors_nomenclature_id_fkey"
+            columns: ["nomenclature_id"]
+            isOneToOne: false
+            referencedRelation: "nomenclature"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           agent_id: string | null
@@ -559,6 +592,30 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
           value?: number
+        }
+        Relationships: []
+      }
+      product_categories: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
         }
         Relationships: []
       }

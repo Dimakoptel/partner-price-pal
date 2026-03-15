@@ -10,6 +10,8 @@ import PrintTemplateTab from "@/components/admin/PrintTemplateTab";
 import ProductIconsTab from "@/components/admin/ProductIconsTab";
 import UsersTab from "@/components/admin/UsersTab";
 import AccessGroupsTab from "@/components/admin/AccessGroupsTab";
+import NomenclatureTab from "@/components/admin/NomenclatureTab";
+import CategoriesTab from "@/components/admin/CategoriesTab";
 import {
   DollarSign, Palette, Users, FileText, ShieldCheck,
   Image, BookOpen, Building2, LayoutList
@@ -109,6 +111,9 @@ export default function AdminPage() {
               <TabsTrigger value="nomenclature" className="text-xs gap-1.5">
                 <LayoutList className="w-3 h-3" /> Номенклатура
               </TabsTrigger>
+              <TabsTrigger value="categories" className="text-xs gap-1.5">
+                <LayoutList className="w-3 h-3" /> Категории товаров
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="contractors">
               <div className="border border-border p-8 bg-card text-center">
@@ -118,11 +123,10 @@ export default function AdminPage() {
               </div>
             </TabsContent>
             <TabsContent value="nomenclature">
-              <div className="border border-border p-8 bg-card text-center">
-                <LayoutList className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-                <h3 className="text-sm font-medium mb-1">Номенклатура</h3>
-                <p className="text-xs text-muted-foreground">Справочник материалов, готовых изделий и услуг</p>
-              </div>
+              <NomenclatureTab />
+            </TabsContent>
+            <TabsContent value="categories">
+              <CategoriesTab />
             </TabsContent>
           </Tabs>
         )}
