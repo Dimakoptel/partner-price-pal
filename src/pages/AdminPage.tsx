@@ -10,6 +10,8 @@ import PrintTemplateTab from "@/components/admin/PrintTemplateTab";
 import ProductIconsTab from "@/components/admin/ProductIconsTab";
 import UsersTab from "@/components/admin/UsersTab";
 import AccessGroupsTab from "@/components/admin/AccessGroupsTab";
+import NomenclatureTab from "@/components/admin/NomenclatureTab";
+import CategoriesTab from "@/components/admin/CategoriesTab";
 import {
   DollarSign, Palette, Users, FileText, ShieldCheck,
   Image, BookOpen, Building2, LayoutList
