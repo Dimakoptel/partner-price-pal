@@ -1,20 +1,52 @@
-# KNOWLEDGE.md — Контекст проекта MES COZY ART
+# База Знаний: MES COZY ART
 
-> Этот файл используется как контекст для всех последующих промптов разработки.
+## 🎯 Контекст проекта
 
----
-
-## 1. О проекте
-
-**Название:** MES COZY ART  
-**Тип:** Веб-система управления производством и продажами архитектурного бетона  
-**Стек:** React 18, Vite, TypeScript, Tailwind CSS, shadcn/ui, Framer Motion  
-**Бэкенд:** Lovable Cloud (Supabase) — БД, авторизация, Edge Functions, Storage  
-**Проект Supabase ID:** `lpmdonabwaseculhjnlz`
+- **Производство:** изделия из архитектурного бетона (столешницы, раковины, панели)
+- **Каналы продаж:** агенты, дизайнеры, B2B, B2C, сайт
+- **География:** Новосибирск (производство) → федеральные продажи РФ
+- **Масштаб:** старт ~40 заказов/мес, рост до 200+ заказов/мес
 
 ---
 
-## 2. Архитектура приложения
+## 🏗️ Технический стек
+
+- **Фронтенд:** React 18 + TypeScript + Tailwind CSS + ShadCN/UI
+- **State:** TanStack Query (React Query)
+- **Бэкенд:** Supabase (PostgreSQL, Auth, Storage, Edge Functions, Database Functions)
+- **Интеграции:** n8n (webhooks) → 1С, WordPress, Telegram
+- **Мобильный:** PWA для мастеров
+
+---
+
+## 🔑 Принцип «Ничего в код»
+
+❌ **НЕЛЬЗЯ:** `CHECK (status IN ('draft', 'confirmed'))`  
+✅ **НУЖНО:** `status_id UUID REFERENCES dictionary_items(id)` + справочник в админке
+
+Все статусы, типы, этапы, бизнес-правила управляются через админ-панель.
+
+---
+
+## 📋 Системные справочники (управляются в админке)
+
+| Справочник | Тип (`dictionary_type`) | Примеры значений |
+|------------|------------------------|------------------|
+| Статусы заказа | `order_status` | Черновик, Подтверждён, В производстве, Готов, Отгружен |
+| Типы заказа | `order_type` | Серийный (склад), Серийный (под заказ), Индивидуальный, Проект |
+| Способы доставки | `delivery_method` | Самовывоз, По городу, До ТК, До двери |
+| Типы клиентов | `client_type` | B2C, B2B, Агент, Дизайнер, Архитектор |
+| Ценовые категории | `pricing_type` | Розница, Опт, Дилер, Партнёр |
+| Условия оплаты | `payment_terms` | Предоплата, Постоплата, Рассрочка, Кредит |
+| Источники лидов | `lead_source` | Калькулятор, Сайт, Звонок, Рекомендация, Выставка |
+| Статусы лидов | `lead_status` | Новый, Квалифицирован, КП отправлено, Переговоры, Выигран, Проигран |
+| Причины отказа | `lost_reason` | Цена, Сроки, Конкурент, Нет потребности |
+| Единицы измерения | `unit` | шт, м², м.п., кг, комплект |
+| Этапы производства | `production_stage` | Замес, Формовка, Сушка, Шлифовка, Покраска, Упаковка |
+
+---
+
+## 🏗️ Архитектура приложения
 
 ### Маршруты (src/App.tsx)
 
@@ -31,23 +63,23 @@
 | `/admin` | AdminPage | Только админ |
 | `/auth` | AuthPage | Публичный |
 
-### Навигация (src/components/AppLayout.tsx)
+### Навигация
 
 Боковая панель с группами: Калькуляторы, Продажи, Производство, Склад + standalone: Прайс-лист, Инструкция, Администрирование.
 
 ---
 
-## 3. Система доступа (RBAC)
+## 🔐 Система доступа (RBAC)
 
 - **Роли:** `admin`, `user` (enum `app_role` в таблице `user_roles`)
-- **Группы доступа:** таблица `access_groups` → `group_permissions` (модуль + allowed)
+- **Группы доступа:** `access_groups` → `group_permissions` (модуль + allowed)
 - **Назначение:** `user_group_assignments` (user_id + group_id)
 - **Проверка:** функция `has_module_access(_user_id, _module)` — админы всегда имеют доступ
 - **Модули:** `calculator`, `history`, `clients`, `docs`
 
 ---
 
-## 4. Таблицы базы данных
+## 📊 Таблицы базы данных
 
 ### Основные бизнес-таблицы
 
@@ -85,7 +117,7 @@
 
 ---
 
-## 5. Модуль «Продажи» (текущее состояние)
+## 💰 Модуль «Продажи» (текущее состояние)
 
 ### Лиды (leads)
 
@@ -98,8 +130,6 @@ new → qualified → proposal_sent → negotiation → won / lost
 - Лид → Клиент: создаёт запись в `clients`, привязывает `client_id`
 - Лид → Заказ: создаёт `orders`, привязывает `lead_id` + `client_id`, статус лида → `won`
 
-**Поля:** client_name, client_phone, client_email, source, region, product_interest, budget, amount, calculation_id, assigned_manager_id, lost_reason, converted_to_order_id
-
 ### Заказы (orders)
 
 **Статусы:**
@@ -109,67 +139,53 @@ draft → pending_approval → confirmed → in_production → ready → shipped
 
 **Типы:** serial_stock, serial_production, custom, project  
 **Доставка:** self_pickup, city_delivery, to_tc, to_door  
-**Поля:** number (auto: ORD-YYYYMMDD-NNN), items (JSONB), total_amount, paid_amount, discount_percent, delivery_address, tracking_number, warranty_months
+**Авто-нумерация:** `ORD-YYYYMMDD-NNN` (trigger `generate_order_number`)
 
 ### Клиенты (clients)
 
 **Типы:** b2c, b2b, agent, designer, architect  
 **Ценовые категории:** retail, wholesale, dealer, partner  
-**Условия оплаты:** prepay, postpay, installment, credit  
-**Поля:** name, phone, email, telegram, company, address, inn, region, source, discount_default, credit_limit, commission_rate, manager_id
+**Условия оплаты:** prepay, postpay, installment, credit
 
 ---
 
-## 6. Модуль «Калькулятор»
+## 🧮 Модуль «Калькулятор»
 
-Типы изделий: столешница, подоконник, мойка, ступень, лестница, транспортировочный ящик (box).  
-Все калькуляторы на одной странице `/calculator` с выбором через ProductSelector.  
-Калькулятор ящиков (BoxCalculatorInline) — отдельный компонент.  
+Типы изделий: столешница, подоконник, мойка, ступень, лестница, транспортировочный ящик.  
+Все калькуляторы на странице `/calculator` с выбором через ProductSelector.  
 Параметры расчёта загружаются из `pricing_settings`.
 
 ---
 
-## 7. Storage
+## 📦 Storage
 
 **Bucket:** `company-assets` (public)  
-Используется для: фото товаров, чертежей, логотипов, образцов цветов.
+Для: фото товаров, чертежей, логотипов, образцов цветов.
 
 ---
 
-## 8. Edge Functions / Secrets
+## 🔧 Ключевые хуки
 
-| Secret | Назначение |
-|--------|-----------|
-| LOVABLE_API_KEY | AI-функции Lovable |
-| SUPABASE_URL | URL проекта |
-| SUPABASE_PUBLISHABLE_KEY | Анонимный ключ |
-| SUPABASE_SERVICE_ROLE_KEY | Сервисный ключ |
-| SUPABASE_DB_URL | Прямое подключение к БД |
-
----
-
-## 9. Ключевые хуки
-
-| Хук | Файл | Описание |
-|-----|------|----------|
-| `useAuth` | hooks/useAuth.tsx | Авторизация, профиль, isAdmin |
-| `usePermissions` | hooks/usePermissions.ts | Проверка доступа к модулям |
-| `useLeads` | hooks/useLeads.ts | CRUD лидов + convertToClient/convertToOrder |
-| `useOrders` | hooks/useOrders.ts | CRUD заказов |
-| `useClients` | hooks/useClients.ts | CRUD клиентов |
-| `useDeals` | hooks/useDeals.ts | CRUD сделок |
-| `useTasks` | hooks/useTasks.ts | CRUD задач |
-| `useNomenclature` | hooks/useNomenclature.ts | Номенклатура |
-| `useNomenclatureColors` | hooks/useNomenclatureColors.ts | Связь номенклатура-цвета |
-| `useProductCategories` | hooks/useProductCategories.ts | Категории товаров |
-| `usePricing` | hooks/usePricing.ts | Ценовые настройки |
-| `useColors` | hooks/useColors.ts | Цвета |
-| `useCompanySettings` | hooks/useCompanySettings.ts | Настройки компании |
-| `useCalculations` | hooks/useCalculations.ts | Сохранённые расчёты |
+| Хук | Описание |
+|-----|----------|
+| `useAuth` | Авторизация, профиль, isAdmin |
+| `usePermissions` | Проверка доступа к модулям |
+| `useLeads` | CRUD лидов + convertToClient/convertToOrder |
+| `useOrders` | CRUD заказов |
+| `useClients` | CRUD клиентов |
+| `useDeals` | CRUD сделок |
+| `useTasks` | CRUD задач |
+| `useNomenclature` | Номенклатура |
+| `useNomenclatureColors` | Связь номенклатура-цвета |
+| `useProductCategories` | Категории товаров |
+| `usePricing` | Ценовые настройки |
+| `useColors` | Цвета |
+| `useCompanySettings` | Настройки компании |
+| `useCalculations` | Сохранённые расчёты |
 
 ---
 
-## 10. Админ-панель (AdminPage)
+## 🛠️ Админ-панель (AdminPage)
 
 **Секции:**
 1. **Продукты и цены:** Цены, Цвета, Иконки
@@ -179,12 +195,12 @@ draft → pending_approval → confirmed → in_production → ready → shipped
 
 ---
 
-## 11. Дорожная карта (TODO)
+## 🗺️ Дорожная карта
 
 ### БЛОК 1: Продажи — Фундамент
-- [ ] Справочники + system_settings + audit_log
-- [ ] Таблицы products + product_variants
-- [ ] Таблица order_items + бизнес-логика
+- [ ] Справочники (`dictionary_items`) + `system_settings` + `audit_log`
+- [ ] Таблицы `products` + `product_variants`
+- [ ] Таблица `order_items` + бизнес-логика
 
 ### БЛОК 2: Продажи — Интерфейс и логика
 - [ ] Форма заказа с позициями (добавление/удаление, автопересчёт)
@@ -196,33 +212,29 @@ draft → pending_approval → confirmed → in_production → ready → shipped
 - [ ] Тесты + чек-лист приёмки
 
 ### БЛОК 4: Производство (минимум для продаж)
-- [ ] production_orders + production_stages
+- [ ] `production_orders` + `production_stages`
 - [ ] Статусы производства → обновление заказа
 
 ### БЛОК 5: Склады (минимум для продаж)
 - [ ] Резервирование товаров + проверка наличия
 
 ### БЛОК 6: Финализация
-- [ ] Интеграции-заглушки (1С, WordPress)
+- [ ] Интеграции-заглушки (1С, WordPress webhook)
 - [ ] Документация + миграции + чек-лист запуска
 
 ### БЛОК 7+: Полные модули
-- [ ] Производство (полный)
-- [ ] Склады (полный)
-- [ ] Финансы
-- [ ] ЛК клиента
-- [ ] Мобильный PWA
+- [ ] Производство (полный), Склады, Финансы, ЛК клиента, PWA
 
 ---
 
-## 12. Соглашения кода
+## ⚙️ Соглашения кода
 
 - **Компоненты:** PascalCase, `.tsx`
-- **Хуки:** camelCase с префиксом `use`, `.ts`/`.tsx`
+- **Хуки:** camelCase с `use`, `.ts`/`.tsx`
 - **Стили:** Tailwind CSS с семантическими токенами из `index.css`
-- **Импорт Supabase:** всегда `import { supabase } from "@/integrations/supabase/client"`
-- **Типы:** НЕ редактировать `src/integrations/supabase/types.ts` — генерируется автоматически
-- **Конфиг:** НЕ редактировать `supabase/config.toml`, `.env`, `client.ts` — автогенерация
-- **Миграции:** использовать инструмент `supabase--migration`
-- **RLS:** обязательно для всех таблиц, проверка через `has_role` / `has_module_access`
-- **Casting:** для таблиц не в types.ts использовать `as any` при запросах
+- **Supabase:** `import { supabase } from "@/integrations/supabase/client"`
+- **Типы:** НЕ редактировать `types.ts` — автогенерация
+- **Конфиг:** НЕ редактировать `config.toml`, `.env`, `client.ts`
+- **Миграции:** инструмент `supabase--migration`
+- **RLS:** обязательно, через `has_role` / `has_module_access`
+- **Справочники:** все enum-значения через таблицу `dictionary_items`, не CHECK constraints
