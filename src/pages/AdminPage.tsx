@@ -12,9 +12,10 @@ import UsersTab from "@/components/admin/UsersTab";
 import AccessGroupsTab from "@/components/admin/AccessGroupsTab";
 import NomenclatureTab from "@/components/admin/NomenclatureTab";
 import CategoriesTab from "@/components/admin/CategoriesTab";
+import DictionariesTab from "@/components/admin/DictionariesTab";
 import {
   DollarSign, Palette, Users, FileText, ShieldCheck,
-  Image, BookOpen, Building2, LayoutList
+  Image, BookOpen, Building2, LayoutList, Database
 } from "lucide-react";
 import { useState } from "react";
 
