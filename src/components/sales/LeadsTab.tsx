@@ -165,7 +165,7 @@ export default function LeadsTab() {
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{lead.client_name || "—"}</span>
                         {lead.client_id && (
-                          <User className="w-3 h-3 text-primary" title="Привязан клиент" />
+                          <User className="w-3 h-3 text-primary" />
                         )}
                       </div>
                     </TableCell>
