@@ -19,12 +19,13 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-type AdminSection = "products" | "people" | "references" | "settings";
+type AdminSection = "products" | "people" | "references" | "settings" | "dictionaries";
 
 const SECTIONS: { key: AdminSection; label: string; icon: typeof DollarSign }[] = [
   { key: "products", label: "Продукты и цены", icon: DollarSign },
   { key: "people", label: "Пользователи и доступ", icon: Users },
   { key: "references", label: "Справочники", icon: BookOpen },
+  { key: "dictionaries", label: "Справочники системы", icon: Database },
   { key: "settings", label: "Настройки и документы", icon: FileText },
 ];
 
