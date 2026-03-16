@@ -12,18 +12,20 @@ import UsersTab from "@/components/admin/UsersTab";
 import AccessGroupsTab from "@/components/admin/AccessGroupsTab";
 import NomenclatureTab from "@/components/admin/NomenclatureTab";
 import CategoriesTab from "@/components/admin/CategoriesTab";
+import DictionariesTab from "@/components/admin/DictionariesTab";
 import {
   DollarSign, Palette, Users, FileText, ShieldCheck,
-  Image, BookOpen, Building2, LayoutList
+  Image, BookOpen, Building2, LayoutList, Database
 } from "lucide-react";
 import { useState } from "react";
 
-type AdminSection = "products" | "people" | "references" | "settings";
+type AdminSection = "products" | "people" | "references" | "settings" | "dictionaries";
 
 const SECTIONS: { key: AdminSection; label: string; icon: typeof DollarSign }[] = [
   { key: "products", label: "Продукты и цены", icon: DollarSign },
   { key: "people", label: "Пользователи и доступ", icon: Users },
   { key: "references", label: "Справочники", icon: BookOpen },
+  { key: "dictionaries", label: "Справочники системы", icon: Database },
   { key: "settings", label: "Настройки и документы", icon: FileText },
 ];
 
@@ -130,6 +132,9 @@ export default function AdminPage() {
             </TabsContent>
           </Tabs>
         )}
+
+        {/* Dictionaries & System Settings */}
+        {section === "dictionaries" && <DictionariesTab />}
 
         {/* Settings & Docs */}
         {section === "settings" && (
