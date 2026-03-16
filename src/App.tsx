@@ -8,7 +8,7 @@ import { ProtectedRoute, AdminRoute } from "@/components/ProtectedRoute";
 import AuthPage from "./pages/AuthPage";
 import Index from "./pages/Index";
 import CalculatorPage from "./pages/CalculatorPage";
-import BoxCalculatorPage from "./pages/BoxCalculatorPage";
+
 import HistoryPage from "./pages/HistoryPage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";

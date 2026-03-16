@@ -1,4 +1,4 @@
-export type ProductType = "countertop" | "sink" | "windowsill" | "backsplash" | "stair" | "stepslab";
+export type ProductType = "countertop" | "sink" | "windowsill" | "backsplash" | "stair" | "stepslab" | "box";
 
 export interface ProductInfo {
   type: ProductType;
@@ -14,6 +14,7 @@ export const PRODUCTS: ProductInfo[] = [
   { type: "backsplash", label: "Фартук", icon: "🧱", description: "Кухонные фартуки и панели" },
   { type: "stair", label: "Ступени", icon: "🪜", description: "Лестничные ступени (проступь + подступень)" },
   { type: "stepslab", label: "Пошаговая плита", icon: "🏗️", description: "Ступенчатые и пошаговые плиты" },
+  { type: "box", label: "Транспортировочный ящик", icon: "📦", description: "Расчёт материалов и раскрой упаковки" },
 ];
 
 // Keep as fallback, but dynamic colors from DB take priority
