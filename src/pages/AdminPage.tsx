@@ -133,6 +133,9 @@ export default function AdminPage() {
           </Tabs>
         )}
 
+        {/* Dictionaries & System Settings */}
+        {section === "dictionaries" && <DictionariesTab />}
+
         {/* Settings & Docs */}
         {section === "settings" && (
           <Tabs defaultValue="company" className="space-y-6">
