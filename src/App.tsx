@@ -8,7 +8,7 @@ import { ProtectedRoute, AdminRoute } from "@/components/ProtectedRoute";
 import AuthPage from "./pages/AuthPage";
 import Index from "./pages/Index";
 import CalculatorPage from "./pages/CalculatorPage";
-import BoxCalculatorPage from "./pages/BoxCalculatorPage";
+
 import HistoryPage from "./pages/HistoryPage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
@@ -39,7 +39,6 @@ const App = () => (
             <Route element={<ProtectedRoute />}>
               <Route path="/" element={<Index />} />
               <Route path="/calculator" element={<CalculatorPage />} />
-              <Route path="/box" element={<BoxCalculatorPage />} />
               <Route path="/history" element={<HistoryPage />} />
               <Route path="/docs" element={<DocsPage />} />
               <Route path="/production" element={<ProductionPage />} />

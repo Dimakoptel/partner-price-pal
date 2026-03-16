@@ -1,14 +1,14 @@
 import { useState, useMemo } from "react";
 import { useLeads, type Lead } from "@/hooks/useLeads";
-import { useClients } from "@/hooks/useClients";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Phone, Mail, Calendar, ArrowRight, Filter } from "lucide-react";
+import { Search, Phone, Mail, Calendar, ArrowRight, Filter, User } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import { toast } from "sonner";
 import LeadDetailDialog from "./LeadDetailDialog";
 
 const LEAD_STATUSES = [
@@ -27,10 +27,11 @@ const LEAD_SOURCES = [
   { value: "exhibition", label: "Выставка" },
   { value: "agent", label: "Агент" },
   { value: "referral", label: "Рекомендация" },
+  { value: "lead", label: "Лид" },
 ];
 
 export default function LeadsTab() {
-  const { leads, loading, updateLead } = useLeads();
+  const { leads, loading, updateLead, convertToClient, convertToOrder, fetchLeads } = useLeads();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -62,6 +63,39 @@ export default function LeadsTab() {
   const openDetail = (lead: Lead) => {
     setSelectedLead(lead);
     setDetailOpen(true);
+  };
+
+  const handleConvertToClient = async (lead: Lead) => {
+    const { error, clientId } = await convertToClient(lead);
+    if (error) {
+      toast.error("Ошибка создания клиента: " + error.message);
+    } else {
+      toast.success("Клиент создан и привязан к лиду");
+      // Refresh selected lead
+      const updated = { ...lead, client_id: clientId, status: lead.status === "new" ? "qualified" : lead.status };
+      setSelectedLead(updated as Lead);
+    }
+  };
+
+  const handleConvertToOrder = async (lead: Lead) => {
+    // If no client yet, create one first
+    let leadWithClient = lead;
+    if (!lead.client_id) {
+      const { error, clientId } = await convertToClient(lead);
+      if (error) {
+        toast.error("Ошибка создания клиента: " + error.message);
+        return;
+      }
+      leadWithClient = { ...lead, client_id: clientId } as Lead;
+    }
+
+    const { error, orderId } = await convertToOrder(leadWithClient);
+    if (error) {
+      toast.error("Ошибка создания заказа: " + error.message);
+    } else {
+      toast.success("Заказ создан, лид выигран!");
+      setSelectedLead({ ...leadWithClient, status: "won", converted_to_order_id: orderId } as Lead);
+    }
   };
 
   if (loading) return <div className="text-center py-12 text-muted-foreground">Загрузка лидов...</div>;
@@ -127,7 +161,14 @@ export default function LeadsTab() {
                 const si = statusInfo(lead.status);
                 return (
                   <TableRow key={lead.id} className="cursor-pointer" onClick={() => openDetail(lead)}>
-                    <TableCell className="font-medium">{lead.client_name || "—"}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{lead.client_name || "—"}</span>
+                        {lead.client_id && (
+                          <User className="w-3 h-3 text-primary" />
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-0.5 text-xs text-muted-foreground">
                         {lead.client_phone && <span className="inline-flex items-center gap-1"><Phone className="w-3 h-3" />{lead.client_phone}</span>}
@@ -165,6 +206,8 @@ export default function LeadsTab() {
           await updateLead(id, { status });
           if (selectedLead?.id === id) setSelectedLead({ ...selectedLead, status });
         }}
+        onConvertToClient={handleConvertToClient}
+        onConvertToOrder={handleConvertToOrder}
       />
     </>
   );

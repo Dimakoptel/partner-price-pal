@@ -5,6 +5,7 @@ import CalculatorForm from "@/components/CalculatorForm";
 import ResultPanel from "@/components/ResultPanel";
 import AppLayout from "@/components/AppLayout";
 import SaveCalculationDialog from "@/components/SaveCalculationDialog";
+import BoxCalculatorInline from "@/components/BoxCalculatorInline";
 import { usePricing } from "@/hooks/usePricing";
 import { useColors } from "@/hooks/useColors";
 import { useCalculations } from "@/hooks/useCalculations";
@@ -53,7 +54,7 @@ export default function CalculatorPage() {
   };
 
   const handleCalculate = (params: any) => {
-    if (!selectedProduct) return;
+    if (!selectedProduct || selectedProduct === "box") return;
     const { needsBox, ...calcParams } = params;
     setCurrentParams(params);
     setSaved(false);
@@ -75,15 +76,13 @@ export default function CalculatorPage() {
       return;
     }
 
-    // Calculate transportation box if requested
     if (needsBox) {
-      // For round products (countertop), use diameter for both L and W
       let itemL: number, itemW: number, itemH: number;
       if (calcParams.isRound && calcParams.diameter) {
         itemL = calcParams.diameter;
         itemW = calcParams.diameter;
       } else if (selectedProduct === "backsplash") {
-        itemL = calcParams.width || 2500; // backsplash "width" is actually the long side
+        itemL = calcParams.width || 2500;
         itemW = calcParams.height || 600;
       } else {
         itemL = calcParams.length || calcParams.width || 1000;
@@ -91,27 +90,11 @@ export default function CalculatorPage() {
       }
       itemH = calcParams.thickness || calcParams.thicknessConcrete || 30;
 
-      // Build materials from pricing settings (DB)
       const foamThickness = (res.weight / res.quantity) <= 50 ? 10 : 20;
       const boxMaterials: MaterialSettings = {
-        osp: {
-          length: settings.box_osp_length || 2500,
-          width: settings.box_osp_width || 1250,
-          thickness: settings.box_osp_thickness || 9,
-          price: settings.box_osp_price || 565,
-        },
-        foam: {
-          length: settings.box_foam_length || 1185,
-          width: settings.box_foam_width || 585,
-          thickness: foamThickness,
-          price: settings.box_foam_price || 110,
-        },
-        beam: {
-          width: settings.box_beam_width || 40,
-          height: settings.box_beam_height || 30,
-          standardLength: settings.box_beam_length || 3000,
-          price: settings.box_beam_price || 200,
-        },
+        osp: { length: settings.box_osp_length || 2500, width: settings.box_osp_width || 1250, thickness: settings.box_osp_thickness || 9, price: settings.box_osp_price || 565 },
+        foam: { length: settings.box_foam_length || 1185, width: settings.box_foam_width || 585, thickness: foamThickness, price: settings.box_foam_price || 110 },
+        beam: { width: settings.box_beam_width || 40, height: settings.box_beam_height || 30, standardLength: settings.box_beam_length || 3000, price: settings.box_beam_price || 200 },
       };
 
       const qty = res.quantity || 1;
@@ -131,9 +114,7 @@ export default function CalculatorPage() {
     }, 100);
   };
 
-  const handleSaveClick = () => {
-    setShowSaveDialog(true);
-  };
+  const handleSaveClick = () => setShowSaveDialog(true);
 
   const handleSaveConfirm = async (data: { calcName: string; clientName: string; clientPhone: string; clientEmail: string }) => {
     if (!result || !selectedProduct || !currentParams) return;
@@ -145,7 +126,6 @@ export default function CalculatorPage() {
       toast.error("Ошибка сохранения");
       return;
     }
-    // Create lead
     await createLead({
       client_name: data.clientName,
       client_phone: data.clientPhone || undefined,
@@ -177,19 +157,19 @@ export default function CalculatorPage() {
           <p className="text-muted-foreground text-sm mb-6">Выберите тип изделия и укажите параметры</p>
         </motion.div>
 
-        <ProductSelector
-          selected={selectedProduct}
-          onSelect={handleSelectProduct}
-        />
+        <ProductSelector selected={selectedProduct} onSelect={handleSelectProduct} />
 
-        {selectedProduct && (
+        {/* Box calculator inline */}
+        {selectedProduct === "box" && (
+          <div ref={formRef}>
+            <BoxCalculatorInline />
+          </div>
+        )}
+
+        {/* Regular calculator */}
+        {selectedProduct && selectedProduct !== "box" && (
           <div ref={formRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-            <motion.div
-              key={selectedProduct}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="glass-panel p-6"
-            >
+            <motion.div key={selectedProduct} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-6">
               <h2 className="text-lg font-semibold mb-4">Параметры</h2>
               <CalculatorForm productType={selectedProduct} onCalculate={handleCalculate} colorNames={colorNames} />
             </motion.div>
