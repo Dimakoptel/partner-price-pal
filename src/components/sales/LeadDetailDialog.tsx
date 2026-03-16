@@ -4,20 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Phone, Mail, Calendar, FileText, ArrowRight, ShoppingCart } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Phone, Mail, Calendar, FileText, ShoppingCart, UserPlus, User, Package, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Lead } from "@/hooks/useLeads";
+import { Textarea } from "@/components/ui/textarea";
 
 const LEAD_STATUSES = [
-  { value: "new", label: "Новый", color: "#3b82f6" },
-  { value: "qualified", label: "Квалифицирован", color: "#8b5cf6" },
-  { value: "proposal_sent", label: "КП отправлено", color: "#f59e0b" },
-  { value: "negotiation", label: "Переговоры", color: "#f97316" },
-  { value: "won", label: "Выигран", color: "#22c55e" },
-  { value: "lost", label: "Проигран", color: "#ef4444" },
+  { value: "new", label: "Новый", color: "#3b82f6", step: 1 },
+  { value: "qualified", label: "Квалифицирован", color: "#8b5cf6", step: 2 },
+  { value: "proposal_sent", label: "КП отправлено", color: "#f59e0b", step: 3 },
+  { value: "negotiation", label: "Переговоры", color: "#f97316", step: 4 },
+  { value: "won", label: "Выигран", color: "#22c55e", step: 5 },
+  { value: "lost", label: "Проигран", color: "#ef4444", step: 0 },
 ];
 
 interface Props {
@@ -25,14 +27,20 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onStatusChange: (id: string, status: string) => void;
+  onConvertToClient?: (lead: Lead) => void;
   onConvertToOrder?: (lead: Lead) => void;
 }
 
-export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusChange, onConvertToOrder }: Props) {
+export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusChange, onConvertToClient, onConvertToOrder }: Props) {
+  const [lostReason, setLostReason] = useState("");
+  const [showLostDialog, setShowLostDialog] = useState(false);
+
   if (!lead) return null;
 
-  const statusInfo = (s: string) => LEAD_STATUSES.find((st) => st.value === s) || { label: s, color: "#888" };
+  const statusInfo = (s: string) => LEAD_STATUSES.find((st) => st.value === s) || { label: s, color: "#888", step: 0 };
   const si = statusInfo(lead.status);
+  const currentStep = si.step;
+  const progressPercent = lead.status === "lost" ? 0 : (currentStep / 5) * 100;
 
   const formatAmount = (n: number | null) =>
     n && n > 0 ? new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0 }).format(n) : "—";
@@ -53,7 +61,47 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
     enabled: open && !!lead.calculation_id,
   });
 
+  // Load linked client
+  const clientQuery = useQuery({
+    queryKey: ["lead_client", lead.client_id],
+    queryFn: async () => {
+      if (!lead.client_id) return null;
+      const { data, error } = await supabase
+        .from("clients")
+        .select("*")
+        .eq("id", lead.client_id)
+        .single();
+      if (error) return null;
+      return data;
+    },
+    enabled: open && !!lead.client_id,
+  });
+
+  // Load linked order
+  const orderQuery = useQuery({
+    queryKey: ["lead_order", lead.converted_to_order_id],
+    queryFn: async () => {
+      if (!lead.converted_to_order_id) return null;
+      const { data, error } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("id", lead.converted_to_order_id)
+        .single();
+      if (error) return null;
+      return data;
+    },
+    enabled: open && !!lead.converted_to_order_id,
+  });
+
   const calc = calcQuery.data as any;
+  const linkedClient = clientQuery.data as any;
+  const linkedOrder = orderQuery.data as any;
+
+  const handleLost = () => {
+    onStatusChange(lead.id, "lost");
+    setShowLostDialog(false);
+    setLostReason("");
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -66,6 +114,20 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
             </Badge>
           </div>
         </DialogHeader>
+
+        {/* Progress timeline */}
+        {lead.status !== "lost" && (
+          <div className="space-y-2">
+            <div className="flex justify-between text-[10px] text-muted-foreground">
+              {LEAD_STATUSES.filter(s => s.step > 0).map(s => (
+                <span key={s.value} className={currentStep >= s.step ? "text-primary font-medium" : ""}>
+                  {s.label}
+                </span>
+              ))}
+            </div>
+            <Progress value={progressPercent} className="h-2" />
+          </div>
+        )}
 
         {/* Contact info */}
         <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
@@ -86,22 +148,22 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
             <span className="text-xs text-muted-foreground block mb-0.5">Источник</span>
             <span>{lead.source}</span>
           </div>
-          {(lead as any).product_interest && (
+          {lead.product_interest && (
             <div className="col-span-2">
               <span className="text-xs text-muted-foreground block mb-0.5">Интерес к продукту</span>
-              <span>{(lead as any).product_interest}</span>
+              <span>{lead.product_interest}</span>
             </div>
           )}
-          {(lead as any).region && (
+          {lead.region && (
             <div>
               <span className="text-xs text-muted-foreground block mb-0.5">Регион</span>
-              <span>{(lead as any).region}</span>
+              <span>{lead.region}</span>
             </div>
           )}
-          {(lead as any).budget && (
+          {lead.budget && (
             <div>
               <span className="text-xs text-muted-foreground block mb-0.5">Бюджет</span>
-              <span>{formatAmount((lead as any).budget)}</span>
+              <span>{formatAmount(lead.budget)}</span>
             </div>
           )}
         </div>
@@ -111,6 +173,45 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
             <span className="text-xs text-muted-foreground block mb-0.5">Заметки</span>
             <p className="text-sm whitespace-pre-wrap">{lead.notes}</p>
           </div>
+        )}
+
+        {/* Linked client */}
+        {linkedClient && (
+          <>
+            <Separator />
+            <div>
+              <span className="text-xs text-muted-foreground block mb-2">Привязанный клиент</span>
+              <div className="border border-border p-3 bg-secondary/30 flex items-center gap-3">
+                <User className="w-5 h-5 text-primary" />
+                <div>
+                  <div className="font-medium text-sm">{linkedClient.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {linkedClient.phone && <span>{linkedClient.phone}</span>}
+                    {linkedClient.email && <span className="ml-2">{linkedClient.email}</span>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Linked order */}
+        {linkedOrder && (
+          <>
+            <Separator />
+            <div>
+              <span className="text-xs text-muted-foreground block mb-2">Созданный заказ</span>
+              <div className="border border-border p-3 bg-secondary/30 flex items-center gap-3">
+                <Package className="w-5 h-5 text-primary" />
+                <div>
+                  <div className="font-medium text-sm">{linkedOrder.number}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {formatAmount(linkedOrder.total_amount)} · {linkedOrder.status}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
         )}
 
         {/* Linked calculation */}
@@ -142,7 +243,13 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
         {/* Status change */}
         <div className="flex items-center gap-3">
           <span className="text-sm text-muted-foreground shrink-0">Статус:</span>
-          <Select value={lead.status} onValueChange={(v) => onStatusChange(lead.id, v)}>
+          <Select value={lead.status} onValueChange={(v) => {
+            if (v === "lost") {
+              setShowLostDialog(true);
+            } else {
+              onStatusChange(lead.id, v);
+            }
+          }}>
             <SelectTrigger className="flex-1">
               <SelectValue />
             </SelectTrigger>
@@ -159,27 +266,55 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
           </Select>
         </div>
 
-        {/* Convert to order */}
+        {/* Lost reason dialog inline */}
+        {showLostDialog && (
+          <div className="border border-destructive/30 bg-destructive/5 p-3 rounded space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium text-destructive">
+              <AlertCircle className="w-4 h-4" /> Причина проигрыша
+            </div>
+            <Textarea
+              value={lostReason}
+              onChange={(e) => setLostReason(e.target.value)}
+              placeholder="Укажите причину..."
+              rows={2}
+            />
+            <div className="flex gap-2">
+              <Button size="sm" variant="destructive" onClick={handleLost}>Подтвердить</Button>
+              <Button size="sm" variant="outline" onClick={() => setShowLostDialog(false)}>Отмена</Button>
+            </div>
+          </div>
+        )}
+
+        {/* Action buttons */}
         {lead.status !== "won" && lead.status !== "lost" && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {!lead.client_id && (
+              <Button
+                variant="outline"
+                className="flex-1 gap-2"
+                onClick={() => onConvertToClient?.(lead)}
+              >
+                <UserPlus className="w-4 h-4" /> Создать клиента
+              </Button>
+            )}
             <Button
               variant="default"
               className="flex-1 gap-2"
-              onClick={() => {
-                onStatusChange(lead.id, "won");
-                onConvertToOrder?.(lead);
-              }}
+              onClick={() => onConvertToOrder?.(lead)}
             >
-              <ShoppingCart className="w-4 h-4" /> Создать заказ
-            </Button>
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={() => onStatusChange(lead.id, "lost")}
-            >
-              Проигран
+              <ShoppingCart className="w-4 h-4" /> Выиграть и создать заказ
             </Button>
           </div>
+        )}
+
+        {lead.status === "won" && !lead.converted_to_order_id && (
+          <Button
+            variant="default"
+            className="w-full gap-2"
+            onClick={() => onConvertToOrder?.(lead)}
+          >
+            <ShoppingCart className="w-4 h-4" /> Создать заказ
+          </Button>
         )}
       </DialogContent>
     </Dialog>

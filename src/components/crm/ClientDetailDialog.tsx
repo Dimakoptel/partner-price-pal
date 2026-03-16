@@ -1,9 +1,8 @@
-import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Phone, Mail, MessageCircle, Building2, MapPin, Pencil, FileText } from "lucide-react";
+import { Phone, Mail, MessageCircle, Building2, MapPin, Pencil, FileText, Target, Package } from "lucide-react";
 import type { Client } from "@/hooks/useClients";
 import { useDeals } from "@/hooks/useDeals";
 import { useQuery } from "@tanstack/react-query";
@@ -40,11 +39,44 @@ export default function ClientDetailDialog({ client, open, onOpenChange, onEdit 
     enabled: open && !!client.id,
   });
 
+  // Linked leads
+  const leadsQuery = useQuery({
+    queryKey: ["client_leads", client.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("leads")
+        .select("*")
+        .eq("client_id", client.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: open && !!client.id,
+  });
+
+  // Linked orders
+  const ordersQuery = useQuery({
+    queryKey: ["client_orders", client.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("client_id", client.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: open && !!client.id,
+  });
+
   const stageName = (id: string) => stages.find((s) => s.id === id)?.name || "—";
   const stageColor = (id: string) => stages.find((s) => s.id === id)?.color || "#888";
 
   const formatAmount = (n: number) =>
     n > 0 ? new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0 }).format(n) : "—";
+
+  const clientLeads = leadsQuery.data || [];
+  const clientOrders = ordersQuery.data || [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -67,12 +99,59 @@ export default function ClientDetailDialog({ client, open, onOpenChange, onEdit 
           {client.address && <span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {client.address}</span>}
         </div>
 
-        <Tabs defaultValue="deals" className="mt-2">
+        <Tabs defaultValue="leads" className="mt-2">
           <TabsList className="w-full">
+            <TabsTrigger value="leads" className="flex-1">Лиды ({clientLeads.length})</TabsTrigger>
+            <TabsTrigger value="orders" className="flex-1">Заказы ({clientOrders.length})</TabsTrigger>
             <TabsTrigger value="deals" className="flex-1">Сделки ({clientDeals.length})</TabsTrigger>
             <TabsTrigger value="tasks" className="flex-1">Задачи</TabsTrigger>
             <TabsTrigger value="calcs" className="flex-1">Расчёты ({calcsQuery.data?.length || 0})</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="leads" className="mt-3">
+            {clientLeads.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-4">Нет привязанных лидов</p>
+            ) : (
+              <div className="space-y-2">
+                {clientLeads.map((lead: any) => (
+                  <div key={lead.id} className="flex items-center justify-between p-2.5 rounded-lg border border-border/50 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Target className="w-4 h-4 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">{lead.client_name}</p>
+                        <p className="text-xs text-muted-foreground">{lead.source} · {format(new Date(lead.created_at), "d MMM yyyy", { locale: ru })}</p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="text-[10px]">{lead.status}</Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="orders" className="mt-3">
+            {clientOrders.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-4">Нет заказов</p>
+            ) : (
+              <div className="space-y-2">
+                {clientOrders.map((order: any) => (
+                  <div key={order.id} className="flex items-center justify-between p-2.5 rounded-lg border border-border/50 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Package className="w-4 h-4 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">{order.number}</p>
+                        <p className="text-xs text-muted-foreground">{format(new Date(order.created_at), "d MMM yyyy", { locale: ru })}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-medium text-sm">{formatAmount(order.total_amount)}</span>
+                      <Badge variant="outline" className="text-[10px] ml-2">{order.status}</Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
           <TabsContent value="deals" className="mt-3">
             {clientDeals.length === 0 ? (
