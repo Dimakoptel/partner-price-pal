@@ -133,45 +133,11 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
       createOrder.mutate(payload, { onSuccess: onSaved });
     }
   };
-  const [generatingDoc, setGeneratingDoc] = useState<string | null>(null);
+  const generateDoc = useGenerateDocument();
 
-  const handleGenerateDocument = async (docType: "invoice" | "warranty") => {
+  const handleGenerateDocument = (docType: "invoice" | "warranty") => {
     if (!order) return;
-    setGeneratingDoc(docType);
-    try {
-      const session = await supabase.auth.getSession();
-      const token = session.data.session?.access_token;
-      if (!token) throw new Error("Not authenticated");
-
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-      const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/generate-document`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ order_id: order.id, document_type: docType }),
-        }
-      );
-
-      if (!res.ok) throw new Error("Ошибка генерации");
-
-      const html = await res.text();
-      const blob = new Blob([html], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${docType}_${order.number}.html`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success(docType === "invoice" ? "Счёт сгенерирован" : "Гарантийный талон сгенерирован");
-    } catch (e: any) {
-      toast.error("Ошибка: " + e.message);
-    } finally {
-      setGeneratingDoc(null);
-    }
+    generateDoc.mutate({ orderId: order.id, documentType: docType, orderNumber: order.number });
   };
 
   return (
