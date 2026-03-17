@@ -7,14 +7,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle, FileText, Shield } from "lucide-react";
+import { AlertTriangle, FileText, Shield, Factory } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useGenerateDocument } from "@/hooks/useDocumentGeneration";
 import { useOrders, ORDER_STATUSES, ORDER_TYPES, DELIVERY_METHODS, type Order } from "@/hooks/useOrders";
 import { useOrderItems } from "@/hooks/useOrderItems";
+import { useProductionOrders, useCreateProductionOrder } from "@/hooks/useProductionOrders";
 import type { Client } from "@/hooks/useClients";
 import { useAccrueCommission } from "@/hooks/useAgentCommissions";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import OrderItemsEditor from "./OrderItemsEditor";
 
 interface Props {
