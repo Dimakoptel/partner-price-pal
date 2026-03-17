@@ -1164,6 +1164,64 @@ export type Database = {
         }
         Relationships: []
       }
+      reservations: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string | null
+          order_item_id: string | null
+          product_variant_id: string | null
+          quantity: number
+          released_at: string | null
+          reserved_until: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          order_item_id?: string | null
+          product_variant_id?: string | null
+          quantity: number
+          released_at?: string | null
+          reserved_until: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          order_item_id?: string | null
+          product_variant_id?: string | null
+          quantity?: number
+          released_at?: string | null
+          reserved_until?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_product_variant_id_fkey"
+            columns: ["product_variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_calculations: {
         Row: {
           calc_name: string
@@ -1418,6 +1476,8 @@ export type Database = {
         Args: { p_order_id: string }
         Returns: undefined
       }
+      release_expired_reservations: { Args: never; Returns: number }
+      reserve_order_stock: { Args: { p_order_id: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "user"
