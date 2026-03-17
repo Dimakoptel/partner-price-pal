@@ -932,6 +932,136 @@ export type Database = {
           },
         ]
       }
+      production_orders: {
+        Row: {
+          actual_finish: string | null
+          actual_start: string | null
+          assigned_to: string | null
+          batch_number: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          order_item_id: string | null
+          planned_finish: string | null
+          planned_start: string | null
+          priority: string
+          sales_order_id: string | null
+          status_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          actual_finish?: string | null
+          actual_start?: string | null
+          assigned_to?: string | null
+          batch_number?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_item_id?: string | null
+          planned_finish?: string | null
+          planned_start?: string | null
+          priority?: string
+          sales_order_id?: string | null
+          status_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actual_finish?: string | null
+          actual_start?: string | null
+          assigned_to?: string | null
+          batch_number?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_item_id?: string | null
+          planned_finish?: string | null
+          planned_start?: string | null
+          priority?: string
+          sales_order_id?: string | null
+          status_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_orders_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_orders_sales_order_id_fkey"
+            columns: ["sales_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_orders_status_id_fkey"
+            columns: ["status_id"]
+            isOneToOne: false
+            referencedRelation: "dictionary_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      production_stages: {
+        Row: {
+          assigned_to: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          production_order_id: string
+          sort_order: number
+          stage_id: string | null
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          production_order_id: string
+          sort_order?: number
+          stage_id?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          production_order_id?: string
+          sort_order?: number
+          stage_id?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_stages_production_order_id_fkey"
+            columns: ["production_order_id"]
+            isOneToOne: false
+            referencedRelation: "production_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_stages_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "dictionary_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           category: string | null
