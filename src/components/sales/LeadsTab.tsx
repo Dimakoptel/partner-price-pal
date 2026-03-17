@@ -144,8 +144,8 @@ export default function LeadsTab() {
 
       {filtered.length === 0 ? (
         <div className="border border-dashed border-border p-12 text-center">
-          <p className="text-muted-foreground text-sm">
-            {search || statusFilter !== "all" ? "Ничего не найдено" : "Лидов пока нет. Они создаются автоматически при сохранении расчёта."}
+          <p className="text-muted-foreground text-sm mb-3">
+            {search || statusFilter !== "all" ? "Ничего не найдено" : "Лидов пока нет. Нажмите «Добавить лид» или сохраните расчёт в калькуляторе."}
           </p>
         </div>
       ) : (
