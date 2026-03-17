@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, AlertTriangle } from "lucide-react";
 import { useProducts, type Product, type ProductVariant } from "@/hooks/useProducts";
 import { useOrderItems, type OrderItem } from "@/hooks/useOrderItems";
+import { useCheckAvailability } from "@/hooks/useReservations";
 
 interface Props {
   orderId: string;
@@ -21,6 +23,7 @@ export default function OrderItemsEditor({ orderId }: Props) {
   const [selectedVariantId, setSelectedVariantId] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [priceUnit, setPriceUnit] = useState(0);
+  const { data: availability } = useCheckAvailability(selectedVariantId || undefined, quantity);
 
   const products = productsData?.products ?? [];
   const allVariants = productsData?.variants ?? [];
@@ -214,6 +217,19 @@ export default function OrderItemsEditor({ orderId }: Props) {
               <div className="text-sm text-right font-medium">
                 Сумма: {(quantity * priceUnit).toLocaleString("ru-RU")} ₽
               </div>
+            )}
+            {availability && !availability.available && (
+              <Alert className="border-amber-200 bg-amber-50">
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-xs text-amber-800">
+                  Товар зарезервирован другими заказами (зарезервировано: {availability.reserved} шт.)
+                </AlertDescription>
+              </Alert>
+            )}
+            {availability && availability.reserved > 0 && availability.available && (
+              <p className="text-xs text-muted-foreground">
+                Зарезервировано другими: {availability.reserved} шт.
+              </p>
             )}
           </div>
           <DialogFooter>
