@@ -33,6 +33,8 @@ const DISCOUNT_THRESHOLD = 15;
 export default function OrderFormDialog({ open, onOpenChange, order, clients, presetClientId, presetLeadId }: Props) {
   const { createOrder, updateOrder } = useOrders();
   const { items } = useOrderItems(order?.id);
+  const { data: productionOrders } = useProductionOrders(order?.id);
+  const createProductionOrder = useCreateProductionOrder();
   const accrueCommission = useAccrueCommission();
 
   const [form, setForm] = useState({
