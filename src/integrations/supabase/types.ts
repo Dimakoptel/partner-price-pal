@@ -327,24 +327,30 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_active: boolean
           is_system: boolean
           name: string
+          updated_at: string
         }
         Insert: {
           code: string
           created_at?: string
           description?: string | null
           id?: string
+          is_active?: boolean
           is_system?: boolean
           name: string
+          updated_at?: string
         }
         Update: {
           code?: string
           created_at?: string
           description?: string | null
           id?: string
+          is_active?: boolean
           is_system?: boolean
           name?: string
+          updated_at?: string
         }
         Relationships: []
       }
