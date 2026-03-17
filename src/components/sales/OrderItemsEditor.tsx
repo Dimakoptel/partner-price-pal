@@ -218,6 +218,19 @@ export default function OrderItemsEditor({ orderId }: Props) {
                 Сумма: {(quantity * priceUnit).toLocaleString("ru-RU")} ₽
               </div>
             )}
+            {availability && !availability.available && (
+              <Alert className="border-amber-200 bg-amber-50">
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-xs text-amber-800">
+                  Товар зарезервирован другими заказами (зарезервировано: {availability.reserved} шт.)
+                </AlertDescription>
+              </Alert>
+            )}
+            {availability && availability.reserved > 0 && availability.available && (
+              <p className="text-xs text-muted-foreground">
+                Зарезервировано другими: {availability.reserved} шт.
+              </p>
+            )}
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => { setAddDialogOpen(false); resetAddForm(); }}>Отмена</Button>
