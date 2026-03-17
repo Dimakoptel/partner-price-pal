@@ -112,6 +112,12 @@ Deno.serve(async (req: Request) => {
       .eq("order_id", order_id)
       .order("created_at");
 
+    // Load production orders for batch numbers
+    const { data: productionOrders } = await supabase
+      .from("production_orders")
+      .select("batch_number, order_item_id")
+      .eq("sales_order_id", order_id);
+
     const orderDate = new Date(order.created_at).toLocaleDateString("ru-RU");
     const client = order.client || {};
 
@@ -141,9 +147,11 @@ Deno.serve(async (req: Request) => {
         .map((item: any) => {
           const name = item.variant?.product?.name || "Изделие";
           const sku = item.variant?.sku_variant || "—";
+          const batch = productionOrders?.find((po: any) => po.order_item_id === item.id)?.batch_number;
           return `<div class="item-card">
             <p><strong>Изделие:</strong> ${name}</p>
             <p><strong>Артикул:</strong> ${sku}</p>
+            ${batch ? `<p><strong>Партия:</strong> ${batch}</p>` : ""}
             <p><strong>Гарантия:</strong> ${item.warranty_months} мес.</p>
           </div>`;
         })
