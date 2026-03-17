@@ -5,12 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Phone, Mail, Calendar, ArrowRight, Filter, User, Plus } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Search, Phone, Mail, ArrowRight, Filter, User, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { toast } from "sonner";
 import LeadDetailDialog from "./LeadDetailDialog";
 import LeadFormDialog from "./LeadFormDialog";
+import LeadBulkActions from "./LeadBulkActions";
 
 const LEAD_STATUSES = [
   { value: "new", label: "Новый", color: "#3b82f6" },
@@ -39,6 +41,7 @@ export default function LeadsTab() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [editLead, setEditLead] = useState<Lead | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const filtered = useMemo(() => {
     let result = leads;
@@ -68,20 +71,32 @@ export default function LeadsTab() {
     setDetailOpen(true);
   };
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const toggleAll = () => {
+    if (selectedIds.length === filtered.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filtered.map((l) => l.id));
+    }
+  };
+
   const handleConvertToClient = async (lead: Lead) => {
     const { error, clientId } = await convertToClient(lead);
     if (error) {
       toast.error("Ошибка создания клиента: " + error.message);
     } else {
       toast.success("Клиент создан и привязан к лиду");
-      // Refresh selected lead
       const updated = { ...lead, client_id: clientId, status: lead.status === "new" ? "qualified" : lead.status };
       setSelectedLead(updated as Lead);
     }
   };
 
   const handleConvertToOrder = async (lead: Lead) => {
-    // If no client yet, create one first
     let leadWithClient = lead;
     if (!lead.client_id) {
       const { error, clientId } = await convertToClient(lead);
@@ -142,6 +157,13 @@ export default function LeadsTab() {
         ))}
       </div>
 
+      {/* Bulk actions */}
+      <LeadBulkActions
+        selectedLeads={selectedIds}
+        onClearSelection={() => setSelectedIds([])}
+        onSuccess={() => fetchLeads()}
+      />
+
       {filtered.length === 0 ? (
         <div className="border border-dashed border-border p-12 text-center">
           <p className="text-muted-foreground text-sm mb-3">
@@ -153,6 +175,12 @@ export default function LeadsTab() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[40px]">
+                  <Checkbox
+                    checked={selectedIds.length === filtered.length && filtered.length > 0}
+                    onCheckedChange={toggleAll}
+                  />
+                </TableHead>
                 <TableHead>Клиент</TableHead>
                 <TableHead>Контакты</TableHead>
                 <TableHead>Источник</TableHead>
@@ -166,8 +194,14 @@ export default function LeadsTab() {
               {filtered.map((lead) => {
                 const si = statusInfo(lead.status);
                 return (
-                  <TableRow key={lead.id} className="cursor-pointer" onClick={() => openDetail(lead)}>
-                    <TableCell>
+                  <TableRow key={lead.id} className="cursor-pointer">
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={selectedIds.includes(lead.id)}
+                        onCheckedChange={() => toggleSelect(lead.id)}
+                      />
+                    </TableCell>
+                    <TableCell onClick={() => openDetail(lead)}>
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{lead.client_name || "—"}</span>
                         {lead.client_id && (
@@ -175,25 +209,25 @@ export default function LeadsTab() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={() => openDetail(lead)}>
                       <div className="flex flex-col gap-0.5 text-xs text-muted-foreground">
                         {lead.client_phone && <span className="inline-flex items-center gap-1"><Phone className="w-3 h-3" />{lead.client_phone}</span>}
                         {lead.client_email && <span className="inline-flex items-center gap-1"><Mail className="w-3 h-3" />{lead.client_email}</span>}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={() => openDetail(lead)}>
                       <span className="text-xs">{sourceLabel(lead.source)}</span>
                     </TableCell>
-                    <TableCell className="font-medium text-sm">{formatAmount(lead.amount)}</TableCell>
-                    <TableCell>
+                    <TableCell onClick={() => openDetail(lead)} className="font-medium text-sm">{formatAmount(lead.amount)}</TableCell>
+                    <TableCell onClick={() => openDetail(lead)}>
                       <Badge variant="outline" style={{ borderColor: si.color, color: si.color }} className="text-[10px]">
                         {si.label}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
+                    <TableCell onClick={() => openDetail(lead)} className="text-xs text-muted-foreground">
                       {format(new Date(lead.created_at), "d MMM", { locale: ru })}
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={() => openDetail(lead)}>
                       <ArrowRight className="w-4 h-4 text-muted-foreground" />
                     </TableCell>
                   </TableRow>
