@@ -437,6 +437,51 @@ export type Database = {
           },
         ]
       }
+      integration_queue: {
+        Row: {
+          confirmed_at: string | null
+          created_at: string
+          direction: string
+          entity_id: string | null
+          entity_type: string
+          error_message: string | null
+          id: string
+          max_retries: number
+          payload: Json
+          processed_at: string | null
+          retry_count: number
+          status: string
+        }
+        Insert: {
+          confirmed_at?: string | null
+          created_at?: string
+          direction: string
+          entity_id?: string | null
+          entity_type: string
+          error_message?: string | null
+          id?: string
+          max_retries?: number
+          payload?: Json
+          processed_at?: string | null
+          retry_count?: number
+          status?: string
+        }
+        Update: {
+          confirmed_at?: string | null
+          created_at?: string
+          direction?: string
+          entity_id?: string | null
+          entity_type?: string
+          error_message?: string | null
+          id?: string
+          max_retries?: number
+          payload?: Json
+          processed_at?: string | null
+          retry_count?: number
+          status?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           amount: number | null
