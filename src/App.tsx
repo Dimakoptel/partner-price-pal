@@ -19,6 +19,7 @@ import ProductionPage from "./pages/ProductionPage";
 import WarehousePage from "./pages/WarehousePage";
 import PriceListPage from "./pages/PriceListPage";
 import AdminIntegrationsPage from "./pages/AdminIntegrationsPage";
+import AdminLaunchChecklistPage from "./pages/AdminLaunchChecklistPage";
 
 const queryClient = new QueryClient();
 
