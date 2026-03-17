@@ -1007,41 +1007,50 @@ export type Database = {
       }
       production_stages: {
         Row: {
+          actual_end: string | null
+          actual_start: string | null
           assigned_to: string | null
-          completed_at: string | null
           created_at: string
           id: string
           notes: string | null
+          photo_urls: string[] | null
+          planned_end: string | null
+          planned_start: string | null
           production_order_id: string
           sort_order: number
           stage_id: string | null
-          started_at: string | null
           status: string
           updated_at: string
         }
         Insert: {
+          actual_end?: string | null
+          actual_start?: string | null
           assigned_to?: string | null
-          completed_at?: string | null
           created_at?: string
           id?: string
           notes?: string | null
+          photo_urls?: string[] | null
+          planned_end?: string | null
+          planned_start?: string | null
           production_order_id: string
           sort_order?: number
           stage_id?: string | null
-          started_at?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
+          actual_end?: string | null
+          actual_start?: string | null
           assigned_to?: string | null
-          completed_at?: string | null
           created_at?: string
           id?: string
           notes?: string | null
+          photo_urls?: string[] | null
+          planned_end?: string | null
+          planned_start?: string | null
           production_order_id?: string
           sort_order?: number
           stage_id?: string | null
-          started_at?: string | null
           status?: string
           updated_at?: string
         }
