@@ -18,6 +18,7 @@ import ClientsPage from "./pages/ClientsPage";
 import ProductionPage from "./pages/ProductionPage";
 import WarehousePage from "./pages/WarehousePage";
 import PriceListPage from "./pages/PriceListPage";
+import AdminIntegrationsPage from "./pages/AdminIntegrationsPage";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const App = () => (
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/admin/checklist" element={<AdminChecklistPage />} />
+              <Route path="/admin/integrations" element={<AdminIntegrationsPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
