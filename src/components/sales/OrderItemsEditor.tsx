@@ -18,6 +18,7 @@ interface Props {
 export default function OrderItemsEditor({ orderId }: Props) {
   const { data: productsData, isLoading: productsLoading } = useProducts();
   const { items, isLoading: itemsLoading, addItem, updateItem, deleteItem } = useOrderItems(orderId);
+  const { data: availability } = useCheckAvailability(selectedVariantId || undefined, quantity);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState("");
   const [selectedVariantId, setSelectedVariantId] = useState("");
