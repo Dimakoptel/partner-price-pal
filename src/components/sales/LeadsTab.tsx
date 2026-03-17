@@ -37,6 +37,8 @@ export default function LeadsTab() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editLead, setEditLead] = useState<Lead | null>(null);
 
   const filtered = useMemo(() => {
     let result = leads;
