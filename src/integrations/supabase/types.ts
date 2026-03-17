@@ -1456,6 +1456,10 @@ export type Database = {
         Args: { p_characteristics_override?: Json; p_variant_id: string }
         Returns: number
       }
+      check_product_availability: {
+        Args: { p_quantity: number; p_variant_id: string }
+        Returns: Json
+      }
       create_production_order_from_sales: {
         Args: { p_order_id: string }
         Returns: string
