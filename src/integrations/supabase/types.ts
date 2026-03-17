@@ -747,6 +747,71 @@ export type Database = {
         }
         Relationships: []
       }
+      product_variants: {
+        Row: {
+          characteristics: Json | null
+          color: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          price_agent: number | null
+          price_base: number
+          price_retail: number | null
+          price_wholesale: number | null
+          product_id: string | null
+          production_time_days: number | null
+          size_cm: string | null
+          sku_variant: string
+          texture: string | null
+          updated_at: string | null
+          warranty_months_override: number | null
+        }
+        Insert: {
+          characteristics?: Json | null
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          price_agent?: number | null
+          price_base: number
+          price_retail?: number | null
+          price_wholesale?: number | null
+          product_id?: string | null
+          production_time_days?: number | null
+          size_cm?: string | null
+          sku_variant: string
+          texture?: string | null
+          updated_at?: string | null
+          warranty_months_override?: number | null
+        }
+        Update: {
+          characteristics?: Json | null
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          price_agent?: number | null
+          price_base?: number
+          price_retail?: number | null
+          price_wholesale?: number | null
+          product_id?: string | null
+          production_time_days?: number | null
+          size_cm?: string | null
+          sku_variant?: string
+          texture?: string | null
+          updated_at?: string | null
+          warranty_months_override?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           category: string | null
