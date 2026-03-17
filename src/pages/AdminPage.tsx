@@ -35,17 +35,42 @@ const SECTIONS: { key: AdminSection; label: string; icon: typeof DollarSign }[] 
 export default function AdminPage() {
   const { allSettings, loading } = usePricing();
   const [section, setSection] = useState<AdminSection>("products");
+  const [seeding, setSeeding] = useState(false);
+
+  const handleSeed = async () => {
+    setSeeding(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke("seed-sales-demo", {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      if (res.error) throw res.error;
+      toast.success(`Демо-данные созданы: ${res.data.created.clients} клиентов, ${res.data.created.leads} лидов, ${res.data.created.orders} заказов`);
+    } catch (e: any) {
+      toast.error("Ошибка seed: " + (e.message || e));
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   return (
     <AppLayout>
       <div className="max-w-5xl mx-auto">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <h1 className="text-2xl font-light text-foreground tracking-tight">
-            Администрирование
-          </h1>
-          <p className="text-muted-foreground text-sm mt-2 mb-8">
-            Управление системой MES COZY ART
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-light text-foreground tracking-tight">
+                Администрирование
+              </h1>
+              <p className="text-muted-foreground text-sm mt-2 mb-8">
+                Управление системой MES COZY ART
+              </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={handleSeed} disabled={seeding} className="gap-2">
+              <Sprout className="w-4 h-4" />
+              {seeding ? "Создание..." : "Демо-данные"}
+            </Button>
+          </div>
         </motion.div>
 
         {/* Section selector */}
