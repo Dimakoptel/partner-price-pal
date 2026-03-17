@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { useOrders, ORDER_STATUSES, ORDER_TYPES, DELIVERY_METHODS, type Order } from "@/hooks/useOrders";
 import type { Client } from "@/hooks/useClients";
+import OrderItemsEditor from "./OrderItemsEditor";
 
 interface Props {
   open: boolean;
@@ -24,13 +26,11 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
     client_id: "",
     order_type: "serial_stock",
     status: "draft",
-    total_amount: "",
     paid_amount: "",
     discount_percent: "",
     delivery_address: "",
     delivery_method: "self_pickup",
     notes: "",
-    warranty_months: "24",
   });
 
   useEffect(() => {
@@ -39,26 +39,22 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
         client_id: order.client_id || "",
         order_type: order.order_type,
         status: order.status,
-        total_amount: order.total_amount?.toString() || "",
         paid_amount: order.paid_amount?.toString() || "",
         discount_percent: order.discount_percent?.toString() || "",
         delivery_address: order.delivery_address || "",
         delivery_method: order.delivery_method || "self_pickup",
         notes: order.notes || "",
-        warranty_months: order.warranty_months?.toString() || "24",
       });
     } else {
       setForm({
         client_id: presetClientId || "",
         order_type: "serial_stock",
         status: "draft",
-        total_amount: "",
         paid_amount: "",
         discount_percent: "",
         delivery_address: "",
         delivery_method: "self_pickup",
         notes: "",
-        warranty_months: "24",
       });
     }
   }, [order, open, presetClientId]);
@@ -70,14 +66,18 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
       lead_id: presetLeadId || (order as any)?.lead_id || null,
       order_type: form.order_type,
       status: form.status,
-      total_amount: parseFloat(form.total_amount) || 0,
       paid_amount: parseFloat(form.paid_amount) || 0,
       discount_percent: parseFloat(form.discount_percent) || 0,
       delivery_address: form.delivery_address || null,
       delivery_method: form.delivery_method,
       notes: form.notes || null,
-      warranty_months: parseInt(form.warranty_months) || 24,
     };
+
+    // For new orders, set total/warranty defaults (will be recalculated from items)
+    if (!order) {
+      payload.total_amount = 0;
+      payload.warranty_months = 12;
+    }
 
     if (order) {
       updateOrder.mutate({ id: order.id, ...payload }, { onSuccess: () => onOpenChange(false) });
@@ -88,11 +88,11 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{order ? `Заказ ${order.number}` : "Новый заказ"}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs">Клиент</Label>
@@ -137,11 +137,28 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
             </div>
           )}
 
+          {/* Order items section - only for existing orders */}
+          {order && (
+            <>
+              <Separator />
+              <OrderItemsEditor orderId={order.id} />
+              <Separator />
+            </>
+          )}
+
+          {!order && (
+            <p className="text-xs text-muted-foreground text-center py-2 border rounded-md border-dashed">
+              Позиции можно добавить после создания заказа
+            </p>
+          )}
+
           <div className="grid grid-cols-3 gap-3">
-            <div>
-              <Label className="text-xs">Сумма (₽)</Label>
-              <Input type="number" value={form.total_amount} onChange={(e) => setForm({ ...form, total_amount: e.target.value })} placeholder="0" />
-            </div>
+            {order && (
+              <div>
+                <Label className="text-xs">Сумма (₽)</Label>
+                <Input type="number" value={order.total_amount} disabled className="bg-muted" />
+              </div>
+            )}
             <div>
               <Label className="text-xs">Оплачено (₽)</Label>
               <Input type="number" value={form.paid_amount} onChange={(e) => setForm({ ...form, paid_amount: e.target.value })} placeholder="0" />
@@ -164,10 +181,12 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label className="text-xs">Гарантия (мес)</Label>
-              <Input type="number" value={form.warranty_months} onChange={(e) => setForm({ ...form, warranty_months: e.target.value })} />
-            </div>
+            {order && (
+              <div>
+                <Label className="text-xs">Гарантия (мес)</Label>
+                <Input type="number" value={order.warranty_months} disabled className="bg-muted" />
+              </div>
+            )}
           </div>
 
           <div>
