@@ -18,6 +18,7 @@ import ClientsPage from "./pages/ClientsPage";
 import ProductionPage from "./pages/ProductionPage";
 import WarehousePage from "./pages/WarehousePage";
 import PriceListPage from "./pages/PriceListPage";
+import AdminIntegrationsPage from "./pages/AdminIntegrationsPage";
 
 const queryClient = new QueryClient();
 
