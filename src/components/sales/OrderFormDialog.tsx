@@ -148,13 +148,13 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
             <span>{order ? `Заказ ${order.number}` : "Новый заказ"}</span>
             {order && (
               <div className="flex gap-1">
-                <Button type="button" size="sm" variant="outline" onClick={() => handleGenerateDocument("invoice")} disabled={!!generatingDoc}>
+                <Button type="button" size="sm" variant="outline" onClick={() => handleGenerateDocument("invoice")} disabled={generateDoc.isPending}>
                   <FileText className="w-3.5 h-3.5 mr-1" />
-                  {generatingDoc === "invoice" ? "..." : "Счёт"}
+                  {generateDoc.isPending && generateDoc.variables?.documentType === "invoice" ? "..." : "Счёт"}
                 </Button>
-                <Button type="button" size="sm" variant="outline" onClick={() => handleGenerateDocument("warranty")} disabled={!!generatingDoc}>
+                <Button type="button" size="sm" variant="outline" onClick={() => handleGenerateDocument("warranty")} disabled={generateDoc.isPending}>
                   <Shield className="w-3.5 h-3.5 mr-1" />
-                  {generatingDoc === "warranty" ? "..." : "Гарантия"}
+                  {generateDoc.isPending && generateDoc.variables?.documentType === "warranty" ? "..." : "Гарантия"}
                 </Button>
               </div>
             )}
