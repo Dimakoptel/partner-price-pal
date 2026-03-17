@@ -6,8 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useOrders, ORDER_STATUSES, ORDER_TYPES, DELIVERY_METHODS, type Order } from "@/hooks/useOrders";
+import { useOrderItems } from "@/hooks/useOrderItems";
 import type { Client } from "@/hooks/useClients";
+import { toast } from "sonner";
 import OrderItemsEditor from "./OrderItemsEditor";
 
 interface Props {
@@ -19,8 +24,11 @@ interface Props {
   presetLeadId?: string;
 }
 
+const DISCOUNT_THRESHOLD = 15;
+
 export default function OrderFormDialog({ open, onOpenChange, order, clients, presetClientId, presetLeadId }: Props) {
   const { createOrder, updateOrder } = useOrders();
+  const { items } = useOrderItems(order?.id);
 
   const [form, setForm] = useState({
     client_id: "",
@@ -32,6 +40,10 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
     delivery_method: "self_pickup",
     notes: "",
   });
+
+  const discountValue = parseFloat(form.discount_percent) || 0;
+  const showDiscountWarning = discountValue > DISCOUNT_THRESHOLD;
+  const hasItems = order ? items.length > 0 : true; // new orders can be saved, items added after
 
   useEffect(() => {
     if (order) {
@@ -59,30 +71,49 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
     }
   }, [order, open, presetClientId]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validation: existing order must have at least one item
+    if (order && items.length === 0) {
+      toast.error("Добавьте хотя бы одну позицию в заказ");
+      return;
+    }
+
     const payload: any = {
       client_id: form.client_id || null,
       lead_id: presetLeadId || (order as any)?.lead_id || null,
       order_type: form.order_type,
       status: form.status,
       paid_amount: parseFloat(form.paid_amount) || 0,
-      discount_percent: parseFloat(form.discount_percent) || 0,
+      discount_percent: discountValue,
       delivery_address: form.delivery_address || null,
       delivery_method: form.delivery_method,
       notes: form.notes || null,
     };
 
-    // For new orders, set total/warranty defaults (will be recalculated from items)
     if (!order) {
       payload.total_amount = 0;
       payload.warranty_months = 12;
     }
 
+    const onSaved = async (savedOrder: any) => {
+      // Apply discount rule if discount > threshold
+      if (discountValue > DISCOUNT_THRESHOLD) {
+        try {
+          await (supabase.rpc as any)("apply_discount_rule", { p_order_id: savedOrder.id });
+          toast.warning("Скидка превышает порог — заказ отправлен на согласование");
+        } catch {
+          // Non-critical, proceed
+        }
+      }
+      onOpenChange(false);
+    };
+
     if (order) {
-      updateOrder.mutate({ id: order.id, ...payload }, { onSuccess: () => onOpenChange(false) });
+      updateOrder.mutate({ id: order.id, ...payload }, { onSuccess: onSaved });
     } else {
-      createOrder.mutate(payload, { onSuccess: () => onOpenChange(false) });
+      createOrder.mutate(payload, { onSuccess: onSaved });
     }
   };
 
@@ -137,16 +168,14 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
             </div>
           )}
 
-          {/* Order items section - only for existing orders */}
-          {order && (
+          {/* Order items section */}
+          {order ? (
             <>
               <Separator />
               <OrderItemsEditor orderId={order.id} />
               <Separator />
             </>
-          )}
-
-          {!order && (
+          ) : (
             <p className="text-xs text-muted-foreground text-center py-2 border rounded-md border-dashed">
               Позиции можно добавить после создания заказа
             </p>
@@ -168,6 +197,16 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
               <Input type="number" value={form.discount_percent} onChange={(e) => setForm({ ...form, discount_percent: e.target.value })} placeholder="0" />
             </div>
           </div>
+
+          {/* Discount warning */}
+          {showDiscountWarning && (
+            <Alert variant="destructive" className="py-2">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription className="text-xs">
+                Скидка {discountValue}% превышает порог {DISCOUNT_THRESHOLD}%. При сохранении заказ будет отправлен на согласование.
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -201,7 +240,7 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Отмена</Button>
-            <Button type="submit" disabled={createOrder.isPending || updateOrder.isPending}>
+            <Button type="submit" disabled={createOrder.isPending || updateOrder.isPending || (order && !hasItems)}>
               {(createOrder.isPending || updateOrder.isPending) ? "Сохранение..." : order ? "Сохранить" : "Создать"}
             </Button>
           </DialogFooter>
