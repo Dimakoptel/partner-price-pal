@@ -122,6 +122,9 @@ export default function LeadsTab() {
             ))}
           </SelectContent>
         </Select>
+        <Button size="sm" onClick={() => { setEditLead(null); setFormOpen(true); }}>
+          <Plus className="w-4 h-4 mr-1" /> Добавить лид
+        </Button>
       </div>
 
       {/* Stats */}
