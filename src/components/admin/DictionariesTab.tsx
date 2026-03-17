@@ -224,6 +224,20 @@ export default function DictionariesTab() {
         </motion.div>
       )}
 
+      {/* Edit dialog */}
+      {currentType && (
+        <DictionaryItemDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          item={editingItem}
+          typeId={currentType.id}
+          onSuccess={() => {
+            setDialogOpen(false);
+            setEditingItem(null);
+          }}
+        />
+      )}
+
       {/* System Settings */}
       <SystemSettingsSection />
     </div>
