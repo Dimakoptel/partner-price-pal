@@ -1460,6 +1460,15 @@ export type Database = {
         Args: { p_order_id: string }
         Returns: string
       }
+      create_reservation_for_item: {
+        Args: {
+          p_order_id: string
+          p_order_item_id: string
+          p_quantity: number
+          p_variant_id: string
+        }
+        Returns: string
+      }
       has_module_access: {
         Args: { _module: string; _user_id: string }
         Returns: boolean
