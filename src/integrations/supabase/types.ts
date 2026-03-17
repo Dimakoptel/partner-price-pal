@@ -632,6 +632,7 @@ export type Database = {
           order_id: string
           price_unit: number
           product_variant_id: string | null
+          production_order_id: string | null
           production_required: boolean | null
           quantity: number
           total_line: number
@@ -646,6 +647,7 @@ export type Database = {
           order_id: string
           price_unit: number
           product_variant_id?: string | null
+          production_order_id?: string | null
           production_required?: boolean | null
           quantity?: number
           total_line: number
@@ -660,6 +662,7 @@ export type Database = {
           order_id?: string
           price_unit?: number
           product_variant_id?: string | null
+          production_order_id?: string | null
           production_required?: boolean | null
           quantity?: number
           total_line?: number
@@ -679,6 +682,13 @@ export type Database = {
             columns: ["product_variant_id"]
             isOneToOne: false
             referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_production_order_id_fkey"
+            columns: ["production_order_id"]
+            isOneToOne: false
+            referencedRelation: "production_orders"
             referencedColumns: ["id"]
           },
         ]
