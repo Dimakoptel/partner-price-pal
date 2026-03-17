@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { useDictionary, type DictionaryItem, type DictionaryType } from "@/hooks/useDictionary";
 import { useSystemSettings } from "@/hooks/useSystemSettings";
 import DictionaryItemDialog from "./DictionaryItemDialog";
-import { useSystemSettings } from "@/hooks/useSystemSettings";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
