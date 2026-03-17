@@ -35,6 +35,7 @@ interface Props {
 export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusChange, onConvertToClient, onConvertToOrder }: Props) {
   const [lostReason, setLostReason] = useState("");
   const [showLostDialog, setShowLostDialog] = useState(false);
+  const convertMutation = useConvertLeadToOrder();
 
   if (!lead) return null;
 
