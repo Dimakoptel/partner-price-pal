@@ -67,11 +67,17 @@ export default function AdminPage() {
                 Управление системой MES COZY ART
               </p>
             </div>
-            <Button variant="outline" size="sm" onClick={handleSeed} disabled={seeding} className="gap-2">
-              <Sprout className="w-4 h-4" />
-              {seeding ? "Создание..." : "Демо-данные"}
-            </Button>
-          </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/admin/checklist" className="gap-2">
+                  <ClipboardCheck className="w-4 h-4" /> Чек-лист
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleSeed} disabled={seeding} className="gap-2">
+                <Sprout className="w-4 h-4" />
+                {seeding ? "Создание..." : "Демо-данные"}
+              </Button>
+            </div>
         </motion.div>
 
         {/* Section selector */}
