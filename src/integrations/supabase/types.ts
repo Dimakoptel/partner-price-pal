@@ -572,6 +572,66 @@ export type Database = {
           },
         ]
       }
+      order_items: {
+        Row: {
+          characteristics_override: Json | null
+          created_at: string | null
+          discount_line: number | null
+          id: string
+          order_id: string
+          price_unit: number
+          product_variant_id: string | null
+          production_required: boolean | null
+          quantity: number
+          total_line: number
+          updated_at: string | null
+          warranty_months: number
+        }
+        Insert: {
+          characteristics_override?: Json | null
+          created_at?: string | null
+          discount_line?: number | null
+          id?: string
+          order_id: string
+          price_unit: number
+          product_variant_id?: string | null
+          production_required?: boolean | null
+          quantity?: number
+          total_line: number
+          updated_at?: string | null
+          warranty_months?: number
+        }
+        Update: {
+          characteristics_override?: Json | null
+          created_at?: string | null
+          discount_line?: number | null
+          id?: string
+          order_id?: string
+          price_unit?: number
+          product_variant_id?: string | null
+          production_required?: boolean | null
+          quantity?: number
+          total_line?: number
+          updated_at?: string | null
+          warranty_months?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_variant_id_fkey"
+            columns: ["product_variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           agent_id: string | null
