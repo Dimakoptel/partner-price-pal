@@ -70,6 +70,7 @@ const STANDALONE_ITEMS: NavItem[] = [
   { path: "/docs", label: "Инструкция", icon: BookOpen, module: "docs" },
   { path: "/admin", label: "Администрирование", icon: Settings, adminOnly: true },
   { path: "/admin/integrations", label: "Интеграции", icon: RefreshCw, adminOnly: true },
+  { path: "/admin/launch-checklist", label: "Запуск", icon: CheckCircle2, adminOnly: true },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
