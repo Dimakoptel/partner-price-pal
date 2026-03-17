@@ -66,6 +66,7 @@ export default function DictionaryItemDialog({ open, onOpenChange, item, typeId,
     },
     onSuccess: () => {
       toast.success(item ? "Изменения сохранены" : "Элемент добавлен");
+      qc.invalidateQueries({ queryKey: ["dictionary_items"] });
       onSuccess();
     },
     onError: (e: any) => toast.error("Ошибка: " + e.message),
