@@ -7,14 +7,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle, FileText, Shield } from "lucide-react";
+import { AlertTriangle, FileText, Shield, Factory } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useGenerateDocument } from "@/hooks/useDocumentGeneration";
 import { useOrders, ORDER_STATUSES, ORDER_TYPES, DELIVERY_METHODS, type Order } from "@/hooks/useOrders";
 import { useOrderItems } from "@/hooks/useOrderItems";
+import { useProductionOrders, useCreateProductionOrder } from "@/hooks/useProductionOrders";
 import type { Client } from "@/hooks/useClients";
 import { useAccrueCommission } from "@/hooks/useAgentCommissions";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import OrderItemsEditor from "./OrderItemsEditor";
 
 interface Props {
@@ -31,6 +33,8 @@ const DISCOUNT_THRESHOLD = 15;
 export default function OrderFormDialog({ open, onOpenChange, order, clients, presetClientId, presetLeadId }: Props) {
   const { createOrder, updateOrder } = useOrders();
   const { items } = useOrderItems(order?.id);
+  const { data: productionOrders } = useProductionOrders(order?.id);
+  const createProductionOrder = useCreateProductionOrder();
   const accrueCommission = useAccrueCommission();
 
   const [form, setForm] = useState({
@@ -243,6 +247,59 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
                 Скидка {discountValue}% превышает порог {DISCOUNT_THRESHOLD}%. При сохранении заказ будет отправлен на согласование.
               </AlertDescription>
             </Alert>
+          )}
+
+          {/* Production block */}
+          {order && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium flex items-center gap-1.5">
+                    <Factory className="w-4 h-4 text-muted-foreground" /> Производство
+                  </h3>
+                  {(!productionOrders || productionOrders.length === 0) && items.some((i: any) => i.production_required) && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => createProductionOrder.mutate(order.id)}
+                      disabled={createProductionOrder.isPending}
+                    >
+                      {createProductionOrder.isPending ? "Создание..." : "Передать в производство"}
+                    </Button>
+                  )}
+                </div>
+                {productionOrders && productionOrders.length > 0 ? (
+                  <div className="space-y-2">
+                    {productionOrders.map((po) => (
+                      <div key={po.id} className="flex items-center justify-between border border-border rounded-md p-3 bg-muted/30">
+                        <div>
+                          <p className="text-sm font-mono">{po.batch_number}</p>
+                          <p className="text-xs text-muted-foreground">
+                            План: {po.planned_start ? new Date(po.planned_start).toLocaleDateString("ru-RU") : "—"} — {po.planned_finish ? new Date(po.planned_finish).toLocaleDateString("ru-RU") : "—"}
+                          </p>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          style={{
+                            borderColor: (po.status as any)?.color || undefined,
+                            color: (po.status as any)?.color || undefined,
+                          }}
+                        >
+                          {(po.status as any)?.name || "—"}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground text-center py-2">
+                    {items.some((i: any) => i.production_required) ? "Производственные заказы не созданы" : "Нет позиций, требующих производства"}
+                  </p>
+                )}
+              </div>
+              <Separator />
+            </>
           )}
 
           <div className="grid grid-cols-2 gap-3">
