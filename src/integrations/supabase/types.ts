@@ -1388,6 +1388,10 @@ export type Database = {
         Args: { p_characteristics_override?: Json; p_variant_id: string }
         Returns: number
       }
+      create_production_order_from_sales: {
+        Args: { p_order_id: string }
+        Returns: string
+      }
       has_module_access: {
         Args: { _module: string; _user_id: string }
         Returns: boolean
