@@ -167,7 +167,7 @@ export default function DictionariesTab() {
                       onClick={() => { setEditingItem(item); setDialogOpen(true); }}
                       className="text-muted-foreground hover:text-foreground shrink-0 h-7 w-7 p-0"
                     >
-                      <Save className="w-3.5 h-3.5" />
+                      <Pencil className="w-3.5 h-3.5" />
                     </Button>
                     <Button
                       size="sm"
