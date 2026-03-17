@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useDictionary, type DictionaryItem, type DictionaryType } from "@/hooks/useDictionary";
 import { useSystemSettings } from "@/hooks/useSystemSettings";
+import DictionaryItemDialog from "./DictionaryItemDialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -10,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Plus, Trash2, Save, GripVertical, ChevronRight, Lock, Settings2, Check
+  Plus, Trash2, Save, Pencil, GripVertical, ChevronRight, Lock, Settings2, Check
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -19,6 +20,10 @@ export default function DictionariesTab() {
   const { types, items, isLoading, createItem, updateItem, deleteItem } = useDictionary(selectedType);
 
   const currentType = types.find((t) => t.code === selectedType);
+
+  // Dialog state
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<DictionaryItem | null>(null);
 
   // New item form
   const [newCode, setNewCode] = useState("");
@@ -155,14 +160,24 @@ export default function DictionariesTab() {
                   className="shrink-0"
                 />
                 {!currentType.is_system && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleDelete(item)}
-                    className="text-muted-foreground hover:text-destructive shrink-0 h-7 w-7 p-0"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
+                  <>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => { setEditingItem(item); setDialogOpen(true); }}
+                      className="text-muted-foreground hover:text-foreground shrink-0 h-7 w-7 p-0"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleDelete(item)}
+                      className="text-muted-foreground hover:text-destructive shrink-0 h-7 w-7 p-0"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </>
                 )}
               </div>
             ))}
@@ -207,6 +222,20 @@ export default function DictionariesTab() {
             </>
           )}
         </motion.div>
+      )}
+
+      {/* Edit dialog */}
+      {currentType && (
+        <DictionaryItemDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          item={editingItem}
+          typeId={currentType.id}
+          onSuccess={() => {
+            setDialogOpen(false);
+            setEditingItem(null);
+          }}
+        />
       )}
 
       {/* System Settings */}
