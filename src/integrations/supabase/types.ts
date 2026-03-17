@@ -1120,6 +1120,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_warranty_months: {
+        Args: { p_characteristics_override?: Json; p_variant_id: string }
+        Returns: number
+      }
       has_module_access: {
         Args: { _module: string; _user_id: string }
         Returns: boolean
