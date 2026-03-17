@@ -69,6 +69,7 @@ const STANDALONE_ITEMS: NavItem[] = [
   { path: "/pricelist", label: "Прайс-лист", icon: FileSpreadsheet },
   { path: "/docs", label: "Инструкция", icon: BookOpen, module: "docs" },
   { path: "/admin", label: "Администрирование", icon: Settings, adminOnly: true },
+  { path: "/admin/integrations", label: "Интеграции", icon: RefreshCw, adminOnly: true },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
