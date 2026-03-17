@@ -35,6 +35,57 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_commissions: {
+        Row: {
+          agent_id: string | null
+          amount: number
+          calculated_at: string | null
+          created_at: string | null
+          id: string
+          order_id: string | null
+          paid_at: string | null
+          payout_reference: string | null
+          status: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          amount: number
+          calculated_at?: string | null
+          created_at?: string | null
+          id?: string
+          order_id?: string | null
+          paid_at?: string | null
+          payout_reference?: string | null
+          status?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          amount?: number
+          calculated_at?: string | null
+          created_at?: string | null
+          id?: string
+          order_id?: string | null
+          paid_at?: string | null
+          payout_reference?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_commissions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_commissions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
