@@ -78,6 +78,7 @@ export default function AdminPage() {
                 {seeding ? "Создание..." : "Демо-данные"}
               </Button>
             </div>
+          </div>
         </motion.div>
 
         {/* Section selector */}
