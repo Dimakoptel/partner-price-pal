@@ -17,6 +17,7 @@ interface Props {
 }
 
 export default function DictionaryItemDialog({ open, onOpenChange, item, typeId, onSuccess }: Props) {
+  const qc = useQueryClient();
   const [form, setForm] = useState({
     code: "",
     name: "",
