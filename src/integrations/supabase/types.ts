@@ -38,6 +38,7 @@ export type Database = {
       audit_log: {
         Row: {
           action: string
+          changed_fields: Json | null
           created_at: string
           entity_id: string | null
           entity_type: string
@@ -49,6 +50,7 @@ export type Database = {
         }
         Insert: {
           action: string
+          changed_fields?: Json | null
           created_at?: string
           entity_id?: string | null
           entity_type: string
@@ -60,6 +62,7 @@ export type Database = {
         }
         Update: {
           action?: string
+          changed_fields?: Json | null
           created_at?: string
           entity_id?: string | null
           entity_type?: string
