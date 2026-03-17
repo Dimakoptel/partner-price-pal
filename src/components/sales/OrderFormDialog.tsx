@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOrders, ORDER_STATUSES, ORDER_TYPES, DELIVERY_METHODS, type Order } from "@/hooks/useOrders";
 import { useOrderItems } from "@/hooks/useOrderItems";
 import type { Client } from "@/hooks/useClients";
+import { useAccrueCommission } from "@/hooks/useAgentCommissions";
 import { toast } from "sonner";
 import OrderItemsEditor from "./OrderItemsEditor";
 
