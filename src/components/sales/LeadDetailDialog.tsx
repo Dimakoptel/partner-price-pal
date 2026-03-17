@@ -11,6 +11,7 @@ import { ru } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Lead } from "@/hooks/useLeads";
+import { useConvertLeadToOrder } from "@/hooks/useLeadConversion";
 import { Textarea } from "@/components/ui/textarea";
 
 const LEAD_STATUSES = [
