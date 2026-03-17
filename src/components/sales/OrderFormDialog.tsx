@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, FileText, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useGenerateDocument } from "@/hooks/useDocumentGeneration";
 import { useOrders, ORDER_STATUSES, ORDER_TYPES, DELIVERY_METHODS, type Order } from "@/hooks/useOrders";
 import { useOrderItems } from "@/hooks/useOrderItems";
 import type { Client } from "@/hooks/useClients";
