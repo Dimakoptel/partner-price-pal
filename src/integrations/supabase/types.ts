@@ -1241,6 +1241,10 @@ export type Database = {
     }
     Functions: {
       apply_discount_rule: { Args: { p_order_id: string }; Returns: Json }
+      calculate_agent_commission: {
+        Args: { p_order_id: string }
+        Returns: number
+      }
       calculate_warranty_months: {
         Args: { p_characteristics_override?: Json; p_variant_id: string }
         Returns: number
