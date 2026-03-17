@@ -5,11 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Phone, Mail, Calendar, ArrowRight, Filter, User } from "lucide-react";
+import { Search, Phone, Mail, Calendar, ArrowRight, Filter, User, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { toast } from "sonner";
 import LeadDetailDialog from "./LeadDetailDialog";
+import LeadFormDialog from "./LeadFormDialog";
 
 const LEAD_STATUSES = [
   { value: "new", label: "Новый", color: "#3b82f6" },
