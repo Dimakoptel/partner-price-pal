@@ -5,11 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Phone, Mail, Calendar, ArrowRight, Filter, User } from "lucide-react";
+import { Search, Phone, Mail, Calendar, ArrowRight, Filter, User, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { toast } from "sonner";
 import LeadDetailDialog from "./LeadDetailDialog";
+import LeadFormDialog from "./LeadFormDialog";
 
 const LEAD_STATUSES = [
   { value: "new", label: "Новый", color: "#3b82f6" },
@@ -36,6 +37,8 @@ export default function LeadsTab() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editLead, setEditLead] = useState<Lead | null>(null);
 
   const filtered = useMemo(() => {
     let result = leads;
@@ -119,6 +122,9 @@ export default function LeadsTab() {
             ))}
           </SelectContent>
         </Select>
+        <Button size="sm" onClick={() => { setEditLead(null); setFormOpen(true); }}>
+          <Plus className="w-4 h-4 mr-1" /> Добавить лид
+        </Button>
       </div>
 
       {/* Stats */}
@@ -138,8 +144,8 @@ export default function LeadsTab() {
 
       {filtered.length === 0 ? (
         <div className="border border-dashed border-border p-12 text-center">
-          <p className="text-muted-foreground text-sm">
-            {search || statusFilter !== "all" ? "Ничего не найдено" : "Лидов пока нет. Они создаются автоматически при сохранении расчёта."}
+          <p className="text-muted-foreground text-sm mb-3">
+            {search || statusFilter !== "all" ? "Ничего не найдено" : "Лидов пока нет. Нажмите «Добавить лид» или сохраните расчёт в калькуляторе."}
           </p>
         </div>
       ) : (
@@ -208,6 +214,13 @@ export default function LeadsTab() {
         }}
         onConvertToClient={handleConvertToClient}
         onConvertToOrder={handleConvertToOrder}
+      />
+
+      <LeadFormDialog
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        lead={editLead}
+        onSuccess={() => fetchLeads()}
       />
     </>
   );
