@@ -99,6 +99,48 @@ export function useCreateProductionOrder() {
   });
 }
 
+export function useUpdateProductionStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      productionOrderId,
+      statusCode,
+    }: {
+      productionOrderId: string;
+      statusCode: string;
+    }) => {
+      // Resolve status_id from dictionary
+      const { data: statusItem } = await supabase
+        .from("dictionary_items")
+        .select("id")
+        .eq("code", statusCode)
+        .single();
+
+      if (!statusItem) throw new Error("Статус не найден");
+
+      const updates: any = { status_id: statusItem.id };
+      if (statusCode === "completed") updates.actual_finish = new Date().toISOString();
+      if (statusCode === "in_progress" ) updates.actual_start = new Date().toISOString();
+
+      const { error } = await supabase
+        .from("production_orders")
+        .update(updates)
+        .eq("id", productionOrderId);
+
+      if (error) throw error;
+      // Trigger trg_update_sales_from_production fires automatically
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["production_orders"] });
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      toast.success("Статус производства обновлён");
+    },
+    onError: (e: any) => {
+      toast.error("Ошибка: " + e.message);
+    },
+  });
+}
+
 export function useUpdateProductionStage() {
   const qc = useQueryClient();
   return useMutation({
@@ -118,5 +160,7 @@ export function useUpdateProductionStage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["production_stages"] });
     },
+  });
+}
   });
 }
