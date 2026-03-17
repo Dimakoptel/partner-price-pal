@@ -6,9 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, AlertTriangle } from "lucide-react";
 import { useProducts, type Product, type ProductVariant } from "@/hooks/useProducts";
 import { useOrderItems, type OrderItem } from "@/hooks/useOrderItems";
+import { useCheckAvailability } from "@/hooks/useReservations";
 
 interface Props {
   orderId: string;
