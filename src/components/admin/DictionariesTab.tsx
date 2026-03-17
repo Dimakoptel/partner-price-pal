@@ -21,6 +21,10 @@ export default function DictionariesTab() {
 
   const currentType = types.find((t) => t.code === selectedType);
 
+  // Dialog state
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<DictionaryItem | null>(null);
+
   // New item form
   const [newCode, setNewCode] = useState("");
   const [newName, setNewName] = useState("");
