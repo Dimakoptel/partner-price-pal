@@ -215,6 +215,13 @@ export default function LeadsTab() {
         onConvertToClient={handleConvertToClient}
         onConvertToOrder={handleConvertToOrder}
       />
+
+      <LeadFormDialog
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        lead={editLead}
+        onSuccess={() => fetchLeads()}
+      />
     </>
   );
 }
