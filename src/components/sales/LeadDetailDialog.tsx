@@ -314,9 +314,10 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
           <Button
             variant="default"
             className="w-full gap-2"
-            onClick={() => onConvertToOrder?.(lead)}
+            disabled={convertMutation.isPending}
+            onClick={() => convertMutation.mutate(lead.id, { onSuccess: () => onOpenChange(false) })}
           >
-            <ShoppingCart className="w-4 h-4" /> Создать заказ
+            <ShoppingCart className="w-4 h-4" /> {convertMutation.isPending ? "Конвертация..." : "Создать заказ"}
           </Button>
         )}
       </DialogContent>
