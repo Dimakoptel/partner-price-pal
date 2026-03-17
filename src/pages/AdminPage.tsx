@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import AppLayout from "@/components/AppLayout";
 import { usePricing } from "@/hooks/usePricing";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,7 +17,7 @@ import DictionariesTab from "@/components/admin/DictionariesTab";
 import { Button } from "@/components/ui/button";
 import {
   DollarSign, Palette, Users, FileText, ShieldCheck,
-  Image, BookOpen, Building2, LayoutList, Database, Sprout
+  Image, BookOpen, Building2, LayoutList, Database, Sprout, ClipboardCheck
 } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -66,10 +67,17 @@ export default function AdminPage() {
                 Управление системой MES COZY ART
               </p>
             </div>
-            <Button variant="outline" size="sm" onClick={handleSeed} disabled={seeding} className="gap-2">
-              <Sprout className="w-4 h-4" />
-              {seeding ? "Создание..." : "Демо-данные"}
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/admin/checklist" className="gap-2">
+                  <ClipboardCheck className="w-4 h-4" /> Чек-лист
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleSeed} disabled={seeding} className="gap-2">
+                <Sprout className="w-4 h-4" />
+                {seeding ? "Создание..." : "Демо-данные"}
+              </Button>
+            </div>
           </div>
         </motion.div>
 
