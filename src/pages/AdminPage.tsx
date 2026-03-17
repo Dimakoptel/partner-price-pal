@@ -13,11 +13,14 @@ import AccessGroupsTab from "@/components/admin/AccessGroupsTab";
 import NomenclatureTab from "@/components/admin/NomenclatureTab";
 import CategoriesTab from "@/components/admin/CategoriesTab";
 import DictionariesTab from "@/components/admin/DictionariesTab";
+import { Button } from "@/components/ui/button";
 import {
   DollarSign, Palette, Users, FileText, ShieldCheck,
-  Image, BookOpen, Building2, LayoutList, Database
+  Image, BookOpen, Building2, LayoutList, Database, Sprout
 } from "lucide-react";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 type AdminSection = "products" | "people" | "references" | "settings" | "dictionaries";
 
