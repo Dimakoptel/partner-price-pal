@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
   Calculator, Settings, LogOut, History,
   Sun, Moon, BookOpen, Menu,
-  Factory, Warehouse, ChevronDown, TrendingUp, Home, FileSpreadsheet, RefreshCw
+  Factory, Warehouse, ChevronDown, TrendingUp, Home, FileSpreadsheet, RefreshCw, CheckCircle2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
@@ -70,6 +70,7 @@ const STANDALONE_ITEMS: NavItem[] = [
   { path: "/docs", label: "Инструкция", icon: BookOpen, module: "docs" },
   { path: "/admin", label: "Администрирование", icon: Settings, adminOnly: true },
   { path: "/admin/integrations", label: "Интеграции", icon: RefreshCw, adminOnly: true },
+  { path: "/admin/launch-checklist", label: "Запуск", icon: CheckCircle2, adminOnly: true },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
