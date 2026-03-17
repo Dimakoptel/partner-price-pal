@@ -635,6 +635,9 @@ export type Database = {
       orders: {
         Row: {
           agent_id: string | null
+          approval_requested_at: string | null
+          approval_resolved_at: string | null
+          approval_resolved_by: string | null
           client_id: string | null
           completed_at: string | null
           created_at: string
@@ -658,6 +661,9 @@ export type Database = {
         }
         Insert: {
           agent_id?: string | null
+          approval_requested_at?: string | null
+          approval_resolved_at?: string | null
+          approval_resolved_by?: string | null
           client_id?: string | null
           completed_at?: string | null
           created_at?: string
@@ -681,6 +687,9 @@ export type Database = {
         }
         Update: {
           agent_id?: string | null
+          approval_requested_at?: string | null
+          approval_resolved_at?: string | null
+          approval_resolved_by?: string | null
           client_id?: string | null
           completed_at?: string | null
           created_at?: string
