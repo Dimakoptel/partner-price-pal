@@ -17,7 +17,7 @@ import DictionariesTab from "@/components/admin/DictionariesTab";
 import { Button } from "@/components/ui/button";
 import {
   DollarSign, Palette, Users, FileText, ShieldCheck,
-  Image, BookOpen, Building2, LayoutList, Database, Sprout
+  Image, BookOpen, Building2, LayoutList, Database, Sprout, ClipboardCheck
 } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
