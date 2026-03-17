@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Plus, Trash2, Save, GripVertical, ChevronRight, Lock, Settings2, Check
+  Plus, Trash2, Save, Pencil, GripVertical, ChevronRight, Lock, Settings2, Check
 } from "lucide-react";
 import { toast } from "sonner";
 
