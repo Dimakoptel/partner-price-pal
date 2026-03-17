@@ -1180,6 +1180,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_discount_rule: { Args: { p_order_id: string }; Returns: Json }
       calculate_warranty_months: {
         Args: { p_characteristics_override?: Json; p_variant_id: string }
         Returns: number
