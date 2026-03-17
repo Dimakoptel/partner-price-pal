@@ -12,6 +12,7 @@ import CalculatorPage from "./pages/CalculatorPage";
 import HistoryPage from "./pages/HistoryPage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
+import AdminChecklistPage from "./pages/AdminChecklistPage";
 import DocsPage from "./pages/DocsPage";
 import ClientsPage from "./pages/ClientsPage";
 import ProductionPage from "./pages/ProductionPage";
