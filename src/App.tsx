@@ -51,6 +51,7 @@ const App = () => (
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/admin/checklist" element={<AdminChecklistPage />} />
+              <Route path="/admin/integrations" element={<AdminIntegrationsPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
