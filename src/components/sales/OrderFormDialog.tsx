@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOrders, ORDER_STATUSES, ORDER_TYPES, DELIVERY_METHODS, type Order } from "@/hooks/useOrders";
 import { useOrderItems } from "@/hooks/useOrderItems";
 import type { Client } from "@/hooks/useClients";
+import { useAccrueCommission } from "@/hooks/useAgentCommissions";
 import { toast } from "sonner";
 import OrderItemsEditor from "./OrderItemsEditor";
 
@@ -29,6 +30,7 @@ const DISCOUNT_THRESHOLD = 15;
 export default function OrderFormDialog({ open, onOpenChange, order, clients, presetClientId, presetLeadId }: Props) {
   const { createOrder, updateOrder } = useOrders();
   const { items } = useOrderItems(order?.id);
+  const accrueCommission = useAccrueCommission();
 
   const [form, setForm] = useState({
     client_id: "",
@@ -101,12 +103,26 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
       // Apply discount rule if discount > threshold
       if (discountValue > DISCOUNT_THRESHOLD) {
         try {
-          await (supabase.rpc as any)("apply_discount_rule", { p_order_id: savedOrder.id });
-          toast.warning("Скидка превышает порог — заказ отправлен на согласование");
+          const result = await (supabase.rpc as any)("apply_discount_rule", { p_order_id: savedOrder.id });
+          if (result?.data?.requires_approval) {
+            toast.warning("Скидка превышает порог — заказ отправлен на согласование");
+          }
         } catch {
-          // Non-critical, proceed
+          // Non-critical
         }
       }
+
+      // Accrue agent commission if fully paid
+      const paidAmount = parseFloat(form.paid_amount) || 0;
+      const totalAmount = order?.total_amount || savedOrder.total_amount || 0;
+      if (paidAmount > 0 && paidAmount >= totalAmount) {
+        try {
+          await accrueCommission.mutateAsync(savedOrder.id);
+        } catch {
+          // Non-critical
+        }
+      }
+
       onOpenChange(false);
     };
 
