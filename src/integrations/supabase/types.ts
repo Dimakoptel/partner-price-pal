@@ -747,6 +747,53 @@ export type Database = {
         }
         Relationships: []
       }
+      products: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          requires_mockup: boolean | null
+          sku_base: string
+          type_id: string | null
+          updated_at: string | null
+          warranty_default_months: number | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          requires_mockup?: boolean | null
+          sku_base: string
+          type_id?: string | null
+          updated_at?: string | null
+          warranty_default_months?: number | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          requires_mockup?: boolean | null
+          sku_base?: string
+          type_id?: string | null
+          updated_at?: string | null
+          warranty_default_months?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "dictionary_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
