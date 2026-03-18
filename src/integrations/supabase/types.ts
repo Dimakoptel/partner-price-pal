@@ -1273,6 +1273,7 @@ export type Database = {
           client_id: string | null
           created_at: string
           id: string
+          lead_id: string | null
           params: Json
           product_label: string
           product_type: string
@@ -1284,6 +1285,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           id?: string
+          lead_id?: string | null
           params: Json
           product_label: string
           product_type: string
@@ -1295,6 +1297,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           id?: string
+          lead_id?: string | null
           params?: Json
           product_label?: string
           product_type?: string
@@ -1307,6 +1310,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_calculations_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
             referencedColumns: ["id"]
           },
         ]
