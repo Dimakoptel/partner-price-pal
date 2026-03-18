@@ -3,8 +3,10 @@ import { useCart, CartItem } from "@/hooks/useCart";
 import { useCalculations } from "@/hooks/useCalculations";
 import { useLeads } from "@/hooks/useLeads";
 import { useAuth } from "@/hooks/useAuth";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { supabase } from "@/integrations/supabase/client";
-import { formatPrice } from "@/components/ResultPanel";
+import { formatPrice, buildShareText, buildPrintHtml, type CompanySettingsAccessor, type SpecialistInfo, type ColorForPrint } from "@/components/ResultPanel";
+import { useColors } from "@/hooks/useColors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,8 +18,12 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
-import { ShoppingCart, Trash2, FileText, Plus } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ShoppingCart, Trash2, FileText, Printer, Share2, MessageCircle, Mail, Copy } from "lucide-react";
 import { toast } from "sonner";
+import DOMPurify from "dompurify";
 
 export default function CartPanel() {
   const { items, removeItem, toggleItem, toggleAll, selectedItems, selectedTotal, clearSelected, appendToLeadId, setAppendToLeadId } = useCart();
