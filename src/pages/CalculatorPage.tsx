@@ -4,13 +4,13 @@ import ProductSelector from "@/components/ProductSelector";
 import CalculatorForm from "@/components/CalculatorForm";
 import ResultPanel from "@/components/ResultPanel";
 import AppLayout from "@/components/AppLayout";
-import SaveCalculationDialog from "@/components/SaveCalculationDialog";
+import CartPanel from "@/components/CartPanel";
 import BoxCalculatorInline from "@/components/BoxCalculatorInline";
 import { usePricing } from "@/hooks/usePricing";
 import { useColors } from "@/hooks/useColors";
-import { useCalculations } from "@/hooks/useCalculations";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { useAuth } from "@/hooks/useAuth";
+import { useCart } from "@/hooks/useCart";
 import {
   ProductType,
   CalculationResult,
@@ -23,21 +23,19 @@ import {
 } from "@/lib/calculator";
 import { calculateBox, MaterialSettings } from "@/lib/boxCalculator";
 import { toast } from "sonner";
-import { useLeads } from "@/hooks/useLeads";
+import { ShoppingCart } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function CalculatorPage() {
   const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null);
   const [result, setResult] = useState<CalculationResult | null>(null);
   const [currentParams, setCurrentParams] = useState<any>(null);
-  const [saved, setSaved] = useState(false);
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
-  const [savingName, setSavingName] = useState(false);
+  const [addedToCart, setAddedToCart] = useState(false);
   const { settings, loading } = usePricing();
   const { colors } = useColors();
-  const { saveCalculation } = useCalculations();
   const { getSetting } = useCompanySettings();
   const { user, profile } = useAuth();
-  const { createLead } = useLeads();
+  const { addItem } = useCart();
   const formRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -47,7 +45,7 @@ export default function CalculatorPage() {
   const handleSelectProduct = (t: string) => {
     setSelectedProduct(t as ProductType);
     setResult(null);
-    setSaved(false);
+    setAddedToCart(false);
     setTimeout(() => {
       formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
@@ -57,7 +55,7 @@ export default function CalculatorPage() {
     if (!selectedProduct || selectedProduct === "box") return;
     const { needsBox, ...calcParams } = params;
     setCurrentParams(params);
-    setSaved(false);
+    setAddedToCart(false);
 
     let res: CalculationResult;
     if (selectedProduct === "countertop") {
@@ -114,29 +112,11 @@ export default function CalculatorPage() {
     }, 100);
   };
 
-  const handleSaveClick = () => setShowSaveDialog(true);
-
-  const handleSaveConfirm = async (data: { calcName: string; clientName: string; clientPhone: string; clientEmail: string }) => {
+  const handleAddToCart = () => {
     if (!result || !selectedProduct || !currentParams) return;
-    setSavingName(true);
-    const { error } = await saveCalculation(selectedProduct, result.productLabel, currentParams, result, data.calcName);
-    if (error) {
-      setSavingName(false);
-      setShowSaveDialog(false);
-      toast.error("Ошибка сохранения");
-      return;
-    }
-    await createLead({
-      client_name: data.clientName,
-      client_phone: data.clientPhone || undefined,
-      client_email: data.clientEmail || undefined,
-      amount: result.grandTotal || 0,
-      notes: `${result.productLabel} — ${data.calcName}`,
-    });
-    setSavingName(false);
-    setShowSaveDialog(false);
-    setSaved(true);
-    toast.success("Расчёт сохранён, лид создан");
+    addItem(selectedProduct, result.productLabel, currentParams, result);
+    setAddedToCart(true);
+    toast.success("Добавлено в корзину");
   };
 
   if (loading) {
@@ -153,20 +133,21 @@ export default function CalculatorPage() {
     <AppLayout>
       <div className="max-w-5xl mx-auto">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <h1 className="text-2xl font-bold mb-1">Калькулятор стоимости</h1>
+          <div className="flex items-center justify-between mb-1">
+            <h1 className="text-2xl font-bold">Калькулятор стоимости</h1>
+            <CartPanel />
+          </div>
           <p className="text-muted-foreground text-sm mb-6">Выберите тип изделия и укажите параметры</p>
         </motion.div>
 
         <ProductSelector selected={selectedProduct} onSelect={handleSelectProduct} />
 
-        {/* Box calculator inline */}
         {selectedProduct === "box" && (
           <div ref={formRef}>
             <BoxCalculatorInline />
           </div>
         )}
 
-        {/* Regular calculator */}
         {selectedProduct && selectedProduct !== "box" && (
           <div ref={formRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
             <motion.div key={selectedProduct} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-6">
@@ -178,8 +159,10 @@ export default function CalculatorPage() {
               <div ref={resultRef}>
                 <ResultPanel
                   result={result}
-                  onSave={handleSaveClick}
-                  saving={saved}
+                  onSave={handleAddToCart}
+                  saving={addedToCart}
+                  saveLabel={addedToCart ? "В корзине ✓" : "В корзину"}
+                  saveIcon="cart"
                   companySettings={{ getSetting }}
                   specialist={{
                     fullName: profile?.full_name || undefined,
@@ -194,13 +177,6 @@ export default function CalculatorPage() {
           </div>
         )}
       </div>
-
-      <SaveCalculationDialog
-        open={showSaveDialog}
-        onClose={() => setShowSaveDialog(false)}
-        onConfirm={handleSaveConfirm}
-        saving={savingName}
-      />
     </AppLayout>
   );
 }

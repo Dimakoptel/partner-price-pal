@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import DOMPurify from "dompurify";
 import { CalculationResult } from "@/lib/calculator";
 import { Button } from "@/components/ui/button";
-import { Printer, Share2, Save, MessageCircle, Mail } from "lucide-react";
+import { Printer, Share2, Save, MessageCircle, Mail, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -374,13 +374,15 @@ interface Props {
   result: CalculationResult;
   onSave?: () => void;
   saving?: boolean;
+  saveLabel?: string;
+  saveIcon?: "save" | "cart";
   companySettings?: CompanySettingsAccessor;
   specialist?: SpecialistInfo;
   calcName?: string;
   colorsForPrint?: ColorForPrint[];
 }
 
-export default function ResultPanel({ result, onSave, saving, companySettings, specialist, calcName, colorsForPrint }: Props) {
+export default function ResultPanel({ result, onSave, saving, saveLabel, saveIcon, companySettings, specialist, calcName, colorsForPrint }: Props) {
   const prodDays = companySettings?.getSetting("production_days") || "20";
 
   return (
@@ -532,8 +534,8 @@ export default function ResultPanel({ result, onSave, saving, companySettings, s
       <div className="mt-4 flex flex-wrap gap-2">
         {onSave && (
           <Button size="sm" variant="secondary" onClick={onSave} disabled={saving} className="gap-1.5">
-            <Save className="w-4 h-4" />
-            {saving ? "Сохранено" : "Сохранить"}
+            {saveIcon === "cart" ? <ShoppingCart className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+            {saveLabel || (saving ? "Сохранено" : "Сохранить")}
           </Button>
         )}
         <Button size="sm" variant="secondary" onClick={() => handlePrint(result, companySettings, specialist, colorsForPrint)} className="gap-1.5">
