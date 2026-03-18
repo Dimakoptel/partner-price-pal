@@ -38,6 +38,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <CartProvider>
           <Routes>
             <Route path="/auth" element={<AuthRedirect />} />
             <Route element={<ProtectedRoute />}>
