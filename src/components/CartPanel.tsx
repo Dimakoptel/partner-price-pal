@@ -408,6 +408,48 @@ export default function CartPanel() {
                 </div>
               )}
 
+              {/* Print & Share buttons */}
+              <div className="flex gap-2 w-full">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 gap-1.5"
+                  onClick={handlePrintCart}
+                  disabled={selectedItems.length === 0}
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  Печать КП
+                </Button>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 gap-1.5"
+                      disabled={selectedItems.length === 0}
+                    >
+                      <Share2 className="w-3.5 h-3.5" />
+                      Поделиться
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleShareCart("telegram")}>
+                      <MessageCircle className="w-4 h-4 mr-2" /> Telegram
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShareCart("whatsapp")}>
+                      <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShareCart("email")}>
+                      <Mail className="w-4 h-4 mr-2" /> Email
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShareCart("copy")}>
+                      <Copy className="w-4 h-4 mr-2" /> Копировать текст
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
               <Button
                 className="w-full gap-2"
                 onClick={() => setSaveDialogOpen(true)}
