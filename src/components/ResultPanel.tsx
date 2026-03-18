@@ -374,13 +374,15 @@ interface Props {
   result: CalculationResult;
   onSave?: () => void;
   saving?: boolean;
+  saveLabel?: string;
+  saveIcon?: "save" | "cart";
   companySettings?: CompanySettingsAccessor;
   specialist?: SpecialistInfo;
   calcName?: string;
   colorsForPrint?: ColorForPrint[];
 }
 
-export default function ResultPanel({ result, onSave, saving, companySettings, specialist, calcName, colorsForPrint }: Props) {
+export default function ResultPanel({ result, onSave, saving, saveLabel, saveIcon, companySettings, specialist, calcName, colorsForPrint }: Props) {
   const prodDays = companySettings?.getSetting("production_days") || "20";
 
   return (
