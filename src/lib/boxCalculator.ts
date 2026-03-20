@@ -109,12 +109,14 @@ export function calculateBoxDimensions(
   const foamBottomL = itemL + 20;
   const foamBottomW = itemW + 20;
 
-  const ospLongSideL = foamLongSideL + 78;
-  const ospLongSideH = foamLongSideH + 20;
-  const ospShortSideW = foamShortSideW + 20;
-  const ospShortSideH = foamShortSideH + 20;
-  const ospBottomL = foamBottomL + 78;
-  const ospBottomW = foamBottomW + 78;
+  // OSP outer dimensions account for foam thickness on each side
+  const beamOffset = 2 * beamW - 2; // frame offset for long sides/bottom
+  const ospLongSideL = foamLongSideL + beamOffset;
+  const ospLongSideH = foamLongSideH + 2 * foamThick;
+  const ospShortSideW = foamShortSideW + 2 * foamThick;
+  const ospShortSideH = foamShortSideH + 2 * foamThick;
+  const ospBottomL = foamBottomL + beamOffset;
+  const ospBottomW = foamBottomW + beamOffset;
 
   const beamLong = ospLongSideL;
   const beamShort = ospShortSideW;
