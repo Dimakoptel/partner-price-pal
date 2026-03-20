@@ -101,7 +101,7 @@ export default function CalculatorPage() {
       const materialCost = boxResult.costs.total;
       const totalBoxPrice = Math.round(materialCost * (1 + workMultiplier));
 
-      res.boxLabel = `Ящик транспортировочный (${boxResult.dimensions.ospBottomL.toFixed(0)}×${boxResult.dimensions.ospBottomW.toFixed(0)}×${boxResult.dimensions.ospLongSideH.toFixed(0)} мм), пеноплекс ${foamThickness} мм`;
+      res.boxLabel = `Ящик транспортировочный (${boxResult.dimensions.ospBottomL.toFixed(0)}×${boxResult.dimensions.ospBottomW.toFixed(0)}×${boxResult.dimensions.ospLongSideH.toFixed(0)} мм)`;
       res.boxPrice = totalBoxPrice;
       res.grandTotal += totalBoxPrice;
     }
