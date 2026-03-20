@@ -5,7 +5,7 @@ import { useLeads } from "@/hooks/useLeads";
 import { useAuth } from "@/hooks/useAuth";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { supabase } from "@/integrations/supabase/client";
-import { formatPrice, buildShareText, buildPrintHtml, type CompanySettingsAccessor, type SpecialistInfo, type ColorForPrint } from "@/components/ResultPanel";
+import { formatPrice, buildPrintHtml, type CompanySettingsAccessor, type SpecialistInfo, type ColorForPrint } from "@/components/ResultPanel";
 import { useColors } from "@/hooks/useColors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,20 +52,37 @@ export default function CartPanel() {
   // Build multi-item share text
   const buildMultiShareText = () => {
     if (selectedItems.length === 0) return "";
-    if (selectedItems.length === 1) return buildShareText(selectedItems[0].result, cs);
     let text = `🧾 Коммерческое предложение (${selectedItems.length} поз.)\n\n`;
+
+    let totalInstallation = 0;
+
     selectedItems.forEach((item, i) => {
-      text += `${i + 1}. ${item.result.productLabel}\n`;
-      text += `   Стоимость: ${formatPrice(item.result.grandTotal || item.result.totalPrice)} ₽\n`;
-      if (item.result.quantity > 1) text += `   Кол-во: ${item.result.quantity} шт.\n`;
+      const r = item.result;
+      text += `${i + 1}. ${r.productLabel}\n`;
+      text += `   Стоимость изделия: ${formatPrice(r.totalPrice)} ₽\n`;
+      if (r.quantity > 1) text += `   Кол-во: ${r.quantity} шт. × ${formatPrice(r.pricePerUnit)} ₽\n`;
+      if (r.weight > 0) text += `   Ориентировочный вес: ${r.weight} кг\n`;
+      if (r.riserLabel && r.riserPrice) text += `   ${r.riserLabel}: ${formatPrice(r.riserPrice)} ₽\n`;
+      if (r.boxLabel && r.boxPrice) {
+        // Strip foam thickness from box label for display
+        const boxLabel = r.boxLabel.replace(/,\s*пеноплекс\s*\d+\s*мм/i, "");
+        text += `   ${boxLabel}: ${formatPrice(r.boxPrice)} ₽\n`;
+      }
+      if (r.supportPrice) text += `   ${r.supportLabel || "Кронштейн"} (при необходимости): ${formatPrice(r.supportPrice)} ₽\n`;
+      if (!r.installationNote) totalInstallation += r.installationPrice;
       text += `\n`;
     });
+
     text += `━━━━━━━━━━━━━━━━━━━━━━\n`;
+    if (totalInstallation > 0) {
+      text += `🔧 Монтажные работы (при необходимости): ${formatPrice(totalInstallation)} ₽\n`;
+    }
     text += `💰 ИТОГО: ${formatPrice(selectedTotal)} ₽\n\n`;
     text += `📌 УСЛОВИЯ\n`;
     const days = cs.getSetting("production_days") || "20";
     const warranty = cs.getSetting("warranty_years") || "1";
     text += `• Доставка и грузчики — отдельно\n`;
+    text += `• Оплата монтажных работ производится в день завершения монтажа\n`;
     text += `• Срок изготовления: от ${days} рабочих дней\n`;
     text += `• Гарантия: ${warranty} год\n`;
     const phone = cs.getSetting("phone_main");
@@ -76,10 +93,10 @@ export default function CartPanel() {
     return text;
   };
 
-  // Build multi-item print HTML
+  // Build multi-item print HTML — same format as single-item print
   const buildMultiPrintHtml = () => {
     if (selectedItems.length === 1) return buildPrintHtml(selectedItems[0].result, cs, specialist, colorsForPrint);
-    // Multi-item: build combined document
+
     const phone = cs.getSetting("phone_main") || "";
     const phoneExtra = cs.getSetting("phone_extra") || "";
     const email = cs.getSetting("email") || "";
@@ -99,20 +116,76 @@ export default function CartPanel() {
     if (phoneExtra) headerContactLines.push(phoneExtra);
     if (email) headerContactLines.push(email);
 
+    // Build detailed rows for each item — matching single-item format
+    let totalInstallation = 0;
     const itemRows = selectedItems.map((item, i) => {
       const r = item.result;
-      let details = "";
-      if (r.quantity > 1) details += `<span style="font-size:11px;color:#888;">${r.quantity} шт. × ${formatPrice(r.pricePerUnit)} ₽</span>`;
-      if (r.weight > 0) details += `<span style="font-size:11px;color:#888;margin-left:8px;">~${r.weight} кг</span>`;
-      return `<tr>
-        <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;width:30px;vertical-align:top;color:#888;font-size:13px;">${i + 1}.</td>
+      let rows = "";
+
+      // Product row
+      rows += `<tr>
         <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;">
-          <div style="font-size:14px;color:#333;">${DOMPurify.sanitize(r.productLabel)}</div>
-          ${details ? `<div style="margin-top:2px;">${details}</div>` : ""}
+          <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:4px;">${i + 1}. ${DOMPurify.sanitize(r.productLabel)}</div>
+          <div style="font-size:14px;color:#333;">Стоимость изделия</div>
+          ${r.quantity > 1 ? `<div style="font-size:11px;color:#888;margin-top:2px;">${r.quantity} шт. × ${formatPrice(r.pricePerUnit)} ₽</div>` : ""}
         </td>
-        <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600;white-space:nowrap;">${formatPrice(r.grandTotal || r.totalPrice)} ₽</td>
+        <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600;white-space:nowrap;vertical-align:top;">${formatPrice(r.totalPrice)} ₽</td>
       </tr>`;
+
+      // Weight
+      if (r.weight > 0) {
+        rows += `<tr>
+          <td colspan="2" style="padding:4px 0 4px 16px;font-size:12px;color:#555;">
+            Ориентировочный вес: <strong>${r.weight} кг</strong>${r.quantity > 1 && r.weightPerItem ? ` (${r.weightPerItem} кг × ${r.quantity} шт.)` : ""}
+          </td>
+        </tr>`;
+      }
+
+      // Riser
+      if (r.riserLabel && r.riserPrice) {
+        rows += `<tr>
+          <td style="padding:8px 0 8px 16px;border-bottom:1px solid #e5e5e5;">
+            <div style="font-size:13px;color:#333;">${DOMPurify.sanitize(r.riserLabel)}</div>
+            ${r.quantity > 1 && r.riserPricePerUnit ? `<div style="font-size:11px;color:#888;margin-top:2px;">${r.quantity} шт. × ${formatPrice(r.riserPricePerUnit)} ₽</div>` : ""}
+          </td>
+          <td style="padding:8px 0;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600;white-space:nowrap;">${formatPrice(r.riserPrice)} ₽</td>
+        </tr>`;
+      }
+
+      // Box (without foam thickness)
+      if (r.boxLabel && r.boxPrice) {
+        const boxLabel = r.boxLabel.replace(/,\s*пеноплекс\s*\d+\s*мм/i, "");
+        rows += `<tr>
+          <td style="padding:8px 0 8px 16px;border-bottom:1px solid #e5e5e5;">
+            <div style="font-size:13px;color:#333;">${DOMPurify.sanitize(boxLabel)}</div>
+          </td>
+          <td style="padding:8px 0;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600;white-space:nowrap;">${formatPrice(r.boxPrice)} ₽</td>
+        </tr>`;
+      }
+
+      // Support
+      if (r.supportPrice) {
+        rows += `<tr>
+          <td style="padding:8px 0 8px 16px;border-bottom:1px solid #e5e5e5;">
+            <div style="font-size:13px;color:#333;">${r.supportLabel || "Кронштейн"} <span style="font-size:11px;color:#888;">(при необходимости)</span></div>
+          </td>
+          <td style="padding:8px 0;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600;white-space:nowrap;">${formatPrice(r.supportPrice)} ₽</td>
+        </tr>`;
+      }
+
+      if (!r.installationNote) totalInstallation += r.installationPrice;
+
+      return rows;
     }).join("");
+
+    // Installation total row
+    const installRow = totalInstallation > 0 ? `<tr>
+      <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;">
+        <div style="font-size:14px;color:#333;">Монтажные работы <span style="font-size:11px;color:#888;">(при необходимости)</span></div>
+        <div style="font-size:11px;color:#888;margin-top:4px;font-style:italic;">Оплата монтажных работ производится в день завершения монтажа специалисту по монтажу</div>
+      </td>
+      <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600;white-space:nowrap;vertical-align:top;">${formatPrice(totalInstallation)} ₽</td>
+    </tr>` : "";
 
     const footerLeftLines = [address, workHours].filter(Boolean).map(l => DOMPurify.sanitize(l));
     const footerRightLines = [site, telegram ? `Telegram: ${telegram}` : "", whatsapp ? `WhatsApp: ${whatsapp}` : ""].filter(Boolean).map(l => DOMPurify.sanitize(l));
@@ -158,8 +231,8 @@ export default function CartPanel() {
 
   <table class="price-table">
     ${itemRows}
+    ${installRow}
     <tr class="total-row">
-      <td></td>
       <td style="padding:12px 0;">ИТОГО</td>
       <td style="padding:12px 0;text-align:right;">${formatPrice(selectedTotal)} ₽</td>
     </tr>
@@ -168,6 +241,7 @@ export default function CartPanel() {
   <div class="section-title">Условия</div>
   <div class="conditions"><ul>
     <li>Доставка и услуги грузчиков — по тарифам партнёров (оплачиваются отдельно)</li>
+    <li>Оплата монтажных работ производится в день завершения монтажа специалисту по монтажу</li>
     <li>Срок изготовления: от ${prodDays} рабочих дней</li>
     <li>Гарантия: ${warranty} год на изделие</li>
   </ul></div>
@@ -242,7 +316,6 @@ export default function CartPanel() {
       let leadId = appendToLeadId;
 
       if (!leadId) {
-        // Create new lead
         const { data: lead, error: leadError } = await createLead({
           client_name: clientName.trim() || calcName.trim(),
           client_phone: clientPhone.trim() || undefined,
@@ -253,7 +326,6 @@ export default function CartPanel() {
         if (leadError || !lead) throw leadError || new Error("Lead creation failed");
         leadId = lead.id;
       } else {
-        // Update existing lead amount
         const existingLead = leads.find(l => l.id === leadId);
         if (existingLead) {
           await updateLead(leadId, {
@@ -265,7 +337,6 @@ export default function CartPanel() {
         }
       }
 
-      // Save each selected item to history + link to lead
       for (const item of selectedItems) {
         const { error } = await saveCalculation(
           item.productType,
@@ -280,8 +351,6 @@ export default function CartPanel() {
         }
       }
 
-      // Link saved calculations to lead via lead_id
-      // Get the latest saved calculations for this user
       const { data: recentCalcs } = await supabase
         .from("saved_calculations")
         .select("id")
@@ -313,20 +382,6 @@ export default function CartPanel() {
       toast.error("Ошибка: " + (e?.message || "неизвестная ошибка"));
     } finally {
       setSaving(false);
-    }
-  };
-
-  // Also save all items to history (not just selected) — every calc goes to history
-  const handleSaveAllToHistory = async () => {
-    const unsavedItems = items.filter(i => !i.selected);
-    for (const item of unsavedItems) {
-      await saveCalculation(
-        item.productType,
-        item.productLabel,
-        item.params,
-        item.result,
-        item.productLabel,
-      );
     }
   };
 
@@ -376,8 +431,8 @@ export default function CartPanel() {
           </div>
 
           {items.length > 0 && (
-            <SheetFooter className="border-t pt-4 flex-col gap-2">
-              <div className="flex justify-between text-sm w-full">
+            <div className="border-t pt-4 space-y-3 pb-2">
+              <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">
                   Выбрано: {selectedItems.length} из {items.length}
                 </span>
@@ -388,7 +443,7 @@ export default function CartPanel() {
 
               {/* Append to existing lead */}
               {leads.filter(l => l.status !== "won" && l.status !== "lost").length > 0 && (
-                <div className="w-full">
+                <div>
                   <Label className="text-xs text-muted-foreground">Добавить к существующему лиду:</Label>
                   <select
                     className="w-full mt-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm"
@@ -409,11 +464,11 @@ export default function CartPanel() {
               )}
 
               {/* Print & Share buttons */}
-              <div className="flex gap-2 w-full">
+              <div className="grid grid-cols-2 gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex-1 gap-1.5"
+                  className="gap-1.5 text-xs"
                   onClick={handlePrintCart}
                   disabled={selectedItems.length === 0}
                 >
@@ -426,7 +481,7 @@ export default function CartPanel() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 gap-1.5"
+                      className="gap-1.5 text-xs w-full"
                       disabled={selectedItems.length === 0}
                     >
                       <Share2 className="w-3.5 h-3.5" />
@@ -452,13 +507,14 @@ export default function CartPanel() {
 
               <Button
                 className="w-full gap-2"
+                size="sm"
                 onClick={() => setSaveDialogOpen(true)}
                 disabled={selectedItems.length === 0}
               >
                 <FileText className="w-4 h-4" />
                 {appendToLeadId ? "Добавить к лиду" : "Сохранить КП и создать лид"}
               </Button>
-            </SheetFooter>
+            </div>
           )}
         </SheetContent>
       </Sheet>
@@ -524,18 +580,51 @@ export default function CartPanel() {
 }
 
 function CartItemRow({ item, onToggle, onRemove }: { item: CartItem; onToggle: (id: string) => void; onRemove: (id: string) => void }) {
+  const r = item.result;
   return (
     <div className={`p-3 rounded-lg border transition-colors ${item.selected ? "bg-primary/5 border-primary/30" : "bg-secondary/30 border-border/50"}`}>
       <div className="flex items-start gap-3">
         <Switch checked={item.selected} onCheckedChange={() => onToggle(item.id)} className="mt-0.5" />
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium truncate">{item.productLabel}</div>
-          <div className="text-xs text-muted-foreground">
-            {formatPrice(item.result.grandTotal || item.result.totalPrice)} ₽
-            {item.result.quantity > 1 && ` × ${item.result.quantity} шт.`}
+          <div className="space-y-0.5 mt-1 text-xs text-muted-foreground">
+            <div className="flex justify-between">
+              <span>Стоимость изделия</span>
+              <span className="font-medium text-foreground">{formatPrice(r.totalPrice)} ₽</span>
+            </div>
+            {r.weight > 0 && (
+              <div className="flex justify-between">
+                <span>Ориентировочный вес</span>
+                <span>{r.weight} кг</span>
+              </div>
+            )}
+            {r.riserLabel && r.riserPrice ? (
+              <div className="flex justify-between">
+                <span className="truncate mr-2">{r.riserLabel}</span>
+                <span className="font-medium text-foreground">{formatPrice(r.riserPrice)} ₽</span>
+              </div>
+            ) : null}
+            {r.boxLabel && r.boxPrice ? (
+              <div className="flex justify-between">
+                <span>Ящик транспортировочный</span>
+                <span className="font-medium text-foreground">{formatPrice(r.boxPrice)} ₽</span>
+              </div>
+            ) : null}
+            {r.supportPrice ? (
+              <div className="flex justify-between">
+                <span>{r.supportLabel || "Кронштейн"}</span>
+                <span className="font-medium text-foreground">{formatPrice(r.supportPrice)} ₽</span>
+              </div>
+            ) : null}
+            {!r.installationNote && (
+              <div className="flex justify-between">
+                <span>Монтаж</span>
+                <span className="font-medium text-foreground">{formatPrice(r.installationPrice)} ₽</span>
+              </div>
+            )}
           </div>
         </div>
-        <Button variant="ghost" size="sm" onClick={() => onRemove(item.id)} className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive">
+        <Button variant="ghost" size="sm" onClick={() => onRemove(item.id)} className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive shrink-0">
           <Trash2 className="w-3.5 h-3.5" />
         </Button>
       </div>
