@@ -482,6 +482,44 @@ export type Database = {
         }
         Relationships: []
       }
+      inventory: {
+        Row: {
+          id: string
+          location: string | null
+          min_stock_level: number
+          product_variant_id: string
+          quantity_on_hand: number
+          quantity_reserved: number
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          location?: string | null
+          min_stock_level?: number
+          product_variant_id: string
+          quantity_on_hand?: number
+          quantity_reserved?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          location?: string | null
+          min_stock_level?: number
+          product_variant_id?: string
+          quantity_on_hand?: number
+          quantity_reserved?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_product_variant_id_fkey"
+            columns: ["product_variant_id"]
+            isOneToOne: true
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           amount: number | null
@@ -1350,6 +1388,70 @@ export type Database = {
           sort_order?: number
         }
         Relationships: []
+      }
+      stock_movements: {
+        Row: {
+          created_at: string
+          created_by: string
+          document_number: string | null
+          id: string
+          movement_type: string
+          notes: string | null
+          order_id: string | null
+          product_variant_id: string
+          production_order_id: string | null
+          quantity: number
+          reason: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          document_number?: string | null
+          id?: string
+          movement_type?: string
+          notes?: string | null
+          order_id?: string | null
+          product_variant_id: string
+          production_order_id?: string | null
+          quantity: number
+          reason?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          document_number?: string | null
+          id?: string
+          movement_type?: string
+          notes?: string | null
+          order_id?: string | null
+          product_variant_id?: string
+          production_order_id?: string | null
+          quantity?: number
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_product_variant_id_fkey"
+            columns: ["product_variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_production_order_id_fkey"
+            columns: ["production_order_id"]
+            isOneToOne: false
+            referencedRelation: "production_orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_settings: {
         Row: {
