@@ -35,6 +35,14 @@ export default function DictionariesTab() {
       toast.error("Заполните код и название");
       return;
     }
+    // Duplicate check
+    const duplicate = items.find(
+      i => i.code.toLowerCase() === newCode.trim().toLowerCase() || i.name.toLowerCase() === newName.trim().toLowerCase()
+    );
+    if (duplicate) {
+      toast.error(`Дубликат: элемент с кодом «${duplicate.code}» или названием «${duplicate.name}» уже существует`);
+      return;
+    }
     const maxOrder = items.reduce((max, i) => Math.max(max, i.sort_order), 0);
     createItem.mutate(
       { type_id: currentType.id, code: newCode.trim(), name: newName.trim(), color: newColor.trim(), sort_order: maxOrder + 1 },

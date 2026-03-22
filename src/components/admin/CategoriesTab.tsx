@@ -15,6 +15,12 @@ export default function CategoriesTab() {
 
   const handleAdd = async () => {
     if (!newName.trim()) return;
+    // Duplicate check
+    const duplicate = categories.find(c => c.name.toLowerCase() === newName.trim().toLowerCase());
+    if (duplicate) {
+      toast.error(`Категория «${duplicate.name}» уже существует`);
+      return;
+    }
     const maxOrder = categories.reduce((m, c) => Math.max(m, c.sort_order), 0);
     const { error } = await addCategory(newName.trim(), maxOrder + 1);
     if (error) toast.error("Ошибка добавления");
