@@ -697,18 +697,28 @@ export function calculateStair(params: StairParams, pricing: Record<string, numb
   };
 }
 
-export function validateStepSlabParams(params: StepSlabParams): StepSlabValidationError[] {
+export function validateStepSlabParams(params: StepSlabParams, pricing?: Record<string, number>): StepSlabValidationError[] {
   const errors: StepSlabValidationError[] = [];
-  if (params.length < 500) errors.push({ field: "length", message: `Минимальная длина — 500 мм (указано: ${params.length} мм)` });
-  if (params.length > 3500) errors.push({ field: "length", message: `Максимальная длина — 3500 мм (указано: ${params.length} мм)` });
-  if (params.width < 200) errors.push({ field: "width", message: `Минимальная ширина — 200 мм (указано: ${params.width} мм)` });
-  if (params.width > 1500) errors.push({ field: "width", message: `Максимальная ширина — 1500 мм (указано: ${params.width} мм)` });
-  if (params.thicknessConcrete < 40) errors.push({ field: "thickness", message: `Минимальная толщина бетона — 40 мм (указано: ${params.thicknessConcrete} мм)` });
-  if (params.thicknessConcrete > 60) errors.push({ field: "thickness", message: `Максимальная толщина бетона — 60 мм (указано: ${params.thicknessConcrete} мм)` });
+  const p = pricing || {};
+  const MIN_L = p.stepslab_min_length || 500;
+  const MAX_L = p.stepslab_max_length || 3500;
+  const MIN_W = p.stepslab_min_width || 200;
+  const MAX_W = p.stepslab_max_width || 1500;
+  const MIN_T = p.stepslab_min_thickness || 40;
+  const MAX_T = p.stepslab_max_thickness || 60;
+  const MAX_TOTAL = p.stepslab_max_total_thickness || 80;
+  const SUBSTRATE = p.stepslab_substrate_thickness || 20;
+
+  if (params.length < MIN_L) errors.push({ field: "length", message: `Минимальная длина — ${MIN_L} мм (указано: ${params.length} мм)` });
+  if (params.length > MAX_L) errors.push({ field: "length", message: `Максимальная длина — ${MAX_L} мм (указано: ${params.length} мм)` });
+  if (params.width < MIN_W) errors.push({ field: "width", message: `Минимальная ширина — ${MIN_W} мм (указано: ${params.width} мм)` });
+  if (params.width > MAX_W) errors.push({ field: "width", message: `Максимальная ширина — ${MAX_W} мм (указано: ${params.width} мм)` });
+  if (params.thicknessConcrete < MIN_T) errors.push({ field: "thickness", message: `Минимальная толщина бетона — ${MIN_T} мм (указано: ${params.thicknessConcrete} мм)` });
+  if (params.thicknessConcrete > MAX_T) errors.push({ field: "thickness", message: `Максимальная толщина бетона — ${MAX_T} мм (указано: ${params.thicknessConcrete} мм)` });
   if (params.isHeated) {
-    const total = params.thicknessConcrete + 20;
-    if (total > 80) {
-      errors.push({ field: "thickness", message: `Общая толщина с подложкой (${params.thicknessConcrete} + 20 = ${total} мм) превышает максимум 80 мм` });
+    const total = params.thicknessConcrete + SUBSTRATE;
+    if (total > MAX_TOTAL) {
+      errors.push({ field: "thickness", message: `Общая толщина с подложкой (${params.thicknessConcrete} + ${SUBSTRATE} = ${total} мм) превышает максимум ${MAX_TOTAL} мм` });
     }
   }
   return errors;
