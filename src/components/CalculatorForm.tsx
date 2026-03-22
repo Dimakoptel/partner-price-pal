@@ -108,7 +108,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
         riserHeight: hasRiser ? riserHeight : 0,
         riserThickness: hasRiser ? riserThickness : 15,
       };
-      const errors = validateStairParams(params);
+      const errors = validateStairParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
       onCalculate({ ...params, needsBox });
     }
