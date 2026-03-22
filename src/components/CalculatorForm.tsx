@@ -98,7 +98,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
       const params: BacksplashParams = {
         width: backsplashWidth, height: backsplashHeight, thickness, color: finalColor, quantity,
       };
-      const errors = validateBacksplashParams(params);
+      const errors = validateBacksplashParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
       onCalculate({ ...params, needsBox });
     } else if (productType === "stair") {
