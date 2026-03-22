@@ -467,14 +467,22 @@ export function calculateWindowsill(params: WindowsillParams, pricing: Record<st
   };
 }
 
-export function validateBacksplashParams(params: BacksplashParams): BacksplashValidationError[] {
+export function validateBacksplashParams(params: BacksplashParams, pricing?: Record<string, number>): BacksplashValidationError[] {
   const errors: BacksplashValidationError[] = [];
-  if (!params.width || params.width < 100) errors.push({ field: "width", message: `Ширина должна быть не менее 100 мм (указано: ${params.width} мм)` });
-  if (params.width > 6000) errors.push({ field: "width", message: `Ширина не может превышать 6000 мм (указано: ${params.width} мм)` });
-  if (params.height < 300) errors.push({ field: "height", message: `Высота должна быть не менее 300 мм (указано: ${params.height} мм)` });
-  if (params.height > 1000) errors.push({ field: "height", message: `Высота не может превышать 1000 мм (указано: ${params.height} мм)` });
-  if (params.thickness < 10) errors.push({ field: "thickness", message: `Толщина фартука не может быть менее 10 мм (указано: ${params.thickness} мм)` });
-  if (params.thickness > 15) errors.push({ field: "thickness", message: `Толщина фартука не может превышать 15 мм (указано: ${params.thickness} мм)` });
+  const p = pricing || {};
+  const MIN_W = p.backsplash_min_width || 100;
+  const MAX_W = p.backsplash_max_width || 6000;
+  const MIN_H = p.backsplash_min_height || 300;
+  const MAX_H = p.backsplash_max_height || 1000;
+  const MIN_T = p.backsplash_min_thickness || 10;
+  const MAX_T = p.backsplash_max_thickness || 15;
+
+  if (!params.width || params.width < MIN_W) errors.push({ field: "width", message: `Ширина должна быть не менее ${MIN_W} мм (указано: ${params.width} мм)` });
+  if (params.width > MAX_W) errors.push({ field: "width", message: `Ширина не может превышать ${MAX_W} мм (указано: ${params.width} мм)` });
+  if (params.height < MIN_H) errors.push({ field: "height", message: `Высота должна быть не менее ${MIN_H} мм (указано: ${params.height} мм)` });
+  if (params.height > MAX_H) errors.push({ field: "height", message: `Высота не может превышать ${MAX_H} мм (указано: ${params.height} мм)` });
+  if (params.thickness < MIN_T) errors.push({ field: "thickness", message: `Толщина фартука не может быть менее ${MIN_T} мм (указано: ${params.thickness} мм)` });
+  if (params.thickness > MAX_T) errors.push({ field: "thickness", message: `Толщина фартука не может превышать ${MAX_T} мм (указано: ${params.thickness} мм)` });
   return errors;
 }
 
