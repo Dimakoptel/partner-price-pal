@@ -91,7 +91,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
         length, width, thickness, color: finalColor, quantity,
         drops: { front: dropFront, left: dropLeft, right: dropRight },
       };
-      const errors = validateWindowsillParams(params);
+      const errors = validateWindowsillParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
       onCalculate({ ...params, needsBox });
     } else if (productType === "backsplash") {
