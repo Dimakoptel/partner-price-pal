@@ -22,6 +22,12 @@ export default function ColorsTab() {
 
   const handleAddColor = async () => {
     if (!newColorName.trim()) return;
+    // Duplicate check
+    const duplicate = allColors.find(c => c.name.toLowerCase() === newColorName.trim().toLowerCase());
+    if (duplicate) {
+      toast.error(`Цвет «${duplicate.name}» уже существует`);
+      return;
+    }
     const { error } = await addColor(newColorName.trim(), allColors.length + 1);
     if (error) toast.error("Ошибка добавления");
     else { toast.success("Цвет добавлен"); setNewColorName(""); fetchAllColors().then(setAllColors); }

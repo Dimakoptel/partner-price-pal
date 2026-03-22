@@ -12,9 +12,10 @@ interface Props {
   productType: ProductType;
   onCalculate: (params: any) => void;
   colorNames?: string[];
+  pricing?: Record<string, number>;
 }
 
-export default function CalculatorForm({ productType, onCalculate, colorNames = [] }: Props) {
+export default function CalculatorForm({ productType, onCalculate, colorNames = [], pricing = {} }: Props) {
   const [length, setLength] = useState(1000);
   const [width, setWidth] = useState(600);
   const [diameter, setDiameter] = useState(800);
@@ -62,7 +63,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
         drops: { front: dropFront, back: dropBack, left: dropLeft, right: dropRight },
         supports: { left: supportLeft, right: supportRight },
       };
-      const errors = validateCountertopParams(params);
+      const errors = validateCountertopParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
       onCalculate({ ...params, needsBox });
     } else if (productType === "sink") {
@@ -75,14 +76,14 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
         bowlDepth, maxBowlSize,
         color: finalColor, drainType, mixerMount,
       };
-      const errors = validateSinkParams(params);
+      const errors = validateSinkParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
       onCalculate({ ...params, needsBox });
     } else if (productType === "stepslab") {
       const params: StepSlabParams = {
         length, width, thicknessConcrete, color: finalColor, quantity, isHeated,
       };
-      const errors = validateStepSlabParams(params);
+      const errors = validateStepSlabParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
       onCalculate({ ...params, needsBox });
     } else if (productType === "windowsill") {
@@ -90,14 +91,14 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
         length, width, thickness, color: finalColor, quantity,
         drops: { front: dropFront, left: dropLeft, right: dropRight },
       };
-      const errors = validateWindowsillParams(params);
+      const errors = validateWindowsillParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
       onCalculate({ ...params, needsBox });
     } else if (productType === "backsplash") {
       const params: BacksplashParams = {
         width: backsplashWidth, height: backsplashHeight, thickness, color: finalColor, quantity,
       };
-      const errors = validateBacksplashParams(params);
+      const errors = validateBacksplashParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
       onCalculate({ ...params, needsBox });
     } else if (productType === "stair") {
@@ -107,7 +108,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
         riserHeight: hasRiser ? riserHeight : 0,
         riserThickness: hasRiser ? riserThickness : 15,
       };
-      const errors = validateStairParams(params);
+      const errors = validateStairParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
       onCalculate({ ...params, needsBox });
     }

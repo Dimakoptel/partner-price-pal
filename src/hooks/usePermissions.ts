@@ -7,6 +7,12 @@ export const APP_MODULES = [
   { key: "box_calculator", label: "Калькулятор ящиков" },
   { key: "history", label: "История расчётов" },
   { key: "clients", label: "CRM / Клиенты" },
+  { key: "sales_leads", label: "Продажи — Лиды" },
+  { key: "sales_orders", label: "Продажи — Заказы" },
+  { key: "sales_pipeline", label: "Продажи — Воронка" },
+  { key: "sales_tasks", label: "Продажи — Задачи" },
+  { key: "production", label: "Производство" },
+  { key: "warehouse", label: "Склад" },
   { key: "docs", label: "Инструкция" },
 ] as const;
 

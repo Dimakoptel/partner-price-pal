@@ -152,7 +152,7 @@ export default function CalculatorPage() {
           <div ref={formRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
             <motion.div key={selectedProduct} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-6">
               <h2 className="text-lg font-semibold mb-4">Параметры</h2>
-              <CalculatorForm productType={selectedProduct} onCalculate={handleCalculate} colorNames={colorNames} />
+              <CalculatorForm productType={selectedProduct} onCalculate={handleCalculate} colorNames={colorNames} pricing={settings} />
             </motion.div>
 
             {result && (

@@ -198,6 +198,19 @@ function NomenclatureFormDialog({
 
   const handleSubmit = async () => {
     if (!form.name.trim()) { toast.error("Укажите наименование"); return; }
+    // Duplicate SKU check (only when creating new or changing SKU)
+    if (form.sku.trim()) {
+      const { data: existing } = await supabase
+        .from("nomenclature")
+        .select("id, name")
+        .eq("sku", form.sku.trim())
+        .neq("id", item?.id || "00000000-0000-0000-0000-000000000000")
+        .limit(1);
+      if (existing && existing.length > 0) {
+        toast.error(`Артикул «${form.sku}» уже используется для «${existing[0].name}»`);
+        return;
+      }
+    }
     setSaving(true);
     await onSave(form, selectedColors);
     setSaving(false);
