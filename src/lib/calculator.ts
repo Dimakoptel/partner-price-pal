@@ -347,16 +347,21 @@ export interface WindowsillValidationError {
   message: string;
 }
 
-export function validateWindowsillParams(params: WindowsillParams): WindowsillValidationError[] {
+export function validateWindowsillParams(params: WindowsillParams, pricing?: Record<string, number>): WindowsillValidationError[] {
   const errors: WindowsillValidationError[] = [];
+  const p = pricing || {};
+  const MIN_T = p.windowsill_min_thickness || 15;
+  const MAX_T = p.windowsill_max_thickness || 50;
+  const MAX_DROP = p.windowsill_max_drop || 200;
+
   if (!params.length || params.length <= 0) errors.push({ field: "length", message: "Не указана длина подоконника" });
   if (!params.width || params.width <= 0) errors.push({ field: "width", message: "Не указана ширина подоконника" });
-  if (params.thickness < 15) errors.push({ field: "thickness", message: `Толщина ${params.thickness} мм меньше минимальных 15 мм` });
-  if (params.thickness > 50) errors.push({ field: "thickness", message: `Толщина ${params.thickness} мм превышает максимальные 50 мм` });
+  if (params.thickness < MIN_T) errors.push({ field: "thickness", message: `Толщина ${params.thickness} мм меньше минимальных ${MIN_T} мм` });
+  if (params.thickness > MAX_T) errors.push({ field: "thickness", message: `Толщина ${params.thickness} мм превышает максимальные ${MAX_T} мм` });
   for (const [side, h] of Object.entries(params.drops)) {
-    if (h > 200) {
+    if (h > MAX_DROP) {
       const sideLabel = side === "front" ? "спереди" : side === "left" ? "слева" : "справа";
-      errors.push({ field: `drop_${side}`, message: `Высота опуска ${sideLabel} (${h} мм) не может превышать 200 мм` });
+      errors.push({ field: `drop_${side}`, message: `Высота опуска ${sideLabel} (${h} мм) не может превышать ${MAX_DROP} мм` });
     }
   }
   return errors;
