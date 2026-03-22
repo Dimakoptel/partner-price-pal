@@ -12,6 +12,7 @@ interface Props {
   productType: ProductType;
   onCalculate: (params: any) => void;
   colorNames?: string[];
+  pricing?: Record<string, number>;
 }
 
 export default function CalculatorForm({ productType, onCalculate, colorNames = [] }: Props) {
