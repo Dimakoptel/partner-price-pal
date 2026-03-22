@@ -142,45 +142,53 @@ export interface CountertopValidationError {
   message: string;
 }
 
-export function validateCountertopParams(params: CountertopParams): CountertopValidationError[] {
+export function validateCountertopParams(params: CountertopParams, pricing?: Record<string, number>): CountertopValidationError[] {
   const errors: CountertopValidationError[] = [];
+  const p = pricing || {};
 
-  // Size validation
+  const MIN_LEN = p.countertop_min_length || 500;
+  const MAX_LEN = p.countertop_max_length || 3500;
+  const MIN_W = p.countertop_min_width || 200;
+  const MAX_W = p.countertop_max_width || 1500;
+  const MIN_D = p.countertop_min_diameter || 500;
+  const MAX_D = p.countertop_max_diameter || 3000;
+  const MIN_T = p.countertop_min_thickness || 20;
+  const MAX_T = p.countertop_max_thickness || 50;
+  const MAX_DROP = p.countertop_max_drop || 300;
+  const MIN_SUP = p.countertop_min_support || 750;
+  const MAX_SUP = p.countertop_max_support || 1200;
+
   if (params.isRound) {
     const d = params.diameter || 0;
-    if (d < 500) errors.push({ field: "diameter", message: `Минимальный диаметр — 500 мм (указано: ${d} мм)` });
-    if (d > 3000) errors.push({ field: "diameter", message: `Максимальный диаметр — 3000 мм (указано: ${d} мм)` });
+    if (d < MIN_D) errors.push({ field: "diameter", message: `Минимальный диаметр — ${MIN_D} мм (указано: ${d} мм)` });
+    if (d > MAX_D) errors.push({ field: "diameter", message: `Максимальный диаметр — ${MAX_D} мм (указано: ${d} мм)` });
   } else {
-    if (params.length < 500) errors.push({ field: "length", message: `Минимальная длина — 500 мм (указано: ${params.length} мм)` });
-    if (params.length > 3500) errors.push({ field: "length", message: `Максимальная длина — 3500 мм (указано: ${params.length} мм)` });
-    if (params.width < 200) errors.push({ field: "width", message: `Минимальная ширина — 200 мм (указано: ${params.width} мм)` });
-    if (params.width > 1500) errors.push({ field: "width", message: `Максимальная ширина — 1500 мм (указано: ${params.width} мм)` });
+    if (params.length < MIN_LEN) errors.push({ field: "length", message: `Минимальная длина — ${MIN_LEN} мм (указано: ${params.length} мм)` });
+    if (params.length > MAX_LEN) errors.push({ field: "length", message: `Максимальная длина — ${MAX_LEN} мм (указано: ${params.length} мм)` });
+    if (params.width < MIN_W) errors.push({ field: "width", message: `Минимальная ширина — ${MIN_W} мм (указано: ${params.width} мм)` });
+    if (params.width > MAX_W) errors.push({ field: "width", message: `Максимальная ширина — ${MAX_W} мм (указано: ${params.width} мм)` });
   }
 
-  // Thickness
-  if (params.thickness < 20) errors.push({ field: "thickness", message: `Минимальная толщина — 20 мм (указано: ${params.thickness} мм)` });
-  if (params.thickness > 50) errors.push({ field: "thickness", message: `Максимальная толщина — 50 мм (указано: ${params.thickness} мм). Свыше 50 мм — требуется согласование.` });
+  if (params.thickness < MIN_T) errors.push({ field: "thickness", message: `Минимальная толщина — ${MIN_T} мм (указано: ${params.thickness} мм)` });
+  if (params.thickness > MAX_T) errors.push({ field: "thickness", message: `Максимальная толщина — ${MAX_T} мм (указано: ${params.thickness} мм). Свыше ${MAX_T} мм — требуется согласование.` });
 
-  // Conflict: drops + supports
   const hasAnyDrop = Object.values(params.drops).some(h => h > 0);
   const hasAnySupp = Object.values(params.supports).some(h => h > 0);
   if (hasAnyDrop && hasAnySupp) {
     errors.push({ field: "drops_supports", message: "Одновременное использование опор и опусков невозможно" });
   }
 
-  // Drop height limits
   for (const [side, h] of Object.entries(params.drops)) {
-    if (h > 300) {
+    if (h > MAX_DROP) {
       const sideLabel = side === "front" ? "спереди" : side === "back" ? "сзади" : side === "left" ? "слева" : "справа";
-      errors.push({ field: `drop_${side}`, message: `Высота опуска ${sideLabel} (${h} мм) не может превышать 300 мм` });
+      errors.push({ field: `drop_${side}`, message: `Высота опуска ${sideLabel} (${h} мм) не может превышать ${MAX_DROP} мм` });
     }
   }
 
-  // Support height limits (750–1200)
   for (const [side, h] of Object.entries(params.supports)) {
-    if (h > 0 && (h < 750 || h > 1200)) {
+    if (h > 0 && (h < MIN_SUP || h > MAX_SUP)) {
       const sideLabel = side === "left" ? "слева" : "справа";
-      errors.push({ field: `support_${side}`, message: `Высота опоры ${sideLabel} (${h} мм) должна быть 750–1200 мм` });
+      errors.push({ field: `support_${side}`, message: `Высота опоры ${sideLabel} (${h} мм) должна быть ${MIN_SUP}–${MAX_SUP} мм` });
     }
   }
 
