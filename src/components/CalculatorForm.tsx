@@ -63,7 +63,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
         drops: { front: dropFront, back: dropBack, left: dropLeft, right: dropRight },
         supports: { left: supportLeft, right: supportRight },
       };
-      const errors = validateCountertopParams(params);
+      const errors = validateCountertopParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
       onCalculate({ ...params, needsBox });
     } else if (productType === "sink") {
