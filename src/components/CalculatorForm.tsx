@@ -15,7 +15,7 @@ interface Props {
   pricing?: Record<string, number>;
 }
 
-export default function CalculatorForm({ productType, onCalculate, colorNames = [] }: Props) {
+export default function CalculatorForm({ productType, onCalculate, colorNames = [], pricing = {} }: Props) {
   const [length, setLength] = useState(1000);
   const [width, setWidth] = useState(600);
   const [diameter, setDiameter] = useState(800);
