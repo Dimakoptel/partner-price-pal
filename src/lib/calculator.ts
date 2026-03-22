@@ -578,16 +578,22 @@ export function calculateBacksplash(params: BacksplashParams, pricing: Record<st
   };
 }
 
-export function validateStairParams(params: StairParams): StairValidationError[] {
+export function validateStairParams(params: StairParams, pricing?: Record<string, number>): StairValidationError[] {
   const errors: StairValidationError[] = [];
+  const p = pricing || {};
+  const MIN_T = p.stair_min_thickness || 30;
+  const MAX_T = p.stair_max_thickness || 40;
+  const MIN_RH = p.stair_min_riser_height || 100;
+  const MAX_RH = p.stair_max_riser_height || 300;
+
   if (!params.length || params.length <= 0) errors.push({ field: "length", message: "Не указана длина ступени" });
   if (!params.width || params.width <= 0) errors.push({ field: "width", message: "Не указана ширина ступени" });
-  if (params.thickness < 30) errors.push({ field: "thickness", message: `Толщина ступени ${params.thickness} мм — меньше допустимого (30 мм)` });
-  if (params.thickness > 40) errors.push({ field: "thickness", message: `Толщина ступени ${params.thickness} мм — больше допустимого (40 мм)` });
-  if (params.thickness % 5 !== 0) errors.push({ field: "thickness", message: `Толщина ступени ${params.thickness} мм — не кратна 5 мм. Допустимые значения: 30, 35, 40 мм.` });
+  if (params.thickness < MIN_T) errors.push({ field: "thickness", message: `Толщина ступени ${params.thickness} мм — меньше допустимого (${MIN_T} мм)` });
+  if (params.thickness > MAX_T) errors.push({ field: "thickness", message: `Толщина ступени ${params.thickness} мм — больше допустимого (${MAX_T} мм)` });
+  if (params.thickness % 5 !== 0) errors.push({ field: "thickness", message: `Толщина ступени ${params.thickness} мм — не кратна 5 мм.` });
   if (params.hasRiser) {
-    if (params.riserHeight < 100) errors.push({ field: "riserHeight", message: `Высота подступенка ${params.riserHeight} мм — меньше минимальных 100 мм` });
-    if (params.riserHeight > 300) errors.push({ field: "riserHeight", message: `Высота подступенка ${params.riserHeight} мм — больше максимальных 300 мм` });
+    if (params.riserHeight < MIN_RH) errors.push({ field: "riserHeight", message: `Высота подступенка ${params.riserHeight} мм — меньше минимальных ${MIN_RH} мм` });
+    if (params.riserHeight > MAX_RH) errors.push({ field: "riserHeight", message: `Высота подступенка ${params.riserHeight} мм — больше максимальных ${MAX_RH} мм` });
   }
   return errors;
 }
