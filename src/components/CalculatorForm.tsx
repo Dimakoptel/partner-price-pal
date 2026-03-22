@@ -76,7 +76,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
         bowlDepth, maxBowlSize,
         color: finalColor, drainType, mixerMount,
       };
-      const errors = validateSinkParams(params);
+      const errors = validateSinkParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
       onCalculate({ ...params, needsBox });
     } else if (productType === "stepslab") {
