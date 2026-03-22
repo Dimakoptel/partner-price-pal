@@ -83,7 +83,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
       const params: StepSlabParams = {
         length, width, thicknessConcrete, color: finalColor, quantity, isHeated,
       };
-      const errors = validateStepSlabParams(params);
+      const errors = validateStepSlabParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
       onCalculate({ ...params, needsBox });
     } else if (productType === "windowsill") {
