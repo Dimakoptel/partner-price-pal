@@ -16,6 +16,7 @@ export interface NomenclatureItem {
   price_partner: number;
   price_rrp: number;
   photo_url: string;
+  photo_urls: string[];
   drawing_url: string;
   description: string;
   show_in_pricelist: boolean;
@@ -37,7 +38,10 @@ export function useNomenclature() {
       .from("nomenclature" as any)
       .select("*")
       .order("sort_order", { ascending: true });
-    if (data) setItems(data as any);
+    if (data) setItems((data as any[]).map(d => ({
+      ...d,
+      photo_urls: d.photo_urls || (d.photo_url ? [d.photo_url] : []),
+    })));
     setLoading(false);
   };
 
@@ -45,23 +49,39 @@ export function useNomenclature() {
 
   const createItem = async (item: Partial<NomenclatureItem>) => {
     if (!user) return { error: { message: "Not authenticated" } };
+    const { photo_urls, ...rest } = item as any;
+    const payload: any = {
+      ...rest,
+      created_by: user.id,
+      photo_urls: (photo_urls || []).slice(0, 5),
+      photo_url: (photo_urls || [])[0] || item.photo_url || "",
+    };
     const { data, error } = await supabase
       .from("nomenclature" as any)
-      .insert({ ...item, created_by: user.id } as any)
+      .insert(payload as any)
       .select()
       .single();
-    if (!error && data) setItems(prev => [...prev, data as any]);
+    if (!error && data) setItems(prev => [...prev, { ...(data as any), photo_urls: (data as any).photo_urls || [] }]);
     return { data, error };
   };
 
   const updateItem = async (id: string, updates: Partial<NomenclatureItem>) => {
+    const { photo_urls, ...rest } = updates as any;
+    const payload: any = {
+      ...rest,
+      updated_at: new Date().toISOString(),
+    };
+    if (photo_urls !== undefined) {
+      payload.photo_urls = photo_urls.slice(0, 5);
+      payload.photo_url = photo_urls[0] || "";
+    }
     const { data, error } = await supabase
       .from("nomenclature" as any)
-      .update({ ...updates, updated_at: new Date().toISOString() } as any)
+      .update(payload as any)
       .eq("id", id)
       .select()
       .single();
-    if (!error && data) setItems(prev => prev.map(i => i.id === id ? data as any : i));
+    if (!error && data) setItems(prev => prev.map(i => i.id === id ? { ...(data as any), photo_urls: (data as any).photo_urls || [] } : i));
     return { data, error };
   };
 
