@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import ProductSelector from "@/components/ProductSelector";
 import CalculatorForm from "@/components/CalculatorForm";
@@ -22,6 +22,7 @@ import {
   calculateStair,
 } from "@/lib/calculator";
 import { calculateBox, MaterialSettings } from "@/lib/boxCalculator";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,24 @@ export default function CalculatorPage() {
 
   const colorNames = colors.map((c) => c.name);
   const colorsForPrint = colors.map((c) => ({ name: c.name, image_url: c.image_url, show_in_print: c.show_in_print }));
+
+  // Auto-save calculation (silent, no UI feedback)
+  const autoSaveCalculation = useCallback(async (productType: string, productLabel: string, params: any, calcResult: CalculationResult) => {
+    if (!user) return;
+    try {
+      await (supabase.from("saved_calculations" as any) as any).insert({
+        user_id: user.id,
+        product_type: productType,
+        product_label: productLabel,
+        calc_name: `Авто: ${productLabel.substring(0, 50)}`,
+        params,
+        result: calcResult,
+        is_auto_saved: true,
+      });
+    } catch {
+      // Silent fail - auto-save should not interrupt user
+    }
+  }, [user]);
 
   const handleSelectProduct = (t: string) => {
     setSelectedProduct(t as ProductType);
@@ -107,6 +126,10 @@ export default function CalculatorPage() {
     }
 
     setResult(res);
+
+    // Auto-save every calculation
+    autoSaveCalculation(selectedProduct, res.productLabel, calcParams, res);
+
     setTimeout(() => {
       resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);

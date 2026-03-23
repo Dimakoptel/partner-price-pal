@@ -90,7 +90,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return initial;
   });
 
-  const logoUrl = getSetting("print_logo_url");
+  const logoLightUrl = getSetting("logo_light_url");
+  const logoDarkUrl = getSetting("logo_dark_url");
+  const logoFallback = getSetting("print_logo_url");
+  const logoUrl = theme === "dark"
+    ? (logoDarkUrl || logoFallback)
+    : (logoLightUrl || logoFallback);
 
   const canSeeItem = (item: NavItem) => {
     if (item.adminOnly) return isAdmin;
@@ -122,7 +127,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="px-5 py-5 border-b border-sidebar-border">
           <Link to="/" className="block" onClick={() => setMobileOpen(false)}>
             {logoUrl ? (
-              <img src={logoUrl} alt="Logo" className="h-8 max-w-[140px] object-contain brightness-0 invert" />
+              <img src={logoUrl} alt="Logo" className="h-8 max-w-[140px] object-contain" />
             ) : (
               <div>
                 <span className="text-[10px] tracking-[0.3em] text-sidebar-muted uppercase block mb-0.5">MES</span>

@@ -16,11 +16,57 @@ interface Props {
 }
 
 export default function CalculatorForm({ productType, onCalculate, colorNames = [], pricing = {} }: Props) {
+  const p = pricing;
+
+  // Dynamic limits from pricing settings
+  const CT_MIN_LEN = p.countertop_min_length || 500;
+  const CT_MAX_LEN = p.countertop_max_length || 3500;
+  const CT_MIN_W = p.countertop_min_width || 200;
+  const CT_MAX_W = p.countertop_max_width || 1500;
+  const CT_MIN_D = p.countertop_min_diameter || 500;
+  const CT_MAX_D = p.countertop_max_diameter || 3000;
+  const CT_MIN_T = p.countertop_min_thickness || 20;
+  const CT_MAX_T = p.countertop_max_thickness || 50;
+  const CT_MAX_DROP = p.countertop_max_drop || 300;
+  const CT_MAX_SUP = p.countertop_max_support || 1200;
+
+  const WS_MIN_T = p.windowsill_min_thickness || 15;
+  const WS_MAX_T = p.windowsill_max_thickness || 50;
+  const WS_MAX_DROP = p.windowsill_max_drop || 200;
+
+  const BS_MIN_W = p.backsplash_min_width || 100;
+  const BS_MAX_W = p.backsplash_max_width || 6000;
+  const BS_MIN_H = p.backsplash_min_height || 300;
+  const BS_MAX_H = p.backsplash_max_height || 1000;
+  const BS_MIN_T = p.backsplash_min_thickness || 10;
+  const BS_MAX_T = p.backsplash_max_thickness || 15;
+
+  const SK_MIN_L = p.sink_min_length || 500;
+  const SK_MAX_L = p.sink_max_length || 4000;
+  const SK_MIN_W = p.sink_min_width || 300;
+  const SK_MAX_W = p.sink_max_width || 1500;
+  const SK_MAX_BOWLS = p.sink_max_bowls || 5;
+  const SK_MAX_OH = p.sink_max_overhang || 300;
+
+  const ST_MIN_T = p.stair_min_thickness || 30;
+  const ST_MAX_T = p.stair_max_thickness || 40;
+  const ST_MIN_RH = p.stair_min_riser_height || 100;
+  const ST_MAX_RH = p.stair_max_riser_height || 300;
+
+  const SS_MIN_L = p.stepslab_min_length || 500;
+  const SS_MAX_L = p.stepslab_max_length || 3500;
+  const SS_MIN_W = p.stepslab_min_width || 200;
+  const SS_MAX_W = p.stepslab_max_width || 1500;
+  const SS_MIN_T = p.stepslab_min_thickness || 40;
+  const SS_MAX_T = p.stepslab_max_thickness || 60;
+  const SS_MAX_TOTAL = p.stepslab_max_total_thickness || 80;
+  const SS_SUBSTRATE = p.stepslab_substrate_thickness || 20;
+
   const [length, setLength] = useState(1000);
   const [width, setWidth] = useState(600);
   const [diameter, setDiameter] = useState(800);
   const [isRound, setIsRound] = useState(false);
-  const [thickness, setThickness] = useState(productType === "backsplash" ? 15 : 30);
+  const [thickness, setThickness] = useState(productType === "backsplash" ? BS_MAX_T : 30);
   const [backsplashWidth, setBacksplashWidth] = useState(2500);
   const [backsplashHeight, setBacksplashHeight] = useState(600);
   const [color, setColor] = useState("серый");
@@ -138,19 +184,19 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
             <>
               <div>
                 <Label className="text-xs">Ширина (мм)</Label>
-                <NumericInput value={backsplashWidth} onValueChange={setBacksplashWidth} min={100} max={6000} className={inputClass} />
-                <p className="text-[10px] text-muted-foreground mt-1">100–6000 мм</p>
+                <NumericInput value={backsplashWidth} onValueChange={setBacksplashWidth} min={BS_MIN_W} max={BS_MAX_W} className={inputClass} />
+                <p className="text-[10px] text-muted-foreground mt-1">{BS_MIN_W}–{BS_MAX_W} мм</p>
               </div>
               <div>
                 <Label className="text-xs">Высота (мм)</Label>
-                <NumericInput value={backsplashHeight} onValueChange={setBacksplashHeight} min={300} max={1000} className={inputClass} />
-                <p className="text-[10px] text-muted-foreground mt-1">300–1000 мм (по умолч. 600)</p>
+                <NumericInput value={backsplashHeight} onValueChange={setBacksplashHeight} min={BS_MIN_H} max={BS_MAX_H} className={inputClass} />
+                <p className="text-[10px] text-muted-foreground mt-1">{BS_MIN_H}–{BS_MAX_H} мм</p>
               </div>
               <div>
                 <Label className="text-xs">Толщина (мм)</Label>
-                <NumericInput value={thickness} onValueChange={setThickness} min={10} max={15} className={inputClass} />
-                <p className="text-[10px] text-muted-foreground mt-1">10–15 мм (стандарт 15)</p>
-                {thickness < 15 && thickness >= 10 && (
+                <NumericInput value={thickness} onValueChange={setThickness} min={BS_MIN_T} max={BS_MAX_T} className={inputClass} />
+                <p className="text-[10px] text-muted-foreground mt-1">{BS_MIN_T}–{BS_MAX_T} мм</p>
+                {thickness < (p.backsplash_standard_thickness || 15) && thickness >= BS_MIN_T && (
                   <p className="text-[10px] text-amber-500 mt-1">⚠️ Нестандартная толщина, требует согласования</p>
                 )}
               </div>
@@ -158,17 +204,30 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
           ) : productType === "countertop" && isRound ? (
             <div>
               <Label className="text-xs">Диаметр (мм)</Label>
-              <NumericInput value={diameter} onValueChange={setDiameter} min={500} max={3000} className={inputClass} />
+              <NumericInput value={diameter} onValueChange={setDiameter} min={CT_MIN_D} max={CT_MAX_D} className={inputClass} />
+              <p className="text-[10px] text-muted-foreground mt-1">{CT_MIN_D}–{CT_MAX_D} мм</p>
             </div>
           ) : (
             <>
               <div>
                 <Label className="text-xs">Длина (мм)</Label>
-                <NumericInput value={length} onValueChange={setLength} min={productType === "sink" ? 500 : 500} max={productType === "sink" ? 4000 : 3500} className={inputClass} />
+                <NumericInput
+                  value={length}
+                  onValueChange={setLength}
+                  min={productType === "sink" ? SK_MIN_L : productType === "stepslab" ? SS_MIN_L : CT_MIN_LEN}
+                  max={productType === "sink" ? SK_MAX_L : productType === "stepslab" ? SS_MAX_L : CT_MAX_LEN}
+                  className={inputClass}
+                />
               </div>
               <div>
                 <Label className="text-xs">Ширина (мм)</Label>
-                <NumericInput value={width} onValueChange={setWidth} min={productType === "sink" ? 300 : 200} max={productType === "sink" ? 1500 : 1500} className={inputClass} />
+                <NumericInput
+                  value={width}
+                  onValueChange={setWidth}
+                  min={productType === "sink" ? SK_MIN_W : productType === "stepslab" ? SS_MIN_W : CT_MIN_W}
+                  max={productType === "sink" ? SK_MAX_W : productType === "stepslab" ? SS_MAX_W : CT_MAX_W}
+                  className={inputClass}
+                />
               </div>
             </>
           )}
@@ -176,11 +235,11 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
           {productType === "stepslab" && (
             <div>
               <Label className="text-xs">Толщина бетона (мм)</Label>
-              <NumericInput value={thicknessConcrete} onValueChange={setThicknessConcrete} min={40} max={60} className={inputClass} />
+              <NumericInput value={thicknessConcrete} onValueChange={setThicknessConcrete} min={SS_MIN_T} max={SS_MAX_T} className={inputClass} />
               {isHeated && (
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  Общая толщина: {thicknessConcrete + 20} мм (бетон {thicknessConcrete} + подложка 20)
-                  {thicknessConcrete + 20 > 80 && <span className="text-destructive ml-1">⚠️ макс. 80 мм</span>}
+                  Общая толщина: {thicknessConcrete + SS_SUBSTRATE} мм (бетон {thicknessConcrete} + подложка {SS_SUBSTRATE})
+                  {thicknessConcrete + SS_SUBSTRATE > SS_MAX_TOTAL && <span className="text-destructive ml-1">⚠️ макс. {SS_MAX_TOTAL} мм</span>}
                 </p>
               )}
             </div>
@@ -188,7 +247,8 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
           {productType === "countertop" && (
             <div>
               <Label className="text-xs">Толщина (мм)</Label>
-              <NumericInput value={thickness} onValueChange={setThickness} min={20} max={50} className={inputClass} />
+              <NumericInput value={thickness} onValueChange={setThickness} min={CT_MIN_T} max={CT_MAX_T} className={inputClass} />
+              <p className="text-[10px] text-muted-foreground mt-1">{CT_MIN_T}–{CT_MAX_T} мм</p>
             </div>
           )}
           {productType === "stair" && (
@@ -207,8 +267,8 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
           {productType === "windowsill" && (
             <div>
               <Label className="text-xs">Толщина (мм)</Label>
-              <NumericInput value={thickness} onValueChange={setThickness} min={15} max={50} className={inputClass} />
-              <p className="text-[10px] text-muted-foreground mt-1">Диапазон: 15–50 мм (по умолчанию 30)</p>
+              <NumericInput value={thickness} onValueChange={setThickness} min={WS_MIN_T} max={WS_MAX_T} className={inputClass} />
+              <p className="text-[10px] text-muted-foreground mt-1">{WS_MIN_T}–{WS_MAX_T} мм</p>
             </div>
           )}
 
@@ -226,26 +286,26 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
           {isRound ? (
             <div className="max-w-[200px]">
               <Label className="text-xs">По периметру</Label>
-              <NumericInput value={dropFront} onValueChange={(v) => { setDropFront(v); setDropBack(0); setDropLeft(0); setDropRight(0); }} min={0} max={300} className={inputClass} />
-              <p className="text-[10px] text-muted-foreground mt-1">Единый опуск по всему периметру круглой столешницы</p>
+              <NumericInput value={dropFront} onValueChange={(v) => { setDropFront(v); setDropBack(0); setDropLeft(0); setDropRight(0); }} min={0} max={CT_MAX_DROP} className={inputClass} />
+              <p className="text-[10px] text-muted-foreground mt-1">0–{CT_MAX_DROP} мм</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs">Спереди</Label>
-                <NumericInput value={dropFront} onValueChange={setDropFront} min={0} max={300} className={inputClass} />
+                <NumericInput value={dropFront} onValueChange={setDropFront} min={0} max={CT_MAX_DROP} className={inputClass} />
               </div>
               <div>
                 <Label className="text-xs">Сзади</Label>
-                <NumericInput value={dropBack} onValueChange={setDropBack} min={0} max={300} className={inputClass} />
+                <NumericInput value={dropBack} onValueChange={setDropBack} min={0} max={CT_MAX_DROP} className={inputClass} />
               </div>
               <div>
                 <Label className="text-xs">Слева</Label>
-                <NumericInput value={dropLeft} onValueChange={setDropLeft} min={0} max={300} className={inputClass} />
+                <NumericInput value={dropLeft} onValueChange={setDropLeft} min={0} max={CT_MAX_DROP} className={inputClass} />
               </div>
               <div>
                 <Label className="text-xs">Справа</Label>
-                <NumericInput value={dropRight} onValueChange={setDropRight} min={0} max={300} className={inputClass} />
+                <NumericInput value={dropRight} onValueChange={setDropRight} min={0} max={CT_MAX_DROP} className={inputClass} />
               </div>
             </div>
           )}
@@ -260,15 +320,15 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
           <div className="grid grid-cols-3 gap-3">
             <div>
               <Label className="text-xs">Спереди</Label>
-              <NumericInput value={dropFront} onValueChange={setDropFront} min={0} max={200} className={inputClass} />
+              <NumericInput value={dropFront} onValueChange={setDropFront} min={0} max={WS_MAX_DROP} className={inputClass} />
             </div>
             <div>
               <Label className="text-xs">Слева</Label>
-              <NumericInput value={dropLeft} onValueChange={setDropLeft} min={0} max={200} className={inputClass} />
+              <NumericInput value={dropLeft} onValueChange={setDropLeft} min={0} max={WS_MAX_DROP} className={inputClass} />
             </div>
             <div>
               <Label className="text-xs">Справа</Label>
-              <NumericInput value={dropRight} onValueChange={setDropRight} min={0} max={200} className={inputClass} />
+              <NumericInput value={dropRight} onValueChange={setDropRight} min={0} max={WS_MAX_DROP} className={inputClass} />
             </div>
           </div>
         </div>
@@ -281,11 +341,11 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs">Слева</Label>
-              <NumericInput value={supportLeft} onValueChange={setSupportLeft} min={0} max={1200} className={inputClass} />
+              <NumericInput value={supportLeft} onValueChange={setSupportLeft} min={0} max={CT_MAX_SUP} className={inputClass} />
             </div>
             <div>
               <Label className="text-xs">Справа</Label>
-              <NumericInput value={supportRight} onValueChange={setSupportRight} min={0} max={1200} className={inputClass} />
+              <NumericInput value={supportRight} onValueChange={setSupportRight} min={0} max={CT_MAX_SUP} className={inputClass} />
             </div>
           </div>
         </div>
@@ -303,13 +363,13 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs">Высота подступенка (мм)</Label>
-                <NumericInput value={riserHeight} onValueChange={setRiserHeight} min={100} max={300} className={inputClass} />
-                <p className="text-[10px] text-muted-foreground mt-1">100–300 мм (по умолч. 180)</p>
+                <NumericInput value={riserHeight} onValueChange={setRiserHeight} min={ST_MIN_RH} max={ST_MAX_RH} className={inputClass} />
+                <p className="text-[10px] text-muted-foreground mt-1">{ST_MIN_RH}–{ST_MAX_RH} мм</p>
               </div>
               <div>
                 <Label className="text-xs">Толщина подступенка (мм)</Label>
                 <NumericInput value={riserThickness} onValueChange={setRiserThickness} min={15} max={20} className={inputClass} />
-                <p className="text-[10px] text-muted-foreground mt-1">15–20 мм (по умолч. 15)</p>
+                <p className="text-[10px] text-muted-foreground mt-1">15–20 мм</p>
               </div>
             </div>
           )}
@@ -335,7 +395,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs">Количество чаш</Label>
-                <NumericInput value={bowlCount} onValueChange={setBowlCount} min={1} max={5} className={inputClass} />
+                <NumericInput value={bowlCount} onValueChange={setBowlCount} min={1} max={SK_MAX_BOWLS} className={inputClass} />
               </div>
               <div>
                 <Label className="text-xs">Глубина чаши (мм)</Label>
@@ -391,7 +451,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs">Высота опуска (мм)</Label>
-                <NumericInput value={overhangHeight} onValueChange={setOverhangHeight} min={0} max={300} className={inputClass} />
+                <NumericInput value={overhangHeight} onValueChange={setOverhangHeight} min={0} max={SK_MAX_OH} className={inputClass} />
               </div>
             </div>
             {overhangHeight > 0 && (

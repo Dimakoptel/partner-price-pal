@@ -613,6 +613,7 @@ export type Database = {
           is_active: boolean
           name: string
           photo_url: string | null
+          photo_urls: string[]
           price_dealer: number | null
           price_partner: number | null
           price_rrp: number | null
@@ -636,6 +637,7 @@ export type Database = {
           is_active?: boolean
           name: string
           photo_url?: string | null
+          photo_urls?: string[]
           price_dealer?: number | null
           price_partner?: number | null
           price_rrp?: number | null
@@ -659,6 +661,7 @@ export type Database = {
           is_active?: boolean
           name?: string
           photo_url?: string | null
+          photo_urls?: string[]
           price_dealer?: number | null
           price_partner?: number | null
           price_rrp?: number | null
@@ -1311,6 +1314,7 @@ export type Database = {
           client_id: string | null
           created_at: string
           id: string
+          is_auto_saved: boolean
           lead_id: string | null
           params: Json
           product_label: string
@@ -1323,6 +1327,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           id?: string
+          is_auto_saved?: boolean
           lead_id?: string | null
           params: Json
           product_label: string
@@ -1335,6 +1340,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           id?: string
+          is_auto_saved?: boolean
           lead_id?: string | null
           params?: Json
           product_label?: string
