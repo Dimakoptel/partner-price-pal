@@ -11,6 +11,7 @@ export interface SavedCalculation {
   params: any;
   result: any;
   created_at: string;
+  is_auto_saved?: boolean;
 }
 
 export function useCalculations() {
@@ -20,10 +21,18 @@ export function useCalculations() {
 
   const fetchCalculations = async () => {
     if (!user) return;
-    const { data } = await supabase
+
+    let query = supabase
       .from("saved_calculations" as any)
       .select("*")
-      .order("created_at", { ascending: false }) as { data: SavedCalculation[] | null };
+      .order("created_at", { ascending: false }) as any;
+
+    // Non-admin users only see their manually saved calculations
+    if (!isAdmin) {
+      query = query.eq("is_auto_saved", false);
+    }
+
+    const { data } = await query as { data: SavedCalculation[] | null };
     if (data) setCalculations(data);
     setLoading(false);
   };
@@ -45,6 +54,7 @@ export function useCalculations() {
         calc_name: calcName,
         params,
         result,
+        is_auto_saved: false,
       });
     if (!error) fetchCalculations();
     return { error };
@@ -63,7 +73,7 @@ export function useCalculations() {
 
   useEffect(() => {
     if (user) fetchCalculations();
-  }, [user]);
+  }, [user, isAdmin]);
 
   return { calculations, loading, saveCalculation, deleteCalculation, fetchCalculations };
 }
