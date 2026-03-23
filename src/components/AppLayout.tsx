@@ -90,7 +90,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return initial;
   });
 
-  const logoUrl = getSetting("print_logo_url");
+  const logoLightUrl = getSetting("logo_light_url");
+  const logoDarkUrl = getSetting("logo_dark_url");
+  const logoFallback = getSetting("print_logo_url");
+  const logoUrl = theme === "dark"
+    ? (logoDarkUrl || logoFallback)
+    : (logoLightUrl || logoFallback);
 
   const canSeeItem = (item: NavItem) => {
     if (item.adminOnly) return isAdmin;
