@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { Phone, Mail, Calendar, FileText, ShoppingCart, UserPlus, User, Package, AlertCircle } from "lucide-react";
+import { Phone, Mail, Calendar, FileText, ShoppingCart, UserPlus, User, Package, AlertCircle, Pencil } from "lucide-react";
+import LeadFormDialog from "./LeadFormDialog";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
@@ -35,6 +36,7 @@ interface Props {
 export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusChange, onConvertToClient, onConvertToOrder }: Props) {
   const [lostReason, setLostReason] = useState("");
   const [showLostDialog, setShowLostDialog] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const convertMutation = useConvertLeadToOrder();
 
   if (!lead) return null;
@@ -111,9 +113,14 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl">Лид: {lead.client_name || "Без имени"}</DialogTitle>
-            <Badge variant="outline" style={{ borderColor: si.color, color: si.color }}>
-              {si.label}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" onClick={() => setEditOpen(true)} title="Редактировать">
+                <Pencil className="w-4 h-4" />
+              </Button>
+              <Badge variant="outline" style={{ borderColor: si.color, color: si.color }}>
+                {si.label}
+              </Badge>
+            </div>
           </div>
         </DialogHeader>
 
@@ -321,6 +328,16 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
           </Button>
         )}
       </DialogContent>
+
+      <LeadFormDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        lead={lead}
+        onSuccess={() => {
+          setEditOpen(false);
+          onOpenChange(false);
+        }}
+      />
     </Dialog>
   );
 }
