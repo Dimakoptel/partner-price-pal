@@ -328,6 +328,16 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
           </Button>
         )}
       </DialogContent>
+
+      <LeadFormDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        lead={lead}
+        onSuccess={() => {
+          setEditOpen(false);
+          onOpenChange(false);
+        }}
+      />
     </Dialog>
   );
 }
