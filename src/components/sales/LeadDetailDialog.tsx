@@ -113,9 +113,14 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl">Лид: {lead.client_name || "Без имени"}</DialogTitle>
-            <Badge variant="outline" style={{ borderColor: si.color, color: si.color }}>
-              {si.label}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" onClick={() => setEditOpen(true)} title="Редактировать">
+                <Pencil className="w-4 h-4" />
+              </Button>
+              <Badge variant="outline" style={{ borderColor: si.color, color: si.color }}>
+                {si.label}
+              </Badge>
+            </div>
           </div>
         </DialogHeader>
 
