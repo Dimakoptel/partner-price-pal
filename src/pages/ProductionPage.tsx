@@ -1,12 +1,13 @@
 import { useState, useMemo } from "react";
 import AppLayout from "@/components/AppLayout";
 import { motion } from "framer-motion";
-import { Factory, Search, Filter, Clock, CheckCircle2, Pause, XCircle, PlayCircle } from "lucide-react";
-import { useProductionOrders, useProductionStages, useUpdateProductionStatus, type ProductionOrder } from "@/hooks/useProductionOrders";
+import { Factory, Search, Filter, Clock, CheckCircle2, Pause, XCircle, PlayCircle, SkipForward, MessageSquare } from "lucide-react";
+import { useProductionOrders, useProductionStages, useUpdateProductionStatus, useUpdateProductionStage, type ProductionOrder, type ProductionStage } from "@/hooks/useProductionOrders";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
@@ -21,26 +22,103 @@ const PRODUCTION_STATUSES = [
   { code: "cancelled", label: "Отменён", color: "#ef4444", icon: XCircle },
 ];
 
+const STAGE_STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  pending: { label: "Ожидание", color: "#94a3b8" },
+  in_progress: { label: "В работе", color: "#8b5cf6" },
+  completed: { label: "Готово", color: "#10b981" },
+  skipped: { label: "Пропущен", color: "#f59e0b" },
+};
+
 function StagesList({ productionOrderId }: { productionOrderId: string }) {
   const { data: stages, isLoading } = useProductionStages(productionOrderId);
+  const updateStage = useUpdateProductionStage();
+  const [notesStageId, setNotesStageId] = useState<string | null>(null);
+  const [noteText, setNoteText] = useState("");
+
   if (isLoading) return <p className="text-xs text-muted-foreground py-2">Загрузка этапов...</p>;
   if (!stages || stages.length === 0) return <p className="text-xs text-muted-foreground py-2">Этапы не определены</p>;
 
+  const handleStart = (stage: ProductionStage) => {
+    updateStage.mutate({ id: stage.id, updates: { status: "in_progress", actual_start: new Date().toISOString() } });
+  };
+
+  const handleComplete = (stage: ProductionStage) => {
+    updateStage.mutate({ id: stage.id, updates: { status: "completed", actual_end: new Date().toISOString() } });
+  };
+
+  const handleSkip = (stage: ProductionStage) => {
+    updateStage.mutate({ id: stage.id, updates: { status: "skipped", actual_end: new Date().toISOString() } });
+  };
+
+  const handleSaveNotes = (stageId: string) => {
+    updateStage.mutate({ id: stageId, updates: { notes: noteText } });
+    setNotesStageId(null);
+    setNoteText("");
+  };
+
   return (
     <div className="space-y-2">
-      {stages.map((s) => (
-        <div key={s.id} className="flex items-center justify-between border border-border rounded-md p-2.5 bg-muted/20">
-          <div>
-            <p className="text-sm font-medium">{s.stage?.name || "Этап"}</p>
-            <p className="text-xs text-muted-foreground">
-              {s.planned_start ? format(new Date(s.planned_start), "d MMM", { locale: ru }) : "—"} → {s.planned_end ? format(new Date(s.planned_end), "d MMM", { locale: ru }) : "—"}
-            </p>
+      {stages.map((s, idx) => {
+        const si = STAGE_STATUS_LABELS[s.status] || { label: s.status, color: "#888" };
+        const isEditable = s.status === "pending" || s.status === "in_progress";
+        const prevDone = idx === 0 || ["completed", "skipped"].includes(stages[idx - 1].status);
+
+        return (
+          <div key={s.id} className="border border-border rounded-md p-3 bg-muted/20 space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">{s.stage?.name || `Этап ${idx + 1}`}</p>
+                <p className="text-xs text-muted-foreground">
+                  {s.planned_start ? format(new Date(s.planned_start), "d MMM", { locale: ru }) : "—"} → {s.planned_end ? format(new Date(s.planned_end), "d MMM", { locale: ru }) : "—"}
+                  {s.actual_start && <span className="ml-2 text-foreground">Факт: {format(new Date(s.actual_start), "d MMM HH:mm", { locale: ru })}</span>}
+                </p>
+              </div>
+              <Badge variant="outline" style={{ borderColor: si.color, color: si.color }} className="text-[10px] shrink-0">
+                {si.label}
+              </Badge>
+            </div>
+
+            {s.notes && notesStageId !== s.id && (
+              <p className="text-xs text-muted-foreground bg-muted/50 rounded p-1.5">{s.notes}</p>
+            )}
+
+            {notesStageId === s.id && (
+              <div className="flex gap-2">
+                <Textarea value={noteText} onChange={(e) => setNoteText(e.target.value)} rows={2} className="text-xs" placeholder="Заметка к этапу..." />
+                <div className="flex flex-col gap-1">
+                  <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => handleSaveNotes(s.id)}>Сохранить</Button>
+                  <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => setNotesStageId(null)}>Отмена</Button>
+                </div>
+              </div>
+            )}
+
+            {isEditable && (
+              <div className="flex gap-1.5 flex-wrap">
+                {s.status === "pending" && prevDone && (
+                  <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => handleStart(s)} disabled={updateStage.isPending}>
+                    <PlayCircle className="w-3 h-3" /> Начать
+                  </Button>
+                )}
+                {s.status === "in_progress" && (
+                  <Button size="sm" variant="default" className="h-7 text-xs gap-1" onClick={() => handleComplete(s)} disabled={updateStage.isPending}>
+                    <CheckCircle2 className="w-3 h-3" /> Завершить
+                  </Button>
+                )}
+                {s.status !== "completed" && s.status !== "skipped" && (
+                  <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={() => handleSkip(s)} disabled={updateStage.isPending}>
+                    <SkipForward className="w-3 h-3" /> Пропустить
+                  </Button>
+                )}
+                {notesStageId !== s.id && (
+                  <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={() => { setNotesStageId(s.id); setNoteText(s.notes || ""); }}>
+                    <MessageSquare className="w-3 h-3" /> Заметка
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
-          <Badge variant="outline" style={{ borderColor: s.stage?.color || undefined, color: s.stage?.color || undefined }} className="text-[10px]">
-            {s.status === "pending" ? "Ожидание" : s.status === "in_progress" ? "В работе" : s.status === "completed" ? "Готово" : s.status}
-          </Badge>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
