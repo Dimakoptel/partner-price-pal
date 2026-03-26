@@ -111,6 +111,8 @@ export function useOrders() {
   return {
     orders: ordersQuery.data ?? [],
     isLoading: ordersQuery.isLoading,
+    isFetching: ordersQuery.isFetching,
+    error: ordersQuery.error,
     createOrder,
     updateOrder,
   };
