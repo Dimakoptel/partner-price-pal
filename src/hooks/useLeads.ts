@@ -139,7 +139,11 @@ export function useLeads() {
   };
 
   useEffect(() => {
-    if (user) fetchLeads();
+    if (user) {
+      fetchLeads();
+    } else {
+      setLoading(false);
+    }
   }, [user]);
 
   return { leads, loading, createLead, updateLead, fetchLeads, convertToClient, convertToOrder };
