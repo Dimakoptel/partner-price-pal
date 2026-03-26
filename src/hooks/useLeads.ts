@@ -30,13 +30,16 @@ export function useLeads() {
   const [loading, setLoading] = useState(true);
 
   const fetchLeads = async () => {
-    if (!user) return;
-    const { data } = await supabase
-      .from("leads")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (data) setLeads(data as Lead[]);
-    setLoading(false);
+    if (!user) { setLoading(false); return; }
+    try {
+      const { data } = await supabase
+        .from("leads")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (data) setLeads(data as Lead[]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const createLead = async (lead: {
@@ -139,7 +142,11 @@ export function useLeads() {
   };
 
   useEffect(() => {
-    if (user) fetchLeads();
+    if (user) {
+      fetchLeads();
+    } else {
+      setLoading(false);
+    }
   }, [user]);
 
   return { leads, loading, createLead, updateLead, fetchLeads, convertToClient, convertToOrder };

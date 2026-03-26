@@ -25,7 +25,7 @@ export function useClients() {
   const qc = useQueryClient();
 
   const clientsQuery = useQuery({
-    queryKey: ["clients"],
+    queryKey: ["clients", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clients")

@@ -60,14 +60,14 @@ export function useOrders() {
   const qc = useQueryClient();
 
   const ordersQuery = useQuery({
-    queryKey: ["orders"],
+    queryKey: ["orders", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("orders" as any)
+        .from("orders")
         .select("*, client:clients(id, name, phone, company)")
-        .order("created_at", { ascending: false }) as any;
+        .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data || []) as Order[];
+      return (data || []) as unknown as Order[];
     },
     enabled: !!user,
   });
@@ -111,6 +111,8 @@ export function useOrders() {
   return {
     orders: ordersQuery.data ?? [],
     isLoading: ordersQuery.isLoading,
+    isFetching: ordersQuery.isFetching,
+    error: ordersQuery.error,
     createOrder,
     updateOrder,
   };
