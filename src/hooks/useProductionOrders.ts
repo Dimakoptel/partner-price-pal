@@ -159,6 +159,11 @@ export function useUpdateProductionStage() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["production_stages"] });
+      qc.invalidateQueries({ queryKey: ["production_orders"] });
+      qc.invalidateQueries({ queryKey: ["orders"] });
+    },
+    onError: (e: any) => {
+      toast.error("Ошибка: " + e.message);
     },
   });
 }
