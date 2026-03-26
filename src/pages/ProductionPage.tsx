@@ -1,27 +1,252 @@
+import { useState, useMemo } from "react";
 import AppLayout from "@/components/AppLayout";
 import { motion } from "framer-motion";
-import { Factory } from "lucide-react";
+import { Factory, Search, Filter, Clock, CheckCircle2, Pause, XCircle, PlayCircle } from "lucide-react";
+import { useProductionOrders, useProductionStages, useUpdateProductionStatus, type ProductionOrder } from "@/hooks/useProductionOrders";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
+
+const PRODUCTION_STATUSES = [
+  { code: "planned", label: "Запланирован", color: "#3b82f6", icon: Clock },
+  { code: "in_progress", label: "В работе", color: "#8b5cf6", icon: PlayCircle },
+  { code: "paused", label: "Приостановлен", color: "#f59e0b", icon: Pause },
+  { code: "completed", label: "Завершён", color: "#10b981", icon: CheckCircle2 },
+  { code: "cancelled", label: "Отменён", color: "#ef4444", icon: XCircle },
+];
+
+function StagesList({ productionOrderId }: { productionOrderId: string }) {
+  const { data: stages, isLoading } = useProductionStages(productionOrderId);
+  if (isLoading) return <p className="text-xs text-muted-foreground py-2">Загрузка этапов...</p>;
+  if (!stages || stages.length === 0) return <p className="text-xs text-muted-foreground py-2">Этапы не определены</p>;
+
+  return (
+    <div className="space-y-2">
+      {stages.map((s) => (
+        <div key={s.id} className="flex items-center justify-between border border-border rounded-md p-2.5 bg-muted/20">
+          <div>
+            <p className="text-sm font-medium">{s.stage?.name || "Этап"}</p>
+            <p className="text-xs text-muted-foreground">
+              {s.planned_start ? format(new Date(s.planned_start), "d MMM", { locale: ru }) : "—"} → {s.planned_end ? format(new Date(s.planned_end), "d MMM", { locale: ru }) : "—"}
+            </p>
+          </div>
+          <Badge variant="outline" style={{ borderColor: s.stage?.color || undefined, color: s.stage?.color || undefined }} className="text-[10px]">
+            {s.status === "pending" ? "Ожидание" : s.status === "in_progress" ? "В работе" : s.status === "completed" ? "Готово" : s.status}
+          </Badge>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function ProductionPage() {
+  const { data: orders, isLoading } = useProductionOrders();
+  const updateStatus = useUpdateProductionStatus();
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedOrder, setSelectedOrder] = useState<ProductionOrder | null>(null);
+
+  const filtered = useMemo(() => {
+    let result = orders || [];
+    if (statusFilter !== "all") {
+      result = result.filter((o) => o.status?.code === statusFilter);
+    }
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter((o) =>
+        o.batch_number?.toLowerCase().includes(q) || o.notes?.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [orders, search, statusFilter]);
+
+  const statusInfo = (o: ProductionOrder) => {
+    const code = o.status?.code || "";
+    return PRODUCTION_STATUSES.find((s) => s.code === code) || { code, label: o.status?.name || code, color: "#888" };
+  };
+
+  const stats = useMemo(() => {
+    const all = orders || [];
+    return {
+      total: all.length,
+      inProgress: all.filter((o) => o.status?.code === "in_progress").length,
+      planned: all.filter((o) => o.status?.code === "planned").length,
+      completed: all.filter((o) => o.status?.code === "completed").length,
+    };
+  }, [orders]);
+
   return (
     <AppLayout>
       <div className="max-w-5xl mx-auto">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <h1 className="text-2xl font-light text-foreground tracking-tight">
-            Производство
-          </h1>
-          <p className="text-muted-foreground text-sm mt-2 mb-8">
-            Управление производственными процессами
-          </p>
+          <h1 className="text-2xl font-light text-foreground tracking-tight">Производство</h1>
+          <p className="text-muted-foreground text-sm mt-2 mb-6">Управление производственными заказами</p>
         </motion.div>
-        <div className="border border-border p-12 bg-card text-center">
-          <Factory className="w-10 h-10 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-sm font-medium mb-2">Раздел в разработке</h3>
-          <p className="text-xs text-muted-foreground max-w-md mx-auto">
-            Здесь будет управление производственными заказами, планирование и отслеживание выполнения
-          </p>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          {[
+            { label: "Всего", value: stats.total },
+            { label: "Запланировано", value: stats.planned },
+            { label: "В работе", value: stats.inProgress },
+            { label: "Завершено", value: stats.completed },
+          ].map((s) => (
+            <div key={s.label} className="border border-border p-3 bg-card">
+              <div className="text-2xl font-light">{s.value}</div>
+              <div className="text-xs text-muted-foreground">{s.label}</div>
+            </div>
+          ))}
         </div>
+
+        {/* Filters */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input placeholder="Поиск по номеру партии..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px]">
+              <Filter className="w-3.5 h-3.5 mr-1.5" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все статусы</SelectItem>
+              {PRODUCTION_STATUSES.map((s) => (
+                <SelectItem key={s.code} value={s.code}>{s.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {isLoading ? (
+          <div className="text-center py-12 text-muted-foreground">Загрузка...</div>
+        ) : filtered.length === 0 ? (
+          <div className="border border-dashed border-border p-12 text-center">
+            <Factory className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="text-muted-foreground text-sm">
+              {search || statusFilter !== "all" ? "Ничего не найдено" : "Производственных заказов пока нет. Создайте заказ продажи и передайте в производство."}
+            </p>
+          </div>
+        ) : (
+          <div className="border border-border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Партия</TableHead>
+                  <TableHead>Приоритет</TableHead>
+                  <TableHead>План. начало</TableHead>
+                  <TableHead>План. окончание</TableHead>
+                  <TableHead>Статус</TableHead>
+                  <TableHead>Создан</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((po) => {
+                  const si = statusInfo(po);
+                  return (
+                    <TableRow key={po.id} className="cursor-pointer" onClick={() => setSelectedOrder(po)}>
+                      <TableCell className="font-mono text-xs">{po.batch_number || "—"}</TableCell>
+                      <TableCell>
+                        <Badge variant={po.priority === "high" ? "destructive" : po.priority === "urgent" ? "destructive" : "outline"} className="text-[10px]">
+                          {po.priority === "high" ? "Высокий" : po.priority === "urgent" ? "Срочный" : po.priority === "low" ? "Низкий" : "Обычный"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {po.planned_start ? format(new Date(po.planned_start), "d MMM", { locale: ru }) : "—"}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {po.planned_finish ? format(new Date(po.planned_finish), "d MMM", { locale: ru }) : "—"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" style={{ borderColor: si.color, color: si.color }} className="text-[10px]">
+                          {si.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {format(new Date(po.created_at), "d MMM", { locale: ru })}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </div>
+
+      {/* Detail dialog */}
+      <Dialog open={!!selectedOrder} onOpenChange={(v) => { if (!v) setSelectedOrder(null); }}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Производственный заказ {selectedOrder?.batch_number}</DialogTitle>
+          </DialogHeader>
+          {selectedOrder && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-muted-foreground text-xs">Приоритет</span>
+                  <p>{selectedOrder.priority === "high" ? "Высокий" : selectedOrder.priority === "urgent" ? "Срочный" : "Обычный"}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground text-xs">Статус</span>
+                  <p>{selectedOrder.status?.name || "—"}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground text-xs">Плановое начало</span>
+                  <p>{selectedOrder.planned_start ? format(new Date(selectedOrder.planned_start), "d MMMM yyyy", { locale: ru }) : "—"}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground text-xs">Плановое окончание</span>
+                  <p>{selectedOrder.planned_finish ? format(new Date(selectedOrder.planned_finish), "d MMMM yyyy", { locale: ru }) : "—"}</p>
+                </div>
+              </div>
+
+              {selectedOrder.notes && (
+                <div>
+                  <span className="text-muted-foreground text-xs">Заметки</span>
+                  <p className="text-sm">{selectedOrder.notes}</p>
+                </div>
+              )}
+
+              {/* Status actions */}
+              <Separator />
+              <div className="flex gap-2 flex-wrap">
+                {selectedOrder.status?.code === "planned" && (
+                  <Button size="sm" onClick={() => { updateStatus.mutate({ productionOrderId: selectedOrder.id, statusCode: "in_progress" }); setSelectedOrder(null); }}>
+                    <PlayCircle className="w-3.5 h-3.5 mr-1" /> Начать производство
+                  </Button>
+                )}
+                {selectedOrder.status?.code === "in_progress" && (
+                  <>
+                    <Button size="sm" variant="outline" onClick={() => { updateStatus.mutate({ productionOrderId: selectedOrder.id, statusCode: "paused" }); setSelectedOrder(null); }}>
+                      <Pause className="w-3.5 h-3.5 mr-1" /> Приостановить
+                    </Button>
+                    <Button size="sm" onClick={() => { updateStatus.mutate({ productionOrderId: selectedOrder.id, statusCode: "completed" }); setSelectedOrder(null); }}>
+                      <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Завершить
+                    </Button>
+                  </>
+                )}
+                {selectedOrder.status?.code === "paused" && (
+                  <Button size="sm" onClick={() => { updateStatus.mutate({ productionOrderId: selectedOrder.id, statusCode: "in_progress" }); setSelectedOrder(null); }}>
+                    <PlayCircle className="w-3.5 h-3.5 mr-1" /> Возобновить
+                  </Button>
+                )}
+              </div>
+
+              {/* Stages */}
+              <Separator />
+              <h3 className="text-sm font-medium">Этапы производства</h3>
+              <StagesList productionOrderId={selectedOrder.id} />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
