@@ -178,6 +178,14 @@ export default function PriceListPage() {
               </p>
             </div>
             <div className="flex gap-2">
+              <Button
+                variant={showPhotos ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowPhotos(!showPhotos)}
+                className="gap-2"
+              >
+                <Image className="w-4 h-4" /> {showPhotos ? "Скрыть фото" : "Показать фото"}
+              </Button>
               {canSeePrices && (
                 <Button variant="outline" onClick={() => setPrintOpen(true)} className="gap-2">
                   <Printer className="w-4 h-4" /> Печать
