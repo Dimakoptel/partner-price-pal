@@ -128,6 +128,10 @@ export type Database = {
       clients: {
         Row: {
           address: string | null
+          bank_account: string | null
+          bank_bik: string | null
+          bank_corr_account: string | null
+          bank_name: string | null
           client_type: string
           commission_rate: number | null
           company: string | null
@@ -139,9 +143,12 @@ export type Database = {
           id: string
           inn: string | null
           is_active: boolean
+          kpp: string | null
+          legal_address: string | null
           manager_id: string | null
           name: string
           notes: string | null
+          ogrn: string | null
           payment_terms: string
           phone: string | null
           pricing_type: string
@@ -152,6 +159,10 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          bank_account?: string | null
+          bank_bik?: string | null
+          bank_corr_account?: string | null
+          bank_name?: string | null
           client_type?: string
           commission_rate?: number | null
           company?: string | null
@@ -163,9 +174,12 @@ export type Database = {
           id?: string
           inn?: string | null
           is_active?: boolean
+          kpp?: string | null
+          legal_address?: string | null
           manager_id?: string | null
           name: string
           notes?: string | null
+          ogrn?: string | null
           payment_terms?: string
           phone?: string | null
           pricing_type?: string
@@ -176,6 +190,10 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          bank_account?: string | null
+          bank_bik?: string | null
+          bank_corr_account?: string | null
+          bank_name?: string | null
           client_type?: string
           commission_rate?: number | null
           company?: string | null
@@ -187,9 +205,12 @@ export type Database = {
           id?: string
           inn?: string | null
           is_active?: boolean
+          kpp?: string | null
+          legal_address?: string | null
           manager_id?: string | null
           name?: string
           notes?: string | null
+          ogrn?: string | null
           payment_terms?: string
           phone?: string | null
           pricing_type?: string
