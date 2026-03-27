@@ -3,7 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 import {
   Calculator, Settings, LogOut, History,
   Sun, Moon, BookOpen, Menu,
-  Factory, Warehouse, ChevronDown, TrendingUp, Home, FileSpreadsheet, RefreshCw, CheckCircle2
+  Factory, Warehouse, ChevronDown, Home, FileSpreadsheet,
+  Users, Target, Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
@@ -40,11 +41,11 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    key: "sales",
-    label: "Продажи",
-    icon: TrendingUp,
+    key: "crm",
+    label: "CRM",
+    icon: Target,
     items: [
-      { path: "/sales", label: "Продажи", icon: TrendingUp, module: "clients", adminOrModule: true },
+      { path: "/crm", label: "CRM", icon: Target, module: "clients", adminOrModule: true },
     ],
   },
   {
@@ -63,14 +64,19 @@ const NAV_GROUPS: NavGroup[] = [
       { path: "/warehouse", label: "Склад", icon: Warehouse, module: "calculator" },
     ],
   },
+  {
+    key: "info",
+    label: "Информация",
+    icon: Info,
+    items: [
+      { path: "/docs", label: "Инструкция", icon: BookOpen, module: "docs" },
+      { path: "/pricelist", label: "Прайс-лист", icon: FileSpreadsheet },
+    ],
+  },
 ];
 
 const STANDALONE_ITEMS: NavItem[] = [
-  { path: "/pricelist", label: "Прайс-лист", icon: FileSpreadsheet },
-  { path: "/docs", label: "Инструкция", icon: BookOpen, module: "docs" },
   { path: "/admin", label: "Администрирование", icon: Settings, adminOnly: true },
-  { path: "/admin/integrations", label: "Интеграции", icon: RefreshCw, adminOnly: true },
-  { path: "/admin/launch-checklist", label: "Запуск", icon: CheckCircle2, adminOnly: true },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
