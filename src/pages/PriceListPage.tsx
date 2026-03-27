@@ -50,6 +50,7 @@ export default function PriceListPage() {
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [printOpen, setPrintOpen] = useState(false);
   const [printColumns, setPrintColumns] = useState<PriceColumn[]>(["rrp"]);
+  const [showPhotos, setShowPhotos] = useState(false);
 
   const visiblePriceColumns = canSeePrices
     ? PRICE_COLUMNS
