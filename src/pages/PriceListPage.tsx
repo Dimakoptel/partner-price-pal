@@ -248,6 +248,22 @@ export default function PriceListPage() {
                       className="hover:bg-muted/30 cursor-pointer"
                       onClick={() => setDetailItem(item)}
                     >
+                      {showPhotos && (
+                        <TableCell>
+                          {(item.photo_urls?.filter(Boolean).length > 0 || item.photo_url) ? (
+                            <img
+                              src={item.photo_urls?.filter(Boolean)[0] || item.photo_url}
+                              alt={item.name}
+                              className="w-14 h-14 object-cover rounded border border-border cursor-pointer"
+                              onClick={(e) => { e.stopPropagation(); openGallery(item); }}
+                            />
+                          ) : (
+                            <div className="w-14 h-14 bg-muted flex items-center justify-center rounded border border-border">
+                              <Image className="w-4 h-4 text-muted-foreground" />
+                            </div>
+                          )}
+                        </TableCell>
+                      )}
                       <TableCell className="text-xs font-mono text-muted-foreground">{item.sku || "—"}</TableCell>
                       <TableCell className="text-sm font-medium">{item.name}</TableCell>
                       <TableCell className="text-xs">{item.size_mm || "—"}</TableCell>
