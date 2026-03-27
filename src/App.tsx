@@ -19,7 +19,6 @@ import ClientsPage from "./pages/ClientsPage";
 import ProductionPage from "./pages/ProductionPage";
 import WarehousePage from "./pages/WarehousePage";
 import PriceListPage from "./pages/PriceListPage";
-import AdminIntegrationsPage from "./pages/AdminIntegrationsPage";
 import AdminLaunchChecklistPage from "./pages/AdminLaunchChecklistPage";
 
 const queryClient = new QueryClient();
@@ -48,14 +47,17 @@ const App = () => (
               <Route path="/docs" element={<DocsPage />} />
               <Route path="/production" element={<ProductionPage />} />
               <Route path="/warehouse" element={<WarehousePage />} />
-              <Route path="/sales" element={<ClientsPage />} />
+              <Route path="/crm" element={<ClientsPage />} />
+              {/* Legacy route redirect */}
+              <Route path="/sales" element={<Navigate to="/crm" replace />} />
               <Route path="/pricelist" element={<PriceListPage />} />
             </Route>
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/admin/checklist" element={<AdminChecklistPage />} />
-              <Route path="/admin/integrations" element={<AdminIntegrationsPage />} />
               <Route path="/admin/launch-checklist" element={<AdminLaunchChecklistPage />} />
+              {/* Legacy route redirect */}
+              <Route path="/admin/integrations" element={<Navigate to="/admin" replace />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

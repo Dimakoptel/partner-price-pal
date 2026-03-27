@@ -50,6 +50,7 @@ export default function PriceListPage() {
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [printOpen, setPrintOpen] = useState(false);
   const [printColumns, setPrintColumns] = useState<PriceColumn[]>(["rrp"]);
+  const [showPhotos, setShowPhotos] = useState(false);
 
   const visiblePriceColumns = canSeePrices
     ? PRICE_COLUMNS
@@ -177,6 +178,14 @@ export default function PriceListPage() {
               </p>
             </div>
             <div className="flex gap-2">
+              <Button
+                variant={showPhotos ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowPhotos(!showPhotos)}
+                className="gap-2"
+              >
+                <Image className="w-4 h-4" /> {showPhotos ? "Скрыть фото" : "Показать фото"}
+              </Button>
               {canSeePrices && (
                 <Button variant="outline" onClick={() => setPrintOpen(true)} className="gap-2">
                   <Printer className="w-4 h-4" /> Печать
@@ -210,6 +219,7 @@ export default function PriceListPage() {
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead className="text-xs font-semibold w-24">Артикул</TableHead>
+                 {showPhotos && <TableHead className="text-xs font-semibold w-20">Фото</TableHead>}
                   <TableHead className="text-xs font-semibold">Наименование</TableHead>
                   <TableHead className="text-xs font-semibold w-28">Размер, мм</TableHead>
                   <TableHead className="text-xs font-semibold w-32">Вес / Хар-ки</TableHead>
@@ -238,6 +248,22 @@ export default function PriceListPage() {
                       className="hover:bg-muted/30 cursor-pointer"
                       onClick={() => setDetailItem(item)}
                     >
+                      {showPhotos && (
+                        <TableCell>
+                          {(item.photo_urls?.filter(Boolean).length > 0 || item.photo_url) ? (
+                            <img
+                              src={item.photo_urls?.filter(Boolean)[0] || item.photo_url}
+                              alt={item.name}
+                              className="w-14 h-14 object-cover rounded border border-border cursor-pointer"
+                              onClick={(e) => { e.stopPropagation(); openGallery(item); }}
+                            />
+                          ) : (
+                            <div className="w-14 h-14 bg-muted flex items-center justify-center rounded border border-border">
+                              <Image className="w-4 h-4 text-muted-foreground" />
+                            </div>
+                          )}
+                        </TableCell>
+                      )}
                       <TableCell className="text-xs font-mono text-muted-foreground">{item.sku || "—"}</TableCell>
                       <TableCell className="text-sm font-medium">{item.name}</TableCell>
                       <TableCell className="text-xs">{item.size_mm || "—"}</TableCell>

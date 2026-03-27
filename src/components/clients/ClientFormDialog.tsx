@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import type { Client } from "@/hooks/useClients";
 
 const CLIENT_TYPES = [
@@ -50,6 +51,13 @@ export default function ClientFormDialog({ open, onOpenChange, client, onSubmit,
     notes: "",
     client_type: "b2c",
     inn: "",
+    kpp: "",
+    ogrn: "",
+    legal_address: "",
+    bank_name: "",
+    bank_bik: "",
+    bank_account: "",
+    bank_corr_account: "",
     pricing_type: "retail",
     discount_default: "",
     credit_limit: "",
@@ -61,6 +69,7 @@ export default function ClientFormDialog({ open, onOpenChange, client, onSubmit,
 
   useEffect(() => {
     if (client) {
+      const c = client as any;
       setForm({
         name: client.name,
         phone: client.phone ?? "",
@@ -69,20 +78,29 @@ export default function ClientFormDialog({ open, onOpenChange, client, onSubmit,
         company: client.company ?? "",
         address: client.address ?? "",
         notes: client.notes ?? "",
-        client_type: (client as any).client_type ?? "b2c",
-        inn: (client as any).inn ?? "",
-        pricing_type: (client as any).pricing_type ?? "retail",
-        discount_default: (client as any).discount_default?.toString() ?? "",
-        credit_limit: (client as any).credit_limit?.toString() ?? "",
-        payment_terms: (client as any).payment_terms ?? "prepay",
-        commission_rate: (client as any).commission_rate?.toString() ?? "",
-        region: (client as any).region ?? "",
-        source: (client as any).source ?? "",
+        client_type: c.client_type ?? "b2c",
+        inn: c.inn ?? "",
+        kpp: c.kpp ?? "",
+        ogrn: c.ogrn ?? "",
+        legal_address: c.legal_address ?? "",
+        bank_name: c.bank_name ?? "",
+        bank_bik: c.bank_bik ?? "",
+        bank_account: c.bank_account ?? "",
+        bank_corr_account: c.bank_corr_account ?? "",
+        pricing_type: c.pricing_type ?? "retail",
+        discount_default: c.discount_default?.toString() ?? "",
+        credit_limit: c.credit_limit?.toString() ?? "",
+        payment_terms: c.payment_terms ?? "prepay",
+        commission_rate: c.commission_rate?.toString() ?? "",
+        region: c.region ?? "",
+        source: c.source ?? "",
       });
     } else {
       setForm({
         name: "", phone: "", email: "", telegram: "", company: "", address: "", notes: "",
-        client_type: "b2c", inn: "", pricing_type: "retail", discount_default: "",
+        client_type: "b2c", inn: "", kpp: "", ogrn: "", legal_address: "",
+        bank_name: "", bank_bik: "", bank_account: "", bank_corr_account: "",
+        pricing_type: "retail", discount_default: "",
         credit_limit: "", payment_terms: "prepay", commission_rate: "", region: "", source: "",
       });
     }
@@ -97,6 +115,13 @@ export default function ClientFormDialog({ open, onOpenChange, client, onSubmit,
       credit_limit: parseFloat(form.credit_limit) || 0,
       commission_rate: parseFloat(form.commission_rate) || 0,
       inn: form.inn || null,
+      kpp: form.kpp || null,
+      ogrn: form.ogrn || null,
+      legal_address: form.legal_address || null,
+      bank_name: form.bank_name || null,
+      bank_bik: form.bank_bik || null,
+      bank_account: form.bank_account || null,
+      bank_corr_account: form.bank_corr_account || null,
       source: form.source || null,
       region: form.region || null,
     });
@@ -104,10 +129,11 @@ export default function ClientFormDialog({ open, onOpenChange, client, onSubmit,
 
   const isAgent = form.client_type === "agent";
   const isB2B = ["b2b", "developer", "partner"].includes(form.client_type);
+  const showRequisites = isB2B || isAgent;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{client ? "Редактировать клиента" : "Новый клиент"}</DialogTitle>
         </DialogHeader>
@@ -153,19 +179,60 @@ export default function ClientFormDialog({ open, onOpenChange, client, onSubmit,
             </div>
           </div>
 
-          {/* B2B fields */}
-          {(isB2B || isAgent) && (
-            <div className="grid grid-cols-2 gap-3">
+          {/* Юридические реквизиты */}
+          {showRequisites && (
+            <>
+              <Separator />
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Юридические реквизиты</p>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <Label className="text-xs">ИНН</Label>
+                  <Input value={form.inn} onChange={(e) => setForm({ ...form, inn: e.target.value })} placeholder="1234567890" />
+                </div>
+                <div>
+                  <Label className="text-xs">КПП</Label>
+                  <Input value={form.kpp} onChange={(e) => setForm({ ...form, kpp: e.target.value })} placeholder="123456789" />
+                </div>
+                <div>
+                  <Label className="text-xs">ОГРН</Label>
+                  <Input value={form.ogrn} onChange={(e) => setForm({ ...form, ogrn: e.target.value })} placeholder="1234567890123" />
+                </div>
+              </div>
               <div>
-                <Label className="text-xs">ИНН</Label>
-                <Input value={form.inn} onChange={(e) => setForm({ ...form, inn: e.target.value })} placeholder="1234567890" />
+                <Label className="text-xs">Юридический адрес</Label>
+                <Input value={form.legal_address} onChange={(e) => setForm({ ...form, legal_address: e.target.value })} placeholder="г. Москва, ул. Примерная, д. 1" />
               </div>
               <div>
                 <Label className="text-xs">Регион</Label>
                 <Input value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value })} placeholder="Новосибирская обл." />
               </div>
-            </div>
+
+              <Separator />
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Банковские реквизиты</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Банк</Label>
+                  <Input value={form.bank_name} onChange={(e) => setForm({ ...form, bank_name: e.target.value })} placeholder="ПАО Сбербанк" />
+                </div>
+                <div>
+                  <Label className="text-xs">БИК</Label>
+                  <Input value={form.bank_bik} onChange={(e) => setForm({ ...form, bank_bik: e.target.value })} placeholder="044525225" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Расчётный счёт</Label>
+                  <Input value={form.bank_account} onChange={(e) => setForm({ ...form, bank_account: e.target.value })} placeholder="40702810..." />
+                </div>
+                <div>
+                  <Label className="text-xs">Корр. счёт</Label>
+                  <Input value={form.bank_corr_account} onChange={(e) => setForm({ ...form, bank_corr_account: e.target.value })} placeholder="30101810..." />
+                </div>
+              </div>
+            </>
           )}
+
+          <Separator />
 
           {/* Pricing */}
           <div className="grid grid-cols-3 gap-3">
@@ -219,7 +286,7 @@ export default function ClientFormDialog({ open, onOpenChange, client, onSubmit,
           )}
 
           <div>
-            <Label className="text-xs">Адрес</Label>
+            <Label className="text-xs">Фактический адрес</Label>
             <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
           </div>
           <div>
