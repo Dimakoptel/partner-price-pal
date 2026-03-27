@@ -219,6 +219,7 @@ export default function PriceListPage() {
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead className="text-xs font-semibold w-24">Артикул</TableHead>
+                 {showPhotos && <TableHead className="text-xs font-semibold w-20">Фото</TableHead>}
                   <TableHead className="text-xs font-semibold">Наименование</TableHead>
                   <TableHead className="text-xs font-semibold w-28">Размер, мм</TableHead>
                   <TableHead className="text-xs font-semibold w-32">Вес / Хар-ки</TableHead>
