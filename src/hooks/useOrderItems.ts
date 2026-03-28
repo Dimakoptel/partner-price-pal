@@ -41,17 +41,7 @@ export function useOrderItems(orderId?: string) {
     }) => {
       const discount = item.discount_line || 0;
       const total_line = item.quantity * item.price_unit * (1 - discount / 100);
-      const insertPayload: {
-        order_id: string;
-        product_variant_id: string;
-        quantity: number;
-        price_unit: number;
-        discount_line: number;
-        total_line: number;
-        warranty_months: number;
-        production_required?: boolean;
-        characteristics_override?: Record<string, unknown>;
-      } = {
+      const insertPayload: TablesInsert<"order_items"> = {
         order_id: item.order_id,
         product_variant_id: item.product_variant_id,
         quantity: item.quantity,
@@ -60,11 +50,11 @@ export function useOrderItems(orderId?: string) {
         total_line,
         warranty_months: item.warranty_months,
         production_required: item.production_required,
-        characteristics_override: item.characteristics_override,
+        characteristics_override: item.characteristics_override as TablesInsert<"order_items">["characteristics_override"],
       };
       const { data, error } = await supabase
         .from("order_items")
-        .insert(insertPayload)
+        .insert([insertPayload])
         .select()
         .single();
       if (error) throw error;
