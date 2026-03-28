@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const fetchRole = async (userId: string) => {
-    const { data } = await supabase.rpc("has_role" as any, {
+    const { data } = await supabase.rpc("has_role", {
       _user_id: userId,
       _role: "admin",
     });
