@@ -1,31 +1,9 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import type { Tables } from "@/integrations/supabase/types";
 
-export interface NomenclatureItem {
-  id: string;
-  sku: string;
-  name: string;
-  category: string;
-  size_mm: string;
-  weight_kg: number;
-  characteristics: string;
-  unit: string;
-  price_dealer: number;
-  price_wholesale: number;
-  price_partner: number;
-  price_rrp: number;
-  photo_url: string;
-  photo_urls: string[];
-  drawing_url: string;
-  description: string;
-  show_in_pricelist: boolean;
-  is_active: boolean;
-  sort_order: number;
-  created_at: string;
-  updated_at: string;
-  created_by: string;
-}
+export type NomenclatureItem = Tables<"nomenclature">;
 
 export function useNomenclature() {
   const { user } = useAuth();
@@ -35,10 +13,10 @@ export function useNomenclature() {
   const fetchItems = async () => {
     setLoading(true);
     const { data } = await supabase
-      .from("nomenclature" as any)
+      .from("nomenclature")
       .select("*")
       .order("sort_order", { ascending: true });
-    if (data) setItems((data as any[]).map(d => ({
+    if (data) setItems(data.map(d => ({
       ...d,
       photo_urls: d.photo_urls || (d.photo_url ? [d.photo_url] : []),
     })));
@@ -49,25 +27,26 @@ export function useNomenclature() {
 
   const createItem = async (item: Partial<NomenclatureItem>) => {
     if (!user) return { error: { message: "Not authenticated" } };
-    const { photo_urls, ...rest } = item as any;
-    const payload: any = {
+    const { photo_urls, ...rest } = item;
+    const payload = {
       ...rest,
       created_by: user.id,
+      name: rest.name || "",
       photo_urls: (photo_urls || []).slice(0, 5),
       photo_url: (photo_urls || [])[0] || item.photo_url || "",
     };
     const { data, error } = await supabase
-      .from("nomenclature" as any)
-      .insert(payload as any)
+      .from("nomenclature")
+      .insert([payload])
       .select()
       .single();
-    if (!error && data) setItems(prev => [...prev, { ...(data as any), photo_urls: (data as any).photo_urls || [] }]);
+    if (!error && data) setItems(prev => [...prev, { ...data, photo_urls: data.photo_urls || [] }]);
     return { data, error };
   };
 
   const updateItem = async (id: string, updates: Partial<NomenclatureItem>) => {
-    const { photo_urls, ...rest } = updates as any;
-    const payload: any = {
+    const { photo_urls, ...rest } = updates;
+    const payload: Record<string, unknown> = {
       ...rest,
       updated_at: new Date().toISOString(),
     };
@@ -76,17 +55,17 @@ export function useNomenclature() {
       payload.photo_url = photo_urls[0] || "";
     }
     const { data, error } = await supabase
-      .from("nomenclature" as any)
-      .update(payload as any)
+      .from("nomenclature")
+      .update(payload as Record<string, unknown>)
       .eq("id", id)
       .select()
       .single();
-    if (!error && data) setItems(prev => prev.map(i => i.id === id ? { ...(data as any), photo_urls: (data as any).photo_urls || [] } : i));
+    if (!error && data) setItems(prev => prev.map(i => i.id === id ? { ...data, photo_urls: data.photo_urls || [] } : i));
     return { data, error };
   };
 
   const deleteItem = async (id: string) => {
-    const { error } = await supabase.from("nomenclature" as any).delete().eq("id", id);
+    const { error } = await supabase.from("nomenclature").delete().eq("id", id);
     if (!error) setItems(prev => prev.filter(i => i.id !== id));
     return { error };
   };

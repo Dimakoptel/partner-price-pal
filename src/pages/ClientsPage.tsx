@@ -57,15 +57,14 @@ export default function ClientsPage() {
         c.email?.toLowerCase().includes(q) ||
         c.company?.toLowerCase().includes(q) ||
         c.telegram?.toLowerCase().includes(q) ||
-        (c as any).inn?.toLowerCase().includes(q)
+        c.inn?.toLowerCase().includes(q)
     );
   }, [clients, search]);
 
   // Контрагенты = B2B clients with INN
   const contractors = useMemo(() => {
     return clients.filter((c) => {
-      const ct = (c as any).client_type;
-      return ["b2b", "developer", "partner", "agent"].includes(ct);
+      return ["b2b", "developer", "partner", "agent"].includes(c.client_type);
     });
   }, [clients]);
 
@@ -186,7 +185,7 @@ export default function ClientsPage() {
                           <TableCell className="font-medium">{client.name}</TableCell>
                           <TableCell>
                             <Badge variant="outline" className="text-[10px]">
-                              {CLIENT_TYPE_LABELS[(client as any).client_type] || "B2C"}
+                              {CLIENT_TYPE_LABELS[client.client_type] || "B2C"}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -271,12 +270,12 @@ export default function ClientsPage() {
                           <TableCell className="font-medium">{client.company || client.name}</TableCell>
                           <TableCell>
                             <Badge variant="outline" className="text-[10px]">
-                              {CLIENT_TYPE_LABELS[(client as any).client_type] || "B2B"}
+                              {CLIENT_TYPE_LABELS[client.client_type] || "B2B"}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-xs font-mono">{(client as any).inn || "—"}</TableCell>
+                          <TableCell className="text-xs font-mono">{client.inn || "—"}</TableCell>
                           <TableCell className="text-xs">{client.name}</TableCell>
-                          <TableCell className="text-xs text-muted-foreground">{(client as any).payment_terms || "—"}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">{client.payment_terms || "—"}</TableCell>
                           <TableCell>
                             <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(client)}>

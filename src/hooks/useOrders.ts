@@ -2,32 +2,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
-export interface Order {
-  id: string;
-  number: string;
-  client_id: string | null;
-  lead_id: string | null;
-  agent_id: string | null;
-  responsible_id: string;
-  order_type: string;
-  status: string;
-  items: any[];
-  total_amount: number;
-  paid_amount: number;
-  discount_percent: number;
-  delivery_address: string | null;
-  delivery_method: string;
-  delivery_date: string | null;
-  tracking_number: string | null;
-  notes: string | null;
-  warranty_months: number;
-  created_at: string;
-  updated_at: string;
-  completed_at: string | null;
-  // joined
-  client?: any;
-}
+export type Order = Tables<"orders"> & {
+  client?: { id: string; name: string; phone: string | null; company: string | null } | null;
+};
+
+export type OrderInsert = TablesInsert<"orders">;
+export type OrderUpdate = TablesUpdate<"orders">;
 
 export const ORDER_STATUSES = [
   { value: "draft", label: "Черновик", color: "hsl(var(--muted-foreground))" },
@@ -64,19 +46,19 @@ export function useOrders() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orders")
-        .select("*, client:clients(id, name, phone, company)")
+        .select("*, client:clients!orders_client_id_fkey(id, name, phone, company)")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data || []) as unknown as Order[];
+      return (data ?? []) as Order[];
     },
     enabled: !!user,
   });
 
   const createOrder = useMutation({
-    mutationFn: async (order: Partial<Order>) => {
+    mutationFn: async (order: Omit<OrderInsert, "responsible_id">) => {
       if (!user) throw new Error("Not authenticated");
-      const { data, error } = await (supabase
-        .from("orders" as any) as any)
+      const { data, error } = await supabase
+        .from("orders")
         .insert({ ...order, responsible_id: user.id })
         .select()
         .single();
@@ -87,13 +69,13 @@ export function useOrders() {
       qc.invalidateQueries({ queryKey: ["orders"] });
       toast.success("Заказ создан");
     },
-    onError: (e: any) => toast.error("Ошибка: " + e.message),
+    onError: (e: Error) => toast.error("Ошибка: " + e.message),
   });
 
   const updateOrder = useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<Order> & { id: string }) => {
-      const { data, error } = await (supabase
-        .from("orders" as any) as any)
+    mutationFn: async ({ id, ...updates }: OrderUpdate & { id: string }) => {
+      const { data, error } = await supabase
+        .from("orders")
         .update(updates)
         .eq("id", id)
         .select()
@@ -105,7 +87,7 @@ export function useOrders() {
       qc.invalidateQueries({ queryKey: ["orders"] });
       toast.success("Заказ обновлён");
     },
-    onError: (e: any) => toast.error("Ошибка: " + e.message),
+    onError: (e: Error) => toast.error("Ошибка: " + e.message),
   });
 
   return {

@@ -2,36 +2,30 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import type { Tables } from "@/integrations/supabase/types";
 
-export interface InventoryItem {
-  id: string;
-  product_variant_id: string;
-  quantity_on_hand: number;
-  quantity_reserved: number;
-  min_stock_level: number;
-  location: string;
-  updated_at: string;
-  // joined
-  variant?: any;
-  product?: any;
-}
+export type InventoryItem = Tables<"inventory"> & {
+  variant?: {
+    id: string;
+    sku_variant: string;
+    color: string | null;
+    size_cm: string | null;
+    texture: string | null;
+    product_id: string | null;
+    price_base: number;
+    product: { id: string; name: string; sku_base: string } | null;
+  } | null;
+};
 
-export interface StockMovement {
-  id: string;
-  product_variant_id: string;
-  movement_type: string;
-  quantity: number;
-  reason: string;
-  document_number: string;
-  order_id: string | null;
-  production_order_id: string | null;
-  created_by: string;
-  created_at: string;
-  notes: string;
-  // joined
-  variant?: any;
-  product?: any;
-}
+export type StockMovement = Tables<"stock_movements"> & {
+  variant?: {
+    id: string;
+    sku_variant: string;
+    color: string | null;
+    size_cm: string | null;
+    product: { id: string; name: string } | null;
+  } | null;
+};
 
 export const MOVEMENT_TYPES = [
   { value: "receipt", label: "Приход", color: "#22c55e" },
@@ -48,11 +42,11 @@ export function useInventory() {
     queryKey: ["inventory"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("inventory" as any)
+        .from("inventory")
         .select("*, variant:product_variants(id, sku_variant, color, size_cm, texture, product_id, price_base, product:products(id, name, sku_base))")
-        .order("updated_at", { ascending: false }) as any;
+        .order("updated_at", { ascending: false });
       if (error) throw error;
-      return (data || []) as InventoryItem[];
+      return (data ?? []) as unknown as InventoryItem[];
     },
     enabled: !!user,
   });
@@ -65,8 +59,8 @@ export function useStockMovements(variantId?: string) {
     queryKey: ["stock_movements", variantId],
     queryFn: async () => {
       let query = supabase
-        .from("stock_movements" as any)
-        .select("*, variant:product_variants(id, sku_variant, color, size_cm, product:products(id, name))") as any;
+        .from("stock_movements")
+        .select("*, variant:product_variants(id, sku_variant, color, size_cm, product:products(id, name))");
 
       if (variantId) {
         query = query.eq("product_variant_id", variantId);
@@ -74,7 +68,7 @@ export function useStockMovements(variantId?: string) {
 
       const { data, error } = await query.order("created_at", { ascending: false }).limit(200);
       if (error) throw error;
-      return (data || []) as StockMovement[];
+      return (data ?? []) as unknown as StockMovement[];
     },
     enabled: !!user,
   });
@@ -96,7 +90,8 @@ export function useCreateStockMovement() {
       notes?: string;
     }) => {
       if (!user) throw new Error("Not authenticated");
-      const { data, error } = await (supabase.from("stock_movements" as any) as any)
+      const { data, error } = await supabase
+        .from("stock_movements")
         .insert({
           ...movement,
           created_by: user.id,
@@ -112,6 +107,6 @@ export function useCreateStockMovement() {
       qc.invalidateQueries({ queryKey: ["availability"] });
       toast.success("Движение товара зарегистрировано");
     },
-    onError: (e: any) => toast.error("Ошибка: " + e.message),
+    onError: (e: Error) => toast.error("Ошибка: " + e.message),
   });
 }

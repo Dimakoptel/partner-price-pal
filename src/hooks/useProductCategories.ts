@@ -1,13 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 
-export interface ProductCategory {
-  id: string;
-  name: string;
-  sort_order: number;
-  is_active: boolean;
-  created_at: string;
-}
+export type ProductCategory = Tables<"product_categories">;
 
 export function useProductCategories() {
   const [categories, setCategories] = useState<ProductCategory[]>([]);
@@ -16,9 +11,9 @@ export function useProductCategories() {
   const fetchCategories = async () => {
     setLoading(true);
     const { data } = await supabase
-      .from("product_categories" as any)
+      .from("product_categories")
       .select("*")
-      .order("sort_order") as { data: ProductCategory[] | null };
+      .order("sort_order");
     if (data) setCategories(data);
     setLoading(false);
   };
@@ -26,22 +21,27 @@ export function useProductCategories() {
   useEffect(() => { fetchCategories(); }, []);
 
   const addCategory = async (name: string, sort_order: number) => {
-    const { error } = await (supabase.from("product_categories" as any) as any)
+    const { error } = await supabase
+      .from("product_categories")
       .insert({ name, sort_order });
     if (!error) fetchCategories();
     return { error };
   };
 
   const updateCategory = async (id: string, updates: Partial<ProductCategory>) => {
-    const { error } = await (supabase.from("product_categories" as any) as any)
-      .update(updates).eq("id", id);
+    const { error } = await supabase
+      .from("product_categories")
+      .update(updates)
+      .eq("id", id);
     if (!error) fetchCategories();
     return { error };
   };
 
   const deleteCategory = async (id: string) => {
-    const { error } = await (supabase.from("product_categories" as any) as any)
-      .delete().eq("id", id);
+    const { error } = await supabase
+      .from("product_categories")
+      .delete()
+      .eq("id", id);
     if (!error) fetchCategories();
     return { error };
   };
