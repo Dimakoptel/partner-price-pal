@@ -12,7 +12,8 @@ export function useConvertLeadToOrder() {
       if (!user) throw new Error("Not authenticated");
 
       // 1. Load lead
-      const { data: lead, error: e1 } = await (supabase.from("leads" as any) as any)
+      const { data: lead, error: e1 } = await supabase
+        .from("leads")
         .select("*, client:clients(id), calculation:saved_calculations(*)")
         .eq("id", leadId)
         .single();
@@ -20,9 +21,10 @@ export function useConvertLeadToOrder() {
       if (e1 || !lead) throw new Error("Лид не найден");
 
       // 2. Create order
-      const { data: order, error: e2 } = await (supabase.from("orders" as any) as any)
+      const { data: order, error: e2 } = await supabase
+        .from("orders")
         .insert({
-          client_id: lead.client_id || lead.client?.id || null,
+          client_id: lead.client_id || (lead.client as { id: string } | null)?.id || null,
           lead_id: leadId,
           responsible_id: user.id,
           order_type: "serial_stock",
@@ -37,7 +39,8 @@ export function useConvertLeadToOrder() {
       if (e2) throw e2;
 
       // 3. Update lead status
-      await (supabase.from("leads" as any) as any)
+      await supabase
+        .from("leads")
         .update({
           status: "won",
           converted_to_order_id: order.id,
@@ -51,6 +54,6 @@ export function useConvertLeadToOrder() {
       qc.invalidateQueries({ queryKey: ["orders"] });
       toast.success("Лид конвертирован в заказ");
     },
-    onError: (e: any) => toast.error("Ошибка: " + e.message),
+    onError: (e: Error) => toast.error("Ошибка: " + e.message),
   });
 }

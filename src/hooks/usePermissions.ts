@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import type { Tables } from "@/integrations/supabase/types";
 
 export const APP_MODULES = [
   { key: "calculator", label: "Калькулятор столешниц" },
@@ -18,18 +19,8 @@ export const APP_MODULES = [
 
 export type ModuleKey = (typeof APP_MODULES)[number]["key"];
 
-interface AccessGroup {
-  id: string;
-  name: string;
-  description: string;
-  created_at: string;
-}
-
-interface GroupPermission {
-  group_id: string;
-  module: string;
-  allowed: boolean;
-}
+type AccessGroup = Tables<"access_groups">;
+type GroupPermission = Tables<"group_permissions">;
 
 interface UserGroupAssignment {
   user_id: string;
@@ -50,7 +41,6 @@ export function usePermissions() {
     }
 
     const fetch = async () => {
-      // Get user's group assignments
       const { data: assignments } = await supabase
         .from("user_group_assignments")
         .select("group_id")
@@ -62,9 +52,8 @@ export function usePermissions() {
         return;
       }
 
-      const groupIds = assignments.map(a => (a as any).group_id);
+      const groupIds = assignments.map(a => a.group_id);
 
-      // Get permissions for those groups
       const { data: perms } = await supabase
         .from("group_permissions")
         .select("module, allowed")
@@ -73,7 +62,7 @@ export function usePermissions() {
 
       const modules = new Set<string>();
       if (perms) {
-        perms.forEach((p: any) => { if (p.allowed) modules.add(p.module); });
+        perms.forEach((p) => { if (p.allowed) modules.add(p.module); });
       }
       setAllowedModules(modules);
       setLoading(false);
@@ -104,9 +93,9 @@ export function useAccessGroups() {
       supabase.from("group_permissions").select("*"),
       supabase.from("user_group_assignments").select("*"),
     ]);
-    if (g.data) setGroups(g.data as any);
-    if (p.data) setPermissions(p.data as any);
-    if (a.data) setAssignments(a.data as any);
+    if (g.data) setGroups(g.data);
+    if (p.data) setPermissions(p.data);
+    if (a.data) setAssignments(a.data as UserGroupAssignment[]);
     setLoading(false);
   };
 
@@ -119,7 +108,7 @@ export function useAccessGroups() {
       .select()
       .single();
     if (!error && data) {
-      setGroups(prev => [...prev, data as any]);
+      setGroups(prev => [...prev, data]);
     }
     return { data, error };
   };
@@ -141,7 +130,7 @@ export function useAccessGroups() {
     if (!error) {
       setPermissions(prev => {
         const filtered = prev.filter(p => !(p.group_id === groupId && p.module === module));
-        return [...filtered, { group_id: groupId, module, allowed }];
+        return [...filtered, { group_id: groupId, module, allowed, id: "" }];
       });
     }
     return { error };

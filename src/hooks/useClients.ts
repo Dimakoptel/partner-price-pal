@@ -2,23 +2,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
-export interface Client {
-  id: string;
-  name: string;
-  phone: string | null;
-  email: string | null;
-  telegram: string | null;
-  company: string | null;
-  address: string | null;
-  notes: string | null;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export type ClientInsert = Omit<Client, "id" | "created_at" | "updated_at">;
-export type ClientUpdate = Partial<Omit<Client, "id" | "created_at" | "updated_at" | "created_by">>;
+export type Client = Tables<"clients">;
+export type ClientInsert = TablesInsert<"clients">;
+export type ClientUpdate = TablesUpdate<"clients">;
 
 export function useClients() {
   const { user } = useAuth();
@@ -32,7 +20,7 @@ export function useClients() {
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as Client[];
+      return (data ?? []) as Client[];
     },
     enabled: !!user,
   });

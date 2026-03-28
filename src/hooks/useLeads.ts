@@ -1,28 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
-export interface Lead {
-  id: string;
-  user_id: string;
-  calculation_id: string | null;
-  client_name: string;
-  client_phone: string | null;
-  client_email: string | null;
-  source: string;
-  status: string;
-  amount: number;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-  client_id: string | null;
-  converted_to_order_id: string | null;
-  product_interest: string | null;
-  region: string | null;
-  budget: number | null;
-  lost_reason: string | null;
-  assigned_manager_id: string | null;
-}
+export type Lead = Tables<"leads">;
 
 export function useLeads() {
   const { user } = useAuth();
@@ -36,7 +17,7 @@ export function useLeads() {
         .from("leads")
         .select("*")
         .order("created_at", { ascending: false });
-      if (data) setLeads(data as Lead[]);
+      if (data) setLeads(data);
     } finally {
       setLoading(false);
     }
@@ -70,10 +51,10 @@ export function useLeads() {
     return { error, data };
   };
 
-  const updateLead = async (id: string, updates: Partial<Lead>) => {
+  const updateLead = async (id: string, updates: TablesUpdate<"leads">) => {
     const { error } = await supabase
       .from("leads")
-      .update(updates as any)
+      .update(updates)
       .eq("id", id);
     if (!error) fetchLeads();
     return { error };
@@ -81,7 +62,6 @@ export function useLeads() {
 
   const convertToClient = async (lead: Lead) => {
     if (!user) return { error: new Error("Not authenticated"), clientId: null };
-    // Create client from lead data
     const { data: client, error: clientError } = await supabase
       .from("clients")
       .insert({
@@ -96,10 +76,9 @@ export function useLeads() {
       .single();
     if (clientError || !client) return { error: clientError, clientId: null };
 
-    // Link client to lead
     await supabase
       .from("leads")
-      .update({ client_id: client.id, status: lead.status === "new" ? "qualified" : lead.status } as any)
+      .update({ client_id: client.id, status: lead.status === "new" ? "qualified" : lead.status })
       .eq("id", lead.id);
 
     fetchLeads();
@@ -109,7 +88,6 @@ export function useLeads() {
   const convertToOrder = async (lead: Lead) => {
     if (!user) return { error: new Error("Not authenticated"), orderId: null };
 
-    // Generate order number
     const now = new Date();
     const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
     const rand = String(Math.floor(Math.random() * 999) + 1).padStart(3, "0");
@@ -131,10 +109,9 @@ export function useLeads() {
       .single();
     if (orderError || !order) return { error: orderError, orderId: null };
 
-    // Update lead status and link order
     await supabase
       .from("leads")
-      .update({ status: "won", converted_to_order_id: order.id } as any)
+      .update({ status: "won", converted_to_order_id: order.id })
       .eq("id", lead.id);
 
     fetchLeads();
