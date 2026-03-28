@@ -270,7 +270,7 @@ export default function ClientsPage() {
                           <TableCell className="font-medium">{client.company || client.name}</TableCell>
                           <TableCell>
                             <Badge variant="outline" className="text-[10px]">
-                              {CLIENT_TYPE_LABELS[(client as any).client_type] || "B2B"}
+                              {CLIENT_TYPE_LABELS[client.client_type] || "B2B"}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-xs font-mono">{(client as any).inn || "—"}</TableCell>
