@@ -31,7 +31,7 @@ export function useAccrueCommission() {
     mutationFn: async (orderId: string) => {
       const { data: order, error: oe } = await supabase
         .from("orders")
-        .select("*, client:clients(id, client_type, commission_rate)")
+        .select("*, client:clients!orders_client_id_fkey(id, client_type, commission_rate)")
         .eq("id", orderId)
         .single();
       if (oe) throw oe;

@@ -41,9 +41,10 @@ export function useOrderItems(orderId?: string) {
     }) => {
       const discount = item.discount_line || 0;
       const total_line = item.quantity * item.price_unit * (1 - discount / 100);
+      const payload = { ...item, discount_line: discount, total_line };
       const { data, error } = await supabase
         .from("order_items")
-        .insert({ ...item, discount_line: discount, total_line })
+        .insert(payload)
         .select()
         .single();
       if (error) throw error;

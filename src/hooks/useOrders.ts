@@ -46,7 +46,7 @@ export function useOrders() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orders")
-        .select("*, client:clients(id, name, phone, company)")
+        .select("*, client:clients!orders_client_id_fkey(id, name, phone, company)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Order[];
