@@ -1,9 +1,21 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Json } from "@/integrations/supabase/types";
 
-export type SavedCalculation = Tables<"saved_calculations">;
+export interface SavedCalculation {
+  id: string;
+  user_id: string;
+  product_type: string;
+  product_label: string;
+  calc_name: string;
+  params: Json;
+  result: Json;
+  created_at: string;
+  is_auto_saved: boolean;
+  client_id: string | null;
+  lead_id: string | null;
+}
 
 export function useCalculations() {
   const { user, isAdmin } = useAuth();
