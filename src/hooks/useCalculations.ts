@@ -42,8 +42,8 @@ export function useCalculations() {
   const saveCalculation = async (
     productType: string,
     productLabel: string,
-    params: Record<string, unknown>,
-    result: Record<string, unknown>,
+    params: unknown,
+    result: unknown,
     calcName: string
   ) => {
     if (!user) return { error: new Error("Not authenticated") };
