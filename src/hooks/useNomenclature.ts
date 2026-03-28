@@ -56,7 +56,7 @@ export function useNomenclature() {
     }
     const { data, error } = await supabase
       .from("nomenclature")
-      .update(payload as Parameters<ReturnType<typeof supabase.from>["update"]>[0])
+      .update(payload as Record<string, unknown>)
       .eq("id", id)
       .select()
       .single();

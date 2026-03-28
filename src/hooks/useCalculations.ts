@@ -49,15 +49,15 @@ export function useCalculations() {
     if (!user) return { error: new Error("Not authenticated") };
     const { error } = await supabase
       .from("saved_calculations")
-      .insert({
+      .insert([{
         user_id: user.id,
         product_type: productType,
         product_label: productLabel,
         calc_name: calcName,
-        params,
-        result,
+        params: params as Json,
+        result: result as Json,
         is_auto_saved: false,
-      });
+      }]);
     if (!error) fetchCalculations();
     return { error };
   };
