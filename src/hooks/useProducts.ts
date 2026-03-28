@@ -1,53 +1,31 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 
-export type Product = {
-  id: string;
-  sku_base: string;
-  name: string;
-  category: string | null;
-  type_id: string | null;
-  warranty_default_months: number;
-  is_active: boolean;
-};
-
-export type ProductVariant = {
-  id: string;
-  product_id: string;
-  sku_variant: string;
-  size_cm: string | null;
-  color: string | null;
-  texture: string | null;
-  characteristics: Record<string, any>;
-  price_base: number;
-  price_retail: number | null;
-  price_wholesale: number | null;
-  price_agent: number | null;
-  production_time_days: number;
-  warranty_months_override: number | null;
-};
+export type Product = Tables<"products">;
+export type ProductVariant = Tables<"product_variants">;
 
 export function useProducts() {
   return useQuery({
     queryKey: ["products"],
     queryFn: async () => {
       const { data: products, error: e1 } = await supabase
-        .from("products" as any)
+        .from("products")
         .select("*")
         .eq("is_active", true)
-        .order("name") as any;
+        .order("name");
       if (e1) throw e1;
 
       const { data: variants, error: e2 } = await supabase
-        .from("product_variants" as any)
+        .from("product_variants")
         .select("*")
         .eq("is_active", true)
-        .order("sku_variant") as any;
+        .order("sku_variant");
       if (e2) throw e2;
 
       return {
-        products: (products || []) as Product[],
-        variants: (variants || []) as ProductVariant[],
+        products: products ?? [],
+        variants: variants ?? [],
       };
     },
   });
@@ -58,13 +36,13 @@ export function useProductVariants(productId?: string) {
     queryKey: ["product_variants", productId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("product_variants" as any)
+        .from("product_variants")
         .select("*")
         .eq("product_id", productId!)
         .eq("is_active", true)
-        .order("sku_variant") as any;
+        .order("sku_variant");
       if (error) throw error;
-      return (data || []) as ProductVariant[];
+      return data ?? [];
     },
     enabled: !!productId,
   });

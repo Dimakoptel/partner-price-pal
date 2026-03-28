@@ -1,18 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import type { Tables } from "@/integrations/supabase/types";
 
-export interface SystemSetting {
-  id: string;
-  key: string;
-  value: string;
-  label: string;
-  description: string;
-  value_type: string;
-  category: string;
-  updated_at: string;
-  updated_by: string | null;
-}
+export type SystemSetting = Tables<"system_settings">;
 
 export function useSystemSettings() {
   const { user } = useAuth();
@@ -22,12 +13,12 @@ export function useSystemSettings() {
     queryKey: ["system_settings"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("system_settings" as any)
+        .from("system_settings")
         .select("*")
         .order("category")
-        .order("key") as any;
+        .order("key");
       if (error) throw error;
-      return (data || []) as SystemSetting[];
+      return (data ?? []) as SystemSetting[];
     },
   });
 
@@ -43,8 +34,8 @@ export function useSystemSettings() {
 
   const updateSetting = useMutation({
     mutationFn: async ({ key, value }: { key: string; value: string }) => {
-      const { error } = await (supabase
-        .from("system_settings" as any) as any)
+      const { error } = await supabase
+        .from("system_settings")
         .update({ value, updated_at: new Date().toISOString(), updated_by: user?.id })
         .eq("key", key);
       if (error) throw error;

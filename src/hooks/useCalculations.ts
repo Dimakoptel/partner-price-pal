@@ -1,18 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import type { Tables } from "@/integrations/supabase/types";
 
-export interface SavedCalculation {
-  id: string;
-  user_id: string;
-  product_type: string;
-  product_label: string;
-  calc_name: string;
-  params: any;
-  result: any;
-  created_at: string;
-  is_auto_saved?: boolean;
-}
+export type SavedCalculation = Tables<"saved_calculations">;
 
 export function useCalculations() {
   const { user, isAdmin } = useAuth();
@@ -23,16 +14,15 @@ export function useCalculations() {
     if (!user) return;
 
     let query = supabase
-      .from("saved_calculations" as any)
+      .from("saved_calculations")
       .select("*")
-      .order("created_at", { ascending: false }) as any;
+      .order("created_at", { ascending: false });
 
-    // Non-admin users only see their manually saved calculations
     if (!isAdmin) {
       query = query.eq("is_auto_saved", false);
     }
 
-    const { data } = await query as { data: SavedCalculation[] | null };
+    const { data } = await query;
     if (data) setCalculations(data);
     setLoading(false);
   };
@@ -40,13 +30,13 @@ export function useCalculations() {
   const saveCalculation = async (
     productType: string,
     productLabel: string,
-    params: any,
-    result: any,
+    params: Record<string, unknown>,
+    result: Record<string, unknown>,
     calcName: string
   ) => {
     if (!user) return { error: new Error("Not authenticated") };
-    const { error } = await (supabase
-      .from("saved_calculations" as any) as any)
+    const { error } = await supabase
+      .from("saved_calculations")
       .insert({
         user_id: user.id,
         product_type: productType,
@@ -61,8 +51,8 @@ export function useCalculations() {
   };
 
   const deleteCalculation = async (id: string) => {
-    const { error } = await (supabase
-      .from("saved_calculations" as any) as any)
+    const { error } = await supabase
+      .from("saved_calculations")
       .delete()
       .eq("id", id);
     if (!error) {
