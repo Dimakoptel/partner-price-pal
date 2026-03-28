@@ -31,12 +31,13 @@ export function useNomenclature() {
     const payload = {
       ...rest,
       created_by: user.id,
+      name: rest.name || "",
       photo_urls: (photo_urls || []).slice(0, 5),
       photo_url: (photo_urls || [])[0] || item.photo_url || "",
     };
     const { data, error } = await supabase
       .from("nomenclature")
-      .insert(payload as Parameters<typeof supabase.from<"nomenclature">>[0] extends infer T ? Record<string, unknown> : never)
+      .insert([payload])
       .select()
       .single();
     if (!error && data) setItems(prev => [...prev, { ...data, photo_urls: data.photo_urls || [] }]);
