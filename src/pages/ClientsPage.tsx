@@ -273,9 +273,9 @@ export default function ClientsPage() {
                               {CLIENT_TYPE_LABELS[client.client_type] || "B2B"}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-xs font-mono">{(client as any).inn || "—"}</TableCell>
+                          <TableCell className="text-xs font-mono">{client.inn || "—"}</TableCell>
                           <TableCell className="text-xs">{client.name}</TableCell>
-                          <TableCell className="text-xs text-muted-foreground">{(client as any).payment_terms || "—"}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">{client.payment_terms || "—"}</TableCell>
                           <TableCell>
                             <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(client)}>
