@@ -57,15 +57,14 @@ export default function ClientsPage() {
         c.email?.toLowerCase().includes(q) ||
         c.company?.toLowerCase().includes(q) ||
         c.telegram?.toLowerCase().includes(q) ||
-        (c as any).inn?.toLowerCase().includes(q)
+        c.inn?.toLowerCase().includes(q)
     );
   }, [clients, search]);
 
   // Контрагенты = B2B clients with INN
   const contractors = useMemo(() => {
     return clients.filter((c) => {
-      const ct = (c as any).client_type;
-      return ["b2b", "developer", "partner", "agent"].includes(ct);
+      return ["b2b", "developer", "partner", "agent"].includes(c.client_type);
     });
   }, [clients]);
 
