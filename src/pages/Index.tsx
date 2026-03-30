@@ -87,8 +87,8 @@ export default function Index() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
           <StatCard label="Расчётов сегодня" value={todayCalcs} icon={Calculator} onClick={() => navigate("/history")} />
           <StatCard label="Всего расчётов" value={calculations.length} icon={History} onClick={() => navigate("/history")} />
-          <StatCard label="Активные лиды" value={activeLeads} icon={TrendingUp} onClick={() => navigate("/sales")} />
-          <StatCard label="Всего лидов" value={leads.length} icon={Users} onClick={() => navigate("/sales")} />
+          <StatCard label="Активные лиды" value={activeLeads} icon={TrendingUp} onClick={() => navigate("/crm")} />
+          <StatCard label="Всего лидов" value={leads.length} icon={Users} onClick={() => navigate("/crm")} />
         </div>
 
         {/* Quick Actions */}
