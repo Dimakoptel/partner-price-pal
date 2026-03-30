@@ -95,7 +95,7 @@ export default function CalculationsTab() {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm text-primary whitespace-nowrap">{formatPrice(calc.result.totalPrice)} ₽</span>
+                  <span className="font-bold text-sm text-primary whitespace-nowrap">{formatPrice((calc.result as any).totalPrice)} ₽</span>
                   <Button size="sm" variant="ghost" onClick={() => handleDelete(calc.id)} className="text-muted-foreground hover:text-destructive h-8 w-8 p-0">
                     <Trash2 className="w-4 h-4" />
                   </Button>

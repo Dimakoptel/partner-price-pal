@@ -204,16 +204,16 @@ export default function HistoryPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => shareVia("telegram", calc.result, cs)}>
+                      <DropdownMenuItem onClick={() => shareVia("telegram", calc.result as unknown as CalculationResult, cs)}>
                         <MessageCircle className="w-4 h-4 mr-2" /> Telegram
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => shareVia("whatsapp", calc.result, cs)}>
+                      <DropdownMenuItem onClick={() => shareVia("whatsapp", calc.result as unknown as CalculationResult, cs)}>
                         <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => shareVia("email", calc.result, cs)}>
+                      <DropdownMenuItem onClick={() => shareVia("email", calc.result as unknown as CalculationResult, cs)}>
                         <Mail className="w-4 h-4 mr-2" /> Email
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => shareVia("copy", calc.result, cs)}>
+                      <DropdownMenuItem onClick={() => shareVia("copy", calc.result as unknown as CalculationResult, cs)}>
                         <Share2 className="w-4 h-4 mr-2" /> Копировать
                       </DropdownMenuItem>
                     </DropdownMenuContent>

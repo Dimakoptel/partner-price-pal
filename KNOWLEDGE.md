@@ -78,7 +78,7 @@
 - **Группы доступа:** `access_groups` → `group_permissions` (модуль + allowed)
 - **Назначение:** `user_group_assignments` (user_id + group_id)
 - **Проверка:** функция `has_module_access(_user_id, _module)` — админы всегда имеют доступ
-- **Модули:** `calculator`, `history`, `clients`, `docs`
+- **Модули:** `calculator`, `box_calculator`, `history`, `clients`, `sales_leads`, `sales_orders`, `sales_pipeline`, `sales_tasks`, `production`, `warehouse`, `docs`
 
 ---
 

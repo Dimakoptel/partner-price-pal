@@ -11,6 +11,10 @@ const ROUTE_MODULE_MAP: Record<string, ModuleKey> = {
   "/history": "history",
   "/docs": "docs",
   "/clients": "clients",
+  "/crm": "sales_leads",
+  "/production": "production",
+  "/warehouse": "warehouse",
+  "/pricelist": "docs",
 };
 
 export function ProtectedRoute() {

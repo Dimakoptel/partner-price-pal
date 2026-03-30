@@ -106,7 +106,7 @@ export default function Index() {
             label="Продажи"
             description="Лиды, сделки и клиенты"
             icon={TrendingUp}
-            onClick={() => navigate("/sales")}
+            onClick={() => navigate("/crm")}
           />
           <QuickAction
             label="Производство"
