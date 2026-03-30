@@ -134,7 +134,7 @@ export default function ProductionPage() {
 
   const statusInfo = (o: ProductionOrder) => {
     const code = o.status?.code || "";
-    return PRODUCTION_STATUSES.find((s) => s.code === code) || { code, label: o.status?.name || code, color: "#888" };
+    return prodStatuses.find(code);
   };
 
   const stats = useMemo(() => {
