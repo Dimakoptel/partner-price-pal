@@ -185,7 +185,7 @@ export default function HistoryPage() {
                     size="sm"
                     variant="ghost"
                     className="gap-1.5 text-xs"
-                    onClick={() => handlePrint(calc.result, cs, specialist)}
+                    onClick={() => handlePrint(calc.result as unknown as CalculationResult, cs, specialist)}
                   >
                     <Printer className="w-3.5 h-3.5" /> Печать
                   </Button>
