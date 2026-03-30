@@ -193,7 +193,7 @@ export default function HistoryPage() {
                     size="sm"
                     variant="ghost"
                     className="gap-1.5 text-xs"
-                    onClick={() => handleSaveFile(calc.result, calc.calc_name, cs)}
+                    onClick={() => handleSaveFile(calc.result as unknown as CalculationResult, calc.calc_name, cs)}
                   >
                     <Download className="w-3.5 h-3.5" /> Сохранить файл
                   </Button>
