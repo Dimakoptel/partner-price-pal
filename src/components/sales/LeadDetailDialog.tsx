@@ -13,16 +13,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Lead } from "@/hooks/useLeads";
 import { useConvertLeadToOrder } from "@/hooks/useLeadConversion";
+import { useDictOptions } from "@/hooks/useDictOptions";
 import { Textarea } from "@/components/ui/textarea";
-
-const LEAD_STATUSES = [
-  { value: "new", label: "Новый", color: "#3b82f6", step: 1 },
-  { value: "qualified", label: "Квалифицирован", color: "#8b5cf6", step: 2 },
-  { value: "proposal_sent", label: "КП отправлено", color: "#f59e0b", step: 3 },
-  { value: "negotiation", label: "Переговоры", color: "#f97316", step: 4 },
-  { value: "won", label: "Выигран", color: "#22c55e", step: 5 },
-  { value: "lost", label: "Проигран", color: "#ef4444", step: 0 },
-];
 
 interface Props {
   lead: Lead | null;
@@ -38,13 +30,16 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
   const [showLostDialog, setShowLostDialog] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const convertMutation = useConvertLeadToOrder();
+  const leadStatuses = useDictOptions("lead_statuses");
 
   if (!lead) return null;
 
-  const statusInfo = (s: string) => LEAD_STATUSES.find((st) => st.value === s) || { label: s, color: "#888", step: 0 };
-  const si = statusInfo(lead.status);
-  const currentStep = si.step;
-  const progressPercent = lead.status === "lost" ? 0 : (currentStep / 5) * 100;
+  const si = leadStatuses.find(lead.status);
+  // Calculate step from sort_order for progress
+  const stepsOnly = leadStatuses.options.filter((s) => s.value !== "lost");
+  const currentStepIdx = stepsOnly.findIndex((s) => s.value === lead.status);
+  const totalSteps = stepsOnly.length;
+  const progressPercent = lead.status === "lost" ? 0 : ((currentStepIdx + 1) / totalSteps) * 100;
 
   const formatAmount = (n: number | null) =>
     n && n > 0 ? new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0 }).format(n) : "—";
@@ -128,8 +123,8 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
         {lead.status !== "lost" && (
           <div className="space-y-2">
             <div className="flex justify-between text-[10px] text-muted-foreground">
-              {LEAD_STATUSES.filter(s => s.step > 0).map(s => (
-                <span key={s.value} className={currentStep >= s.step ? "text-primary font-medium" : ""}>
+              {stepsOnly.map((s) => (
+                <span key={s.value} className={leadStatuses.options.indexOf(s) <= currentStepIdx ? "text-primary font-medium" : ""}>
                   {s.label}
                 </span>
               ))}
@@ -263,7 +258,7 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {LEAD_STATUSES.map((s) => (
+              {leadStatuses.options.map((s) => (
                 <SelectItem key={s.value} value={s.value}>
                   <span className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />

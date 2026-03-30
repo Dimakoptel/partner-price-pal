@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useLeads, type Lead } from "@/hooks/useLeads";
+import { useDictOptions } from "@/hooks/useDictOptions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,27 +15,10 @@ import LeadDetailDialog from "./LeadDetailDialog";
 import LeadFormDialog from "./LeadFormDialog";
 import LeadBulkActions from "./LeadBulkActions";
 
-const LEAD_STATUSES = [
-  { value: "new", label: "Новый", color: "#3b82f6" },
-  { value: "qualified", label: "Квалифицирован", color: "#8b5cf6" },
-  { value: "proposal_sent", label: "КП отправлено", color: "#f59e0b" },
-  { value: "negotiation", label: "Переговоры", color: "#f97316" },
-  { value: "won", label: "Выигран", color: "#22c55e" },
-  { value: "lost", label: "Проигран", color: "#ef4444" },
-];
-
-const LEAD_SOURCES = [
-  { value: "calculator", label: "Калькулятор" },
-  { value: "website", label: "Сайт" },
-  { value: "phone", label: "Телефон" },
-  { value: "exhibition", label: "Выставка" },
-  { value: "agent", label: "Агент" },
-  { value: "referral", label: "Рекомендация" },
-  { value: "lead", label: "Лид" },
-];
-
 export default function LeadsTab() {
   const { leads, loading, updateLead, convertToClient, convertToOrder, fetchLeads } = useLeads();
+  const leadStatuses = useDictOptions("lead_statuses");
+  const leadSources = useDictOptions("lead_sources");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -59,9 +43,6 @@ export default function LeadsTab() {
     }
     return result;
   }, [leads, search, statusFilter]);
-
-  const statusInfo = (status: string) => LEAD_STATUSES.find((s) => s.value === status) || { label: status, color: "#888" };
-  const sourceLabel = (source: string) => LEAD_SOURCES.find((s) => s.value === source)?.label || source;
 
   const formatAmount = (n: number | null) =>
     n && n > 0 ? new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0 }).format(n) : "—";
@@ -132,7 +113,7 @@ export default function LeadsTab() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Все статусы</SelectItem>
-            {LEAD_STATUSES.map((s) => (
+            {leadStatuses.options.map((s) => (
               <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
             ))}
           </SelectContent>
@@ -192,7 +173,7 @@ export default function LeadsTab() {
             </TableHeader>
             <TableBody>
               {filtered.map((lead) => {
-                const si = statusInfo(lead.status);
+                const si = leadStatuses.find(lead.status);
                 return (
                   <TableRow key={lead.id} className="cursor-pointer">
                     <TableCell onClick={(e) => e.stopPropagation()}>
@@ -216,7 +197,7 @@ export default function LeadsTab() {
                       </div>
                     </TableCell>
                     <TableCell onClick={() => openDetail(lead)}>
-                      <span className="text-xs">{sourceLabel(lead.source)}</span>
+                      <span className="text-xs">{leadSources.label(lead.source)}</span>
                     </TableCell>
                     <TableCell onClick={() => openDetail(lead)} className="font-medium text-sm">{formatAmount(lead.amount)}</TableCell>
                     <TableCell onClick={() => openDetail(lead)}>

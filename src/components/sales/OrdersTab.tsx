@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
-import { useOrders, ORDER_STATUSES, ORDER_TYPES, type Order } from "@/hooks/useOrders";
+import { useOrders, type Order } from "@/hooks/useOrders";
 import { useClients } from "@/hooks/useClients";
+import { useDictOptions } from "@/hooks/useDictOptions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,8 @@ import OrderFormDialog from "./OrderFormDialog";
 export default function OrdersTab() {
   const { orders, isLoading } = useOrders();
   const { clients } = useClients();
+  const orderStatuses = useDictOptions("order_statuses");
+  const orderTypes = useDictOptions("order_types");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -33,9 +36,6 @@ export default function OrdersTab() {
     }
     return result;
   }, [orders, search, statusFilter]);
-
-  const statusInfo = (s: string) => ORDER_STATUSES.find((st) => st.value === s) || { label: s, color: "#888" };
-  const typeLabel = (t: string) => ORDER_TYPES.find((ot) => ot.value === t)?.label || t;
 
   const formatAmount = (n: number) =>
     n > 0 ? new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0 }).format(n) : "—";
@@ -64,7 +64,7 @@ export default function OrdersTab() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Все статусы</SelectItem>
-            {ORDER_STATUSES.map((s) => (
+            {orderStatuses.options.map((s) => (
               <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
             ))}
           </SelectContent>
@@ -112,7 +112,7 @@ export default function OrdersTab() {
             </TableHeader>
             <TableBody>
               {filtered.map((order) => {
-                const si = statusInfo(order.status);
+                const si = orderStatuses.find(order.status);
                 const balance = order.total_amount - order.paid_amount;
                 return (
                   <TableRow key={order.id} className="cursor-pointer" onClick={() => openEdit(order)}>
@@ -127,7 +127,7 @@ export default function OrdersTab() {
                         <span className="text-muted-foreground text-xs">—</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-xs">{typeLabel(order.order_type)}</TableCell>
+                    <TableCell className="text-xs">{orderTypes.label(order.order_type)}</TableCell>
                     <TableCell className="font-medium text-sm">{formatAmount(order.total_amount)}</TableCell>
                     <TableCell>
                       {order.paid_amount > 0 ? (
