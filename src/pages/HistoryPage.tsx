@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import type { CalculationResult } from "@/lib/calculator";
 import { motion } from "framer-motion";
 import AppLayout from "@/components/AppLayout";
 import { useCalculations } from "@/hooks/useCalculations";
