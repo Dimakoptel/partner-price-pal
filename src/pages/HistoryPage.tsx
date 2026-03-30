@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import type { CalculationResult } from "@/lib/calculator";
 import { motion } from "framer-motion";
 import AppLayout from "@/components/AppLayout";
 import { useCalculations } from "@/hooks/useCalculations";
@@ -147,34 +148,34 @@ export default function HistoryPage() {
                 <div className="mt-3 pt-3 border-t border-border/50 space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Стоимость изделия</span>
-                    <span className="font-medium whitespace-nowrap ml-4">{formatPrice(calc.result.totalPrice)} ₽</span>
+                    <span className="font-medium whitespace-nowrap ml-4">{formatPrice((calc.result as any).totalPrice)} ₽</span>
                   </div>
-                  {calc.result.weight > 0 && (
+                  {(calc.result as any).weight > 0 && (
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Ориентировочный вес</span>
-                      <span className="whitespace-nowrap ml-4">{calc.result.weight} кг</span>
+                      <span className="whitespace-nowrap ml-4">{(calc.result as any).weight} кг</span>
                     </div>
                   )}
-                  {calc.result.energyConsumptionPerItem > 0 && (
+                  {(calc.result as any).energyConsumptionPerItem > 0 && (
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Энергопотребление</span>
-                      <span className="whitespace-nowrap ml-4">{calc.result.energyConsumption || calc.result.energyConsumptionPerItem} Вт</span>
+                      <span className="whitespace-nowrap ml-4">{(calc.result as any).energyConsumption || (calc.result as any).energyConsumptionPerItem} Вт</span>
                     </div>
                   )}
-                  {calc.result.supportPrice > 0 && (
+                  {(calc.result as any).supportPrice > 0 && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Кронштейн <span className="text-[10px]">(при необходимости)</span></span>
-                      <span className="whitespace-nowrap ml-4">{formatPrice(calc.result.supportPrice)} ₽</span>
+                      <span className="whitespace-nowrap ml-4">{formatPrice((calc.result as any).supportPrice)} ₽</span>
                     </div>
                   )}
-                  {calc.result.installationNote ? (
+                  {(calc.result as any).installationNote ? (
                     <div className="text-xs text-muted-foreground mt-1">
                       <span className="font-medium text-foreground">Монтаж:</span> уточняется у менеджера
                     </div>
                   ) : (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Монтаж <span className="text-[10px]">(при необходимости)</span></span>
-                      <span className="whitespace-nowrap ml-4">{formatPrice(calc.result.installationPrice)} ₽</span>
+                      <span className="whitespace-nowrap ml-4">{formatPrice((calc.result as any).installationPrice)} ₽</span>
                     </div>
                   )}
                 </div>
@@ -185,7 +186,7 @@ export default function HistoryPage() {
                     size="sm"
                     variant="ghost"
                     className="gap-1.5 text-xs"
-                    onClick={() => handlePrint(calc.result, cs, specialist)}
+                    onClick={() => handlePrint(calc.result as unknown as CalculationResult, cs, specialist)}
                   >
                     <Printer className="w-3.5 h-3.5" /> Печать
                   </Button>
@@ -193,7 +194,7 @@ export default function HistoryPage() {
                     size="sm"
                     variant="ghost"
                     className="gap-1.5 text-xs"
-                    onClick={() => handleSaveFile(calc.result, calc.calc_name, cs)}
+                    onClick={() => handleSaveFile(calc.result as unknown as CalculationResult, calc.calc_name, cs)}
                   >
                     <Download className="w-3.5 h-3.5" /> Сохранить файл
                   </Button>
@@ -204,16 +205,16 @@ export default function HistoryPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => shareVia("telegram", calc.result, cs)}>
+                      <DropdownMenuItem onClick={() => shareVia("telegram", calc.result as unknown as CalculationResult, cs)}>
                         <MessageCircle className="w-4 h-4 mr-2" /> Telegram
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => shareVia("whatsapp", calc.result, cs)}>
+                      <DropdownMenuItem onClick={() => shareVia("whatsapp", calc.result as unknown as CalculationResult, cs)}>
                         <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => shareVia("email", calc.result, cs)}>
+                      <DropdownMenuItem onClick={() => shareVia("email", calc.result as unknown as CalculationResult, cs)}>
                         <Mail className="w-4 h-4 mr-2" /> Email
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => shareVia("copy", calc.result, cs)}>
+                      <DropdownMenuItem onClick={() => shareVia("copy", calc.result as unknown as CalculationResult, cs)}>
                         <Share2 className="w-4 h-4 mr-2" /> Копировать
                       </DropdownMenuItem>
                     </DropdownMenuContent>

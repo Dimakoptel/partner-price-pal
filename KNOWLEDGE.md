@@ -56,9 +56,9 @@
 | `/` | Index | Авторизованный |
 | `/calculator` | CalculatorPage | Модуль `calculator` |
 | `/history` | HistoryPage | Модуль `history` |
-| `/sales` | ClientsPage | Модуль `clients` / Админ |
-| `/production` | ProductionPage | Модуль `calculator` |
-| `/warehouse` | WarehousePage | Модуль `calculator` |
+| `/crm` | ClientsPage | Модуль `sales_leads` |
+| `/production` | ProductionPage | Модуль `production` |
+| `/warehouse` | WarehousePage | Модуль `warehouse` |
 | `/pricelist` | PriceListPage | Все авторизованные |
 | `/docs` | DocsPage | Модуль `docs` |
 | `/admin` | AdminPage | Только админ |
@@ -68,7 +68,7 @@
 
 ### Навигация
 
-Боковая панель с группами: Калькуляторы, Продажи, Производство, Склад + standalone: Прайс-лист, Инструкция, Администрирование, Интеграции.
+Боковая панель с группами: Калькуляторы, CRM, Производство, Склад, Информация (Прайс-лист, Инструкция) + Администрирование.
 
 ---
 
@@ -78,7 +78,7 @@
 - **Группы доступа:** `access_groups` → `group_permissions` (модуль + allowed)
 - **Назначение:** `user_group_assignments` (user_id + group_id)
 - **Проверка:** функция `has_module_access(_user_id, _module)` — админы всегда имеют доступ
-- **Модули:** `calculator`, `history`, `clients`, `docs`
+- **Модули:** `calculator`, `box_calculator`, `history`, `clients`, `sales_leads`, `sales_orders`, `sales_pipeline`, `sales_tasks`, `production`, `warehouse`, `docs`
 
 ---
 
