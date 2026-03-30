@@ -46,7 +46,7 @@ function StagesList({ productionOrderId }: { productionOrderId: string }) {
   return (
     <div className="space-y-2">
       {stages.map((s, idx) => {
-        const si = STAGE_STATUS_LABELS[s.status] || { label: s.status, color: "#888" };
+        const si = stageStatuses.find(s.status);
         const isEditable = s.status === "pending" || s.status === "in_progress";
         const prevDone = idx === 0 || ["completed", "skipped"].includes(stages[idx - 1].status);
 
