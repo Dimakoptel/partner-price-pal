@@ -183,8 +183,8 @@ export default function ProductionPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Все статусы</SelectItem>
-              {PRODUCTION_STATUSES.map((s) => (
-                <SelectItem key={s.code} value={s.code}>{s.label}</SelectItem>
+              {prodStatuses.options.map((s) => (
+                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
