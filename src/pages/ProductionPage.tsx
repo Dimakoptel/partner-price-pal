@@ -113,6 +113,7 @@ function StagesList({ productionOrderId }: { productionOrderId: string }) {
 export default function ProductionPage() {
   const { data: orders, isLoading } = useProductionOrders();
   const updateStatus = useUpdateProductionStatus();
+  const prodStatuses = useDictOptions("production_order_status");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<ProductionOrder | null>(null);
