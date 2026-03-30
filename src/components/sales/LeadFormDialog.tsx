@@ -10,26 +10,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
+import { useDictOptions } from "@/hooks/useDictOptions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-const LEAD_SOURCES = [
-  { value: "website", label: "Сайт" },
-  { value: "instagram", label: "Instagram" },
-  { value: "recommendation", label: "Рекомендация" },
-  { value: "exhibition", label: "Выставка" },
-  { value: "cold_call", label: "Холодный звонок" },
-  { value: "agent", label: "Агент" },
-  { value: "calculator", label: "Калькулятор" },
-  { value: "other", label: "Другое" },
-];
-
-const LEAD_STATUSES = [
-  { value: "new", label: "Новый" },
-  { value: "qualified", label: "Квалифицирован" },
-  { value: "proposal_sent", label: "КП отправлено" },
-  { value: "negotiation", label: "Переговоры" },
-];
 
 interface Props {
   open: boolean;
@@ -53,6 +36,8 @@ const emptyForm = {
 
 export default function LeadFormDialog({ open, onOpenChange, lead, onSuccess }: Props) {
   const { user } = useAuth();
+  const leadSources = useDictOptions("lead_sources");
+  const leadStatuses = useDictOptions("lead_statuses");
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
@@ -101,14 +86,14 @@ export default function LeadFormDialog({ open, onOpenChange, lead, onSuccess }: 
       if (lead) {
         const { error } = await supabase
           .from("leads")
-          .update(payload as any)
+          .update(payload)
           .eq("id", lead.id);
         if (error) throw error;
         toast.success("Лид обновлён");
       } else {
         const { error } = await supabase
           .from("leads")
-          .insert({ ...payload, user_id: user.id } as any);
+          .insert({ ...payload, user_id: user.id });
         if (error) throw error;
         toast.success("Лид создан");
       }
@@ -123,6 +108,11 @@ export default function LeadFormDialog({ open, onOpenChange, lead, onSuccess }: 
   };
 
   const set = (key: string, value: string) => setForm((f) => ({ ...f, [key]: value }));
+
+  // Only show statuses up to "negotiation" for form (not won/lost)
+  const formStatuses = leadStatuses.options.filter(
+    (s) => !["won", "lost"].includes(s.value)
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -153,7 +143,7 @@ export default function LeadFormDialog({ open, onOpenChange, lead, onSuccess }: 
               <Select value={form.status} onValueChange={(v) => set("status", v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {LEAD_STATUSES.map((s) => (
+                  {formStatuses.map((s) => (
                     <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                   ))}
                 </SelectContent>
@@ -164,7 +154,7 @@ export default function LeadFormDialog({ open, onOpenChange, lead, onSuccess }: 
               <Select value={form.source} onValueChange={(v) => set("source", v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {LEAD_SOURCES.map((s) => (
+                  {leadSources.options.map((s) => (
                     <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                   ))}
                 </SelectContent>

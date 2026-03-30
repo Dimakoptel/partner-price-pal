@@ -10,9 +10,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, FileText, Shield, Factory } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useGenerateDocument } from "@/hooks/useDocumentGeneration";
-import { useOrders, ORDER_STATUSES, ORDER_TYPES, DELIVERY_METHODS, type Order } from "@/hooks/useOrders";
+import { useOrders, type Order } from "@/hooks/useOrders";
 import { useOrderItems } from "@/hooks/useOrderItems";
 import { useProductionOrders, useCreateProductionOrder } from "@/hooks/useProductionOrders";
+import { useDictOptions } from "@/hooks/useDictOptions";
 import type { Client } from "@/hooks/useClients";
 import { useAccrueCommission } from "@/hooks/useAgentCommissions";
 import { toast } from "sonner";
@@ -36,6 +37,9 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
   const { data: productionOrders } = useProductionOrders(order?.id);
   const createProductionOrder = useCreateProductionOrder();
   const accrueCommission = useAccrueCommission();
+  const orderStatuses = useDictOptions("order_statuses");
+  const orderTypes = useDictOptions("order_types");
+  const deliveryMethods = useDictOptions("delivery_methods");
 
   const [form, setForm] = useState({
     client_id: "",
@@ -50,7 +54,7 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
 
   const discountValue = parseFloat(form.discount_percent) || 0;
   const showDiscountWarning = discountValue > DISCOUNT_THRESHOLD;
-  const hasItems = order ? items.length > 0 : true; // new orders can be saved, items added after
+  const hasItems = order ? items.length > 0 : true;
 
   useEffect(() => {
     if (order) {
@@ -81,7 +85,6 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation: existing order must have at least one item
     if (order && items.length === 0) {
       toast.error("Добавьте хотя бы одну позицию в заказ");
       return;
@@ -105,7 +108,6 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
     }
 
     const onSaved = async (savedOrder: any) => {
-      // Apply discount rule if discount > threshold
       if (discountValue > DISCOUNT_THRESHOLD) {
         try {
           const result = await (supabase.rpc as any)("apply_discount_rule", { p_order_id: savedOrder.id });
@@ -117,7 +119,6 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
         }
       }
 
-      // Accrue agent commission if fully paid
       const paidAmount = parseFloat(form.paid_amount) || 0;
       const totalAmount = order?.total_amount || savedOrder.total_amount || 0;
       if (paidAmount > 0 && paidAmount >= totalAmount) {
@@ -182,7 +183,7 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
               <Select value={form.order_type} onValueChange={(v) => setForm({ ...form, order_type: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {ORDER_TYPES.map((t) => (
+                  {orderTypes.options.map((t) => (
                     <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
                   ))}
                 </SelectContent>
@@ -196,7 +197,7 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
               <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {ORDER_STATUSES.map((s) => (
+                  {orderStatuses.options.map((s) => (
                     <SelectItem key={s.value} value={s.value}>
                       <span className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
@@ -308,7 +309,7 @@ export default function OrderFormDialog({ open, onOpenChange, order, clients, pr
               <Select value={form.delivery_method} onValueChange={(v) => setForm({ ...form, delivery_method: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {DELIVERY_METHODS.map((d) => (
+                  {deliveryMethods.options.map((d) => (
                     <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
                   ))}
                 </SelectContent>

@@ -6,31 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { useDictOptions } from "@/hooks/useDictOptions";
 import type { Client } from "@/hooks/useClients";
-
-const CLIENT_TYPES = [
-  { value: "b2c", label: "B2C (частное лицо)" },
-  { value: "b2b", label: "B2B (компания)" },
-  { value: "agent", label: "Агент" },
-  { value: "designer", label: "Дизайнер" },
-  { value: "partner", label: "Партнёр" },
-  { value: "developer", label: "Застройщик" },
-];
-
-const PRICING_TYPES = [
-  { value: "retail", label: "Розница" },
-  { value: "wholesale1", label: "Опт 1" },
-  { value: "wholesale2", label: "Опт 2" },
-  { value: "dealer", label: "Дилер" },
-  { value: "agent", label: "Агентский" },
-];
-
-const PAYMENT_TERMS = [
-  { value: "prepay", label: "Предоплата" },
-  { value: "postpay", label: "Постоплата" },
-  { value: "delay30", label: "Отсрочка 30 дн." },
-  { value: "delay60", label: "Отсрочка 60 дн." },
-];
 
 interface Props {
   open: boolean;
@@ -41,6 +18,10 @@ interface Props {
 }
 
 export default function ClientFormDialog({ open, onOpenChange, client, onSubmit, isPending }: Props) {
+  const clientTypes = useDictOptions("client_types");
+  const pricingTypes = useDictOptions("pricing_types");
+  const paymentTerms = useDictOptions("payment_terms");
+
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -144,7 +125,7 @@ export default function ClientFormDialog({ open, onOpenChange, client, onSubmit,
               <Select value={form.client_type} onValueChange={(v) => setForm({ ...form, client_type: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {CLIENT_TYPES.map((t) => (
+                  {clientTypes.options.map((t) => (
                     <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
                   ))}
                 </SelectContent>
@@ -240,7 +221,7 @@ export default function ClientFormDialog({ open, onOpenChange, client, onSubmit,
               <Select value={form.pricing_type} onValueChange={(v) => setForm({ ...form, pricing_type: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {PRICING_TYPES.map((p) => (
+                  {pricingTypes.options.map((p) => (
                     <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
                   ))}
                 </SelectContent>
@@ -255,7 +236,7 @@ export default function ClientFormDialog({ open, onOpenChange, client, onSubmit,
               <Select value={form.payment_terms} onValueChange={(v) => setForm({ ...form, payment_terms: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {PAYMENT_TERMS.map((p) => (
+                  {paymentTerms.options.map((p) => (
                     <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
                   ))}
                 </SelectContent>

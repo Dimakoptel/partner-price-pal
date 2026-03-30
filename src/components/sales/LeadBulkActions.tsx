@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { useDictOptions } from "@/hooks/useDictOptions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CheckSquare, RotateCcw } from "lucide-react";
@@ -16,20 +17,23 @@ interface Props {
 export default function LeadBulkActions({ selectedLeads, onClearSelection, onSuccess }: Props) {
   const [action, setAction] = useState("");
   const [loading, setLoading] = useState(false);
+  const leadStatuses = useDictOptions("lead_statuses");
 
   const handleAction = async () => {
     if (!action || selectedLeads.length === 0) return;
 
     setLoading(true);
     try {
-      const updates: Record<string, string> = {};
-      if (["new", "qualified", "proposal_sent", "negotiation", "won", "lost"].includes(action)) {
-        updates.status = action;
+      // Validate action is a known status code
+      const isValidStatus = leadStatuses.options.some((s) => s.value === action);
+      if (!isValidStatus) {
+        toast.error("Неизвестный статус");
+        return;
       }
 
       const { error } = await supabase
         .from("leads")
-        .update(updates as any)
+        .update({ status: action })
         .in("id", selectedLeads);
       if (error) throw error;
 
@@ -57,12 +61,9 @@ export default function LeadBulkActions({ selectedLeads, onClearSelection, onSuc
           <SelectValue placeholder="Действие..." />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="new">Статус: Новый</SelectItem>
-          <SelectItem value="qualified">Статус: Квалифицирован</SelectItem>
-          <SelectItem value="proposal_sent">Статус: КП отправлено</SelectItem>
-          <SelectItem value="negotiation">Статус: Переговоры</SelectItem>
-          <SelectItem value="won">Статус: Выигран</SelectItem>
-          <SelectItem value="lost">Статус: Проигран</SelectItem>
+          {leadStatuses.options.map((s) => (
+            <SelectItem key={s.value} value={s.value}>Статус: {s.label}</SelectItem>
+          ))}
         </SelectContent>
       </Select>
       <Button size="sm" variant="default" onClick={handleAction} disabled={!action || loading} className="h-8 text-xs">

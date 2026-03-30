@@ -13,25 +13,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-
-const PRODUCTION_STATUSES = [
-  { code: "planned", label: "Запланирован", color: "#3b82f6", icon: Clock },
-  { code: "in_progress", label: "В работе", color: "#8b5cf6", icon: PlayCircle },
-  { code: "paused", label: "Приостановлен", color: "#f59e0b", icon: Pause },
-  { code: "completed", label: "Завершён", color: "#10b981", icon: CheckCircle2 },
-  { code: "cancelled", label: "Отменён", color: "#ef4444", icon: XCircle },
-];
-
-const STAGE_STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  pending: { label: "Ожидание", color: "#94a3b8" },
-  in_progress: { label: "В работе", color: "#8b5cf6" },
-  completed: { label: "Готово", color: "#10b981" },
-  skipped: { label: "Пропущен", color: "#f59e0b" },
-};
+import { useDictOptions } from "@/hooks/useDictOptions";
 
 function StagesList({ productionOrderId }: { productionOrderId: string }) {
   const { data: stages, isLoading } = useProductionStages(productionOrderId);
   const updateStage = useUpdateProductionStage();
+  const stageStatuses = useDictOptions("production_stage_status");
   const [notesStageId, setNotesStageId] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");
 
@@ -59,7 +46,7 @@ function StagesList({ productionOrderId }: { productionOrderId: string }) {
   return (
     <div className="space-y-2">
       {stages.map((s, idx) => {
-        const si = STAGE_STATUS_LABELS[s.status] || { label: s.status, color: "#888" };
+        const si = stageStatuses.find(s.status);
         const isEditable = s.status === "pending" || s.status === "in_progress";
         const prevDone = idx === 0 || ["completed", "skipped"].includes(stages[idx - 1].status);
 
@@ -126,6 +113,7 @@ function StagesList({ productionOrderId }: { productionOrderId: string }) {
 export default function ProductionPage() {
   const { data: orders, isLoading } = useProductionOrders();
   const updateStatus = useUpdateProductionStatus();
+  const prodStatuses = useDictOptions("production_order_status");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<ProductionOrder | null>(null);
@@ -146,7 +134,7 @@ export default function ProductionPage() {
 
   const statusInfo = (o: ProductionOrder) => {
     const code = o.status?.code || "";
-    return PRODUCTION_STATUSES.find((s) => s.code === code) || { code, label: o.status?.name || code, color: "#888" };
+    return prodStatuses.find(code);
   };
 
   const stats = useMemo(() => {
@@ -195,8 +183,8 @@ export default function ProductionPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Все статусы</SelectItem>
-              {PRODUCTION_STATUSES.map((s) => (
-                <SelectItem key={s.code} value={s.code}>{s.label}</SelectItem>
+              {prodStatuses.options.map((s) => (
+                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>

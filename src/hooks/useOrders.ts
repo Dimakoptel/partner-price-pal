@@ -11,6 +11,7 @@ export type Order = Tables<"orders"> & {
 export type OrderInsert = TablesInsert<"orders">;
 export type OrderUpdate = TablesUpdate<"orders">;
 
+/** @deprecated Use useDictOptions("order_statuses") instead */
 export const ORDER_STATUSES = [
   { value: "draft", label: "Черновик", color: "hsl(var(--muted-foreground))" },
   { value: "pending_approval", label: "На согласовании", color: "#f59e0b" },
@@ -23,6 +24,7 @@ export const ORDER_STATUSES = [
   { value: "cancelled", label: "Отменён", color: "#ef4444" },
 ] as const;
 
+/** @deprecated Use useDictOptions("order_types") instead */
 export const ORDER_TYPES = [
   { value: "serial_stock", label: "Серийный (со склада)" },
   { value: "serial_production", label: "Серийный (под заказ)" },
@@ -30,6 +32,7 @@ export const ORDER_TYPES = [
   { value: "project", label: "Проект" },
 ] as const;
 
+/** @deprecated Use useDictOptions("delivery_methods") instead */
 export const DELIVERY_METHODS = [
   { value: "self_pickup", label: "Самовывоз" },
   { value: "city_delivery", label: "Доставка по городу" },
