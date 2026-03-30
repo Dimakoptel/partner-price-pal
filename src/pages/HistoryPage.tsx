@@ -147,34 +147,34 @@ export default function HistoryPage() {
                 <div className="mt-3 pt-3 border-t border-border/50 space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Стоимость изделия</span>
-                    <span className="font-medium whitespace-nowrap ml-4">{formatPrice(calc.result.totalPrice)} ₽</span>
+                    <span className="font-medium whitespace-nowrap ml-4">{formatPrice((calc.result as any).totalPrice)} ₽</span>
                   </div>
-                  {calc.result.weight > 0 && (
+                  {(calc.result as any).weight > 0 && (
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Ориентировочный вес</span>
-                      <span className="whitespace-nowrap ml-4">{calc.result.weight} кг</span>
+                      <span className="whitespace-nowrap ml-4">{(calc.result as any).weight} кг</span>
                     </div>
                   )}
-                  {calc.result.energyConsumptionPerItem > 0 && (
+                  {(calc.result as any).energyConsumptionPerItem > 0 && (
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Энергопотребление</span>
-                      <span className="whitespace-nowrap ml-4">{calc.result.energyConsumption || calc.result.energyConsumptionPerItem} Вт</span>
+                      <span className="whitespace-nowrap ml-4">{(calc.result as any).energyConsumption || (calc.result as any).energyConsumptionPerItem} Вт</span>
                     </div>
                   )}
-                  {calc.result.supportPrice > 0 && (
+                  {(calc.result as any).supportPrice > 0 && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Кронштейн <span className="text-[10px]">(при необходимости)</span></span>
-                      <span className="whitespace-nowrap ml-4">{formatPrice(calc.result.supportPrice)} ₽</span>
+                      <span className="whitespace-nowrap ml-4">{formatPrice((calc.result as any).supportPrice)} ₽</span>
                     </div>
                   )}
-                  {calc.result.installationNote ? (
+                  {(calc.result as any).installationNote ? (
                     <div className="text-xs text-muted-foreground mt-1">
                       <span className="font-medium text-foreground">Монтаж:</span> уточняется у менеджера
                     </div>
                   ) : (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Монтаж <span className="text-[10px]">(при необходимости)</span></span>
-                      <span className="whitespace-nowrap ml-4">{formatPrice(calc.result.installationPrice)} ₽</span>
+                      <span className="whitespace-nowrap ml-4">{formatPrice((calc.result as any).installationPrice)} ₽</span>
                     </div>
                   )}
                 </div>
