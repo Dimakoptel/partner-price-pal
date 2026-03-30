@@ -18,6 +18,7 @@ import { useDictOptions } from "@/hooks/useDictOptions";
 function StagesList({ productionOrderId }: { productionOrderId: string }) {
   const { data: stages, isLoading } = useProductionStages(productionOrderId);
   const updateStage = useUpdateProductionStage();
+  const stageStatuses = useDictOptions("production_stage_status");
   const [notesStageId, setNotesStageId] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");
 
