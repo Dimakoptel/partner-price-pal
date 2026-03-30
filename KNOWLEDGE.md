@@ -56,9 +56,9 @@
 | `/` | Index | Авторизованный |
 | `/calculator` | CalculatorPage | Модуль `calculator` |
 | `/history` | HistoryPage | Модуль `history` |
-| `/sales` | ClientsPage | Модуль `clients` / Админ |
-| `/production` | ProductionPage | Модуль `calculator` |
-| `/warehouse` | WarehousePage | Модуль `calculator` |
+| `/crm` | ClientsPage | Модуль `sales_leads` |
+| `/production` | ProductionPage | Модуль `production` |
+| `/warehouse` | WarehousePage | Модуль `warehouse` |
 | `/pricelist` | PriceListPage | Все авторизованные |
 | `/docs` | DocsPage | Модуль `docs` |
 | `/admin` | AdminPage | Только админ |
