@@ -13,21 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-
-const PRODUCTION_STATUSES = [
-  { code: "planned", label: "Запланирован", color: "#3b82f6", icon: Clock },
-  { code: "in_progress", label: "В работе", color: "#8b5cf6", icon: PlayCircle },
-  { code: "paused", label: "Приостановлен", color: "#f59e0b", icon: Pause },
-  { code: "completed", label: "Завершён", color: "#10b981", icon: CheckCircle2 },
-  { code: "cancelled", label: "Отменён", color: "#ef4444", icon: XCircle },
-];
-
-const STAGE_STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  pending: { label: "Ожидание", color: "#94a3b8" },
-  in_progress: { label: "В работе", color: "#8b5cf6" },
-  completed: { label: "Готово", color: "#10b981" },
-  skipped: { label: "Пропущен", color: "#f59e0b" },
-};
+import { useDictOptions } from "@/hooks/useDictOptions";
 
 function StagesList({ productionOrderId }: { productionOrderId: string }) {
   const { data: stages, isLoading } = useProductionStages(productionOrderId);
