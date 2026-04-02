@@ -12,6 +12,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useClients, type Client } from "@/hooks/useClients";
 import { useLeads } from "@/hooks/useLeads";
 import { useOrders } from "@/hooks/useOrders";
+import { usePagination } from "@/hooks/usePaginatedQuery";
+import TablePagination from "@/components/ui/table-pagination";
 import { useAgentCommissions } from "@/hooks/useAgentCommissions";
 import ClientFormDialog from "@/components/clients/ClientFormDialog";
 import ClientDetailDialog from "@/components/crm/ClientDetailDialog";
