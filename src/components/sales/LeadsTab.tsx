@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLeads, type Lead } from "@/hooks/useLeads";
+import { usePagination } from "@/hooks/usePaginatedQuery";
 import { useDictOptions } from "@/hooks/useDictOptions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -11,12 +12,16 @@ import { Search, Phone, Mail, ArrowRight, Filter, User, Plus } from "lucide-reac
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { toast } from "sonner";
+import TablePagination from "@/components/ui/table-pagination";
 import LeadDetailDialog from "./LeadDetailDialog";
 import LeadFormDialog from "./LeadFormDialog";
 import LeadBulkActions from "./LeadBulkActions";
 
 export default function LeadsTab() {
-  const { leads, loading, updateLead, convertToClient, convertToOrder, fetchLeads } = useLeads();
+  const pg = usePagination("leads", { sortBy: "created_at", sortOrder: "desc" });
+  const { leads, loading, totalCount, updateLead, convertToClient, convertToOrder, fetchLeads } = useLeads({
+    from: pg.from, to: pg.to, sortBy: pg.sortBy, sortOrder: pg.sortOrder,
+  });
   const leadStatuses = useDictOptions("lead_statuses");
   const leadSources = useDictOptions("lead_sources");
   const [search, setSearch] = useState("");
@@ -27,6 +32,9 @@ export default function LeadsTab() {
   const [editLead, setEditLead] = useState<Lead | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
+  useEffect(() => { pg.setTotalCount(totalCount); }, [totalCount]);
+
+  // Client-side filtering on current page
   const filtered = useMemo(() => {
     let result = leads;
     if (statusFilter !== "all") {
@@ -126,7 +134,7 @@ export default function LeadsTab() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         {[
-          { label: "Всего", count: leads.length, color: "text-foreground" },
+          { label: "Всего", count: totalCount, color: "text-foreground" },
           { label: "Новые", count: leads.filter((l) => l.status === "new").length, color: "text-blue-500" },
           { label: "В работе", count: leads.filter((l) => ["qualified", "proposal_sent", "negotiation"].includes(l.status)).length, color: "text-amber-500" },
           { label: "Выиграно", count: leads.filter((l) => l.status === "won").length, color: "text-green-500" },
@@ -216,6 +224,7 @@ export default function LeadsTab() {
               })}
             </TableBody>
           </Table>
+          <TablePagination pagination={pg} />
         </div>
       )}
 

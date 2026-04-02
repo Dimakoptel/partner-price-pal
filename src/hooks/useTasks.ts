@@ -21,7 +21,16 @@ export interface Task {
   deal?: { id: string; title: string } | null;
 }
 
-export function useTasks(filters?: { client_id?: string; deal_id?: string }) {
+export interface UseTasksOptions {
+  client_id?: string;
+  deal_id?: string;
+  from?: number;
+  to?: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+export function useTasks(filters?: UseTasksOptions) {
   const { user } = useAuth();
   const qc = useQueryClient();
 
@@ -30,23 +39,30 @@ export function useTasks(filters?: { client_id?: string; deal_id?: string }) {
     queryFn: async () => {
       let query = supabase
         .from("tasks")
-        .select("*, client:clients(id, name), deal:deals(id, title)")
-        .order("due_date", { ascending: true, nullsFirst: false });
+        .select("*, client:clients(id, name), deal:deals(id, title)", { count: "exact" })
+        .order(filters?.sortBy || "due_date", { ascending: filters?.sortOrder !== "desc", nullsFirst: false });
 
       if (filters?.client_id) query = query.eq("client_id", filters.client_id);
       if (filters?.deal_id) query = query.eq("deal_id", filters.deal_id);
+      if (filters?.from !== undefined && filters?.to !== undefined) {
+        query = query.range(filters.from, filters.to);
+      }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) {
         // Fallback without joins
-        let q2 = supabase.from("tasks").select("*").order("due_date", { ascending: true, nullsFirst: false });
+        let q2 = supabase.from("tasks").select("*", { count: "exact" })
+          .order(filters?.sortBy || "due_date", { ascending: filters?.sortOrder !== "desc", nullsFirst: false });
         if (filters?.client_id) q2 = q2.eq("client_id", filters.client_id);
         if (filters?.deal_id) q2 = q2.eq("deal_id", filters.deal_id);
-        const { data: d2, error: e2 } = await q2;
+        if (filters?.from !== undefined && filters?.to !== undefined) {
+          q2 = q2.range(filters.from, filters.to);
+        }
+        const { data: d2, error: e2, count: c2 } = await q2;
         if (e2) throw e2;
-        return d2 as Task[];
+        return { data: d2 as Task[], count: c2 ?? 0 };
       }
-      return data as Task[];
+      return { data: data as Task[], count: count ?? 0 };
     },
     enabled: !!user,
   });
@@ -106,7 +122,8 @@ export function useTasks(filters?: { client_id?: string; deal_id?: string }) {
   };
 
   return {
-    tasks: tasksQuery.data ?? [],
+    tasks: tasksQuery.data?.data ?? [],
+    totalCount: tasksQuery.data?.count ?? 0,
     isLoading: tasksQuery.isLoading,
     addTask, updateTask, deleteTask, completeTask,
   };

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import AppLayout from "@/components/AppLayout";
 import { motion } from "framer-motion";
 import { Users, UserPlus, Search, Pencil, Trash2, Phone, Mail, Building2, MessageCircle, LayoutGrid, CheckSquare, Target, ShoppingCart, Badge as BadgeIcon, DollarSign } from "lucide-react";
@@ -12,6 +12,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useClients, type Client } from "@/hooks/useClients";
 import { useLeads } from "@/hooks/useLeads";
 import { useOrders } from "@/hooks/useOrders";
+import { usePagination } from "@/hooks/usePaginatedQuery";
+import TablePagination from "@/components/ui/table-pagination";
 import { useAgentCommissions } from "@/hooks/useAgentCommissions";
 import ClientFormDialog from "@/components/clients/ClientFormDialog";
 import ClientDetailDialog from "@/components/crm/ClientDetailDialog";
@@ -37,15 +39,20 @@ const COMMISSION_STATUS_LABELS: Record<string, string> = {
 };
 
 export default function ClientsPage() {
-  const { clients, isLoading, addClient, updateClient, deleteClient } = useClients();
-  const { leads } = useLeads();
-  const { orders } = useOrders();
+  const clientsPg = usePagination("clients", { sortBy: "created_at", sortOrder: "desc" });
+  const { clients, totalCount: clientsTotalCount, isLoading, addClient, updateClient, deleteClient } = useClients({
+    from: clientsPg.from, to: clientsPg.to, sortBy: clientsPg.sortBy, sortOrder: clientsPg.sortOrder,
+  });
+  const { leads, totalCount: leadsTotalCount } = useLeads();
+  const { orders, totalCount: ordersTotalCount } = useOrders();
   const { data: commissions } = useAgentCommissions();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [detailClient, setDetailClient] = useState<Client | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+
+  useEffect(() => { clientsPg.setTotalCount(clientsTotalCount); }, [clientsTotalCount]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return clients;
@@ -100,16 +107,16 @@ export default function ClientsPage() {
         <Tabs defaultValue="leads" className="space-y-4">
           <TabsList className="bg-secondary h-auto gap-1 p-1.5 flex-wrap">
             <TabsTrigger value="leads" className="text-xs gap-1.5">
-              <Target className="w-3 h-3" /> Лиды ({leads.length})
+              <Target className="w-3 h-3" /> Лиды ({leadsTotalCount})
             </TabsTrigger>
             <TabsTrigger value="orders" className="text-xs gap-1.5">
-              <ShoppingCart className="w-3 h-3" /> Заказы ({orders.length})
+              <ShoppingCart className="w-3 h-3" /> Заказы ({ordersTotalCount})
             </TabsTrigger>
             <TabsTrigger value="pipeline" className="text-xs gap-1.5">
               <LayoutGrid className="w-3 h-3" /> Воронка
             </TabsTrigger>
             <TabsTrigger value="clients" className="text-xs gap-1.5">
-              <Users className="w-3 h-3" /> Клиенты ({clients.length})
+              <Users className="w-3 h-3" /> Клиенты ({clientsTotalCount})
             </TabsTrigger>
             <TabsTrigger value="contractors" className="text-xs gap-1.5">
               <Building2 className="w-3 h-3" /> Контрагенты ({contractors.length})
@@ -226,6 +233,7 @@ export default function ClientsPage() {
                       ))}
                     </TableBody>
                   </Table>
+                  <TablePagination pagination={clientsPg} />
                 </div>
               )}
             </motion.div>

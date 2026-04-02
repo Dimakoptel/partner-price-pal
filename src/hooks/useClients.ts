@@ -8,19 +8,32 @@ export type Client = Tables<"clients">;
 export type ClientInsert = TablesInsert<"clients">;
 export type ClientUpdate = TablesUpdate<"clients">;
 
-export function useClients() {
+export interface UseClientsOptions {
+  from?: number;
+  to?: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+export function useClients(options?: UseClientsOptions) {
   const { user } = useAuth();
   const qc = useQueryClient();
 
   const clientsQuery = useQuery({
-    queryKey: ["clients", user?.id],
+    queryKey: ["clients", user?.id, options?.from, options?.to, options?.sortBy, options?.sortOrder],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("clients")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select("*", { count: "exact" })
+        .order(options?.sortBy || "created_at", { ascending: options?.sortOrder === "asc" });
+
+      if (options?.from !== undefined && options?.to !== undefined) {
+        query = query.range(options.from, options.to);
+      }
+
+      const { data, error, count } = await query;
       if (error) throw error;
-      return (data ?? []) as Client[];
+      return { data: (data ?? []) as Client[], count: count ?? 0 };
     },
     enabled: !!user,
   });
@@ -73,5 +86,10 @@ export function useClients() {
     onError: (e) => toast.error("Ошибка: " + e.message),
   });
 
-  return { clients: clientsQuery.data ?? [], isLoading: clientsQuery.isLoading, addClient, updateClient, deleteClient };
+  return {
+    clients: clientsQuery.data?.data ?? [],
+    totalCount: clientsQuery.data?.count ?? 0,
+    isLoading: clientsQuery.isLoading,
+    addClient, updateClient, deleteClient,
+  };
 }

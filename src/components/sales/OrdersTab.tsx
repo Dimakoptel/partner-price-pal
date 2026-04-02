@@ -1,6 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useOrders, type Order } from "@/hooks/useOrders";
 import { useClients } from "@/hooks/useClients";
+import { usePagination } from "@/hooks/usePaginatedQuery";
 import { useDictOptions } from "@/hooks/useDictOptions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -10,10 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Plus, Filter, Package, User } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import TablePagination from "@/components/ui/table-pagination";
 import OrderFormDialog from "./OrderFormDialog";
 
 export default function OrdersTab() {
-  const { orders, isLoading } = useOrders();
+  const pg = usePagination("orders", { sortBy: "created_at", sortOrder: "desc" });
+  const { orders, totalCount, isLoading } = useOrders({
+    from: pg.from, to: pg.to, sortBy: pg.sortBy, sortOrder: pg.sortOrder,
+  });
   const { clients } = useClients();
   const orderStatuses = useDictOptions("order_statuses");
   const orderTypes = useDictOptions("order_types");
@@ -21,6 +26,8 @@ export default function OrdersTab() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editOrder, setEditOrder] = useState<Order | null>(null);
+
+  useEffect(() => { pg.setTotalCount(totalCount); }, [totalCount]);
 
   const filtered = useMemo(() => {
     let result = orders;
@@ -45,7 +52,6 @@ export default function OrdersTab() {
 
   if (isLoading) return <div className="text-center py-12 text-muted-foreground">Загрузка заказов...</div>;
 
-  // Stats
   const totalAmount = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
   const paidAmount = orders.reduce((sum, o) => sum + (o.paid_amount || 0), 0);
   const activeOrders = orders.filter((o) => !["completed", "cancelled"].includes(o.status)).length;
@@ -74,10 +80,9 @@ export default function OrdersTab() {
         </Button>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         {[
-          { label: "Всего заказов", value: orders.length.toString() },
+          { label: "Всего заказов", value: totalCount.toString() },
           { label: "Активных", value: activeOrders.toString() },
           { label: "Общая сумма", value: formatAmount(totalAmount) },
           { label: "Оплачено", value: formatAmount(paidAmount) },
@@ -152,6 +157,7 @@ export default function OrdersTab() {
               })}
             </TableBody>
           </Table>
+          <TablePagination pagination={pg} />
         </div>
       )}
 

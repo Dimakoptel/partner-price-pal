@@ -40,19 +40,32 @@ export const DELIVERY_METHODS = [
   { value: "to_door", label: "До двери" },
 ] as const;
 
-export function useOrders() {
+export interface UseOrdersOptions {
+  from?: number;
+  to?: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+export function useOrders(options?: UseOrdersOptions) {
   const { user } = useAuth();
   const qc = useQueryClient();
 
   const ordersQuery = useQuery({
-    queryKey: ["orders", user?.id],
+    queryKey: ["orders", user?.id, options?.from, options?.to, options?.sortBy, options?.sortOrder],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("orders")
-        .select("*, client:clients!orders_client_id_fkey(id, name, phone, company)")
-        .order("created_at", { ascending: false });
+        .select("*, client:clients!orders_client_id_fkey(id, name, phone, company)", { count: "exact" })
+        .order(options?.sortBy || "created_at", { ascending: options?.sortOrder === "asc" });
+
+      if (options?.from !== undefined && options?.to !== undefined) {
+        query = query.range(options.from, options.to);
+      }
+
+      const { data, error, count } = await query;
       if (error) throw error;
-      return (data ?? []) as Order[];
+      return { data: (data ?? []) as Order[], count: count ?? 0 };
     },
     enabled: !!user,
   });
@@ -94,7 +107,8 @@ export function useOrders() {
   });
 
   return {
-    orders: ordersQuery.data ?? [],
+    orders: ordersQuery.data?.data ?? [],
+    totalCount: ordersQuery.data?.count ?? 0,
     isLoading: ordersQuery.isLoading,
     isFetching: ordersQuery.isFetching,
     error: ordersQuery.error,

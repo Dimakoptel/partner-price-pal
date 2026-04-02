@@ -1,23 +1,38 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import type { Tables, TablesUpdate } from "@/integrations/supabase/types";
 
 export type Lead = Tables<"leads">;
 
-export function useLeads() {
+export interface UseLeadsOptions {
+  from?: number;
+  to?: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+export function useLeads(options?: UseLeadsOptions) {
   const { user } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
 
   const fetchLeads = async () => {
     if (!user) { setLoading(false); return; }
     try {
-      const { data } = await supabase
+      let query = supabase
         .from("leads")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select("*", { count: "exact" })
+        .order(options?.sortBy || "created_at", { ascending: options?.sortOrder === "asc" });
+
+      if (options?.from !== undefined && options?.to !== undefined) {
+        query = query.range(options.from, options.to);
+      }
+
+      const { data, error, count } = await query;
       if (data) setLeads(data);
+      if (count !== null && count !== undefined) setTotalCount(count);
     } finally {
       setLoading(false);
     }
@@ -124,7 +139,7 @@ export function useLeads() {
     } else {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, options?.from, options?.to, options?.sortBy, options?.sortOrder]);
 
-  return { leads, loading, createLead, updateLead, fetchLeads, convertToClient, convertToOrder };
+  return { leads, loading, totalCount, createLead, updateLead, fetchLeads, convertToClient, convertToOrder };
 }
