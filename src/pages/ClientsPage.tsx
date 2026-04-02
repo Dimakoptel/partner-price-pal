@@ -116,7 +116,7 @@ export default function ClientsPage() {
               <LayoutGrid className="w-3 h-3" /> Воронка
             </TabsTrigger>
             <TabsTrigger value="clients" className="text-xs gap-1.5">
-              <Users className="w-3 h-3" /> Клиенты ({clients.length})
+              <Users className="w-3 h-3" /> Клиенты ({clientsTotalCount})
             </TabsTrigger>
             <TabsTrigger value="contractors" className="text-xs gap-1.5">
               <Building2 className="w-3 h-3" /> Контрагенты ({contractors.length})
