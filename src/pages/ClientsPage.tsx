@@ -39,15 +39,20 @@ const COMMISSION_STATUS_LABELS: Record<string, string> = {
 };
 
 export default function ClientsPage() {
-  const { clients, isLoading, addClient, updateClient, deleteClient } = useClients();
-  const { leads } = useLeads();
-  const { orders } = useOrders();
+  const clientsPg = usePagination("clients", { sortBy: "created_at", sortOrder: "desc" });
+  const { clients, totalCount: clientsTotalCount, isLoading, addClient, updateClient, deleteClient } = useClients({
+    from: clientsPg.from, to: clientsPg.to, sortBy: clientsPg.sortBy, sortOrder: clientsPg.sortOrder,
+  });
+  const { leads, totalCount: leadsTotalCount } = useLeads();
+  const { orders, totalCount: ordersTotalCount } = useOrders();
   const { data: commissions } = useAgentCommissions();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [detailClient, setDetailClient] = useState<Client | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+
+  useEffect(() => { clientsPg.setTotalCount(clientsTotalCount); }, [clientsTotalCount]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return clients;
