@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import AppLayout from "@/components/AppLayout";
 import { motion } from "framer-motion";
 import { Users, UserPlus, Search, Pencil, Trash2, Phone, Mail, Building2, MessageCircle, LayoutGrid, CheckSquare, Target, ShoppingCart, Badge as BadgeIcon, DollarSign } from "lucide-react";
