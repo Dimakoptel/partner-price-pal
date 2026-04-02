@@ -233,6 +233,7 @@ export default function ClientsPage() {
                       ))}
                     </TableBody>
                   </Table>
+                  <TablePagination pagination={clientsPg} />
                 </div>
               )}
             </motion.div>
