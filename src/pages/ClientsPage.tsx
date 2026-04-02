@@ -107,10 +107,10 @@ export default function ClientsPage() {
         <Tabs defaultValue="leads" className="space-y-4">
           <TabsList className="bg-secondary h-auto gap-1 p-1.5 flex-wrap">
             <TabsTrigger value="leads" className="text-xs gap-1.5">
-              <Target className="w-3 h-3" /> Лиды ({leads.length})
+              <Target className="w-3 h-3" /> Лиды ({leadsTotalCount})
             </TabsTrigger>
             <TabsTrigger value="orders" className="text-xs gap-1.5">
-              <ShoppingCart className="w-3 h-3" /> Заказы ({orders.length})
+              <ShoppingCart className="w-3 h-3" /> Заказы ({ordersTotalCount})
             </TabsTrigger>
             <TabsTrigger value="pipeline" className="text-xs gap-1.5">
               <LayoutGrid className="w-3 h-3" /> Воронка
