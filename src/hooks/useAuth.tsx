@@ -41,11 +41,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const fetchRole = async (userId: string) => {
-    const { data } = await supabase.rpc("has_role", {
+    const { data: adminData } = await supabase.rpc("has_role", {
       _user_id: userId,
       _role: "admin",
     });
-    setIsAdmin(data === true);
+    setIsAdmin(adminData === true);
+
+    const { data: partnerData } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "partner" as any,
+    });
+    setIsPartner(partnerData === true);
+
+    // If partner, fetch linked client_id
+    if (partnerData === true) {
+      const { data: clientData } = await supabase
+        .from("clients")
+        .select("id")
+        .eq("user_id" as any, userId)
+        .single();
+      setPartnerClientId(clientData?.id || null);
+    } else {
+      setPartnerClientId(null);
+    }
   };
 
   useEffect(() => {
