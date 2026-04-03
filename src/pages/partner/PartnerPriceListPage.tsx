@@ -12,7 +12,7 @@ import { Search } from "lucide-react";
 
 export default function PartnerPriceListPage() {
   const { partnerClientId } = useAuth();
-  const { discounts, getDiscountForCategory } = usePartnerDiscounts(partnerClientId);
+  const { getDiscountForCategory } = usePartnerDiscounts(partnerClientId);
   const { items, loading } = useNomenclature();
   const { activeCategories } = useProductCategories();
 

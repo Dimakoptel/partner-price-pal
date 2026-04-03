@@ -8,7 +8,6 @@ import { useColors } from "@/hooks/useColors";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,7 +15,6 @@ import { NumericInput } from "@/components/ui/numeric-input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { ArrowLeft, Upload, X } from "lucide-react";
-import type { ProductType } from "@/lib/calculator";
 import { PRODUCTS } from "@/lib/calculator";
 
 const PRODUCT_TYPE_FIELDS: Record<string, string[]> = {
@@ -177,49 +175,49 @@ export default function PartnerNewRequestPage() {
                 {fields.includes("diameter") && params.isRound && (
                   <div>
                     <Label>Диаметр (мм)</Label>
-                    <NumericInput value={params.diameter} onChange={v => updateParam("diameter", v)} min={300} max={3000} />
+                    <NumericInput value={params.diameter} onValueChange={v => updateParam("diameter", v)} min={300} max={3000} />
                   </div>
                 )}
 
                 {fields.includes("length") && !params.isRound && (
                   <div>
                     <Label>Длина (мм)</Label>
-                    <NumericInput value={params.length} onChange={v => updateParam("length", v)} min={100} max={6000} />
+                    <NumericInput value={params.length} onValueChange={v => updateParam("length", v)} min={100} max={6000} />
                   </div>
                 )}
 
                 {fields.includes("width") && !params.isRound && (
                   <div>
                     <Label>Ширина (мм)</Label>
-                    <NumericInput value={params.width} onChange={v => updateParam("width", v)} min={100} max={2000} />
+                    <NumericInput value={params.width} onValueChange={v => updateParam("width", v)} min={100} max={2000} />
                   </div>
                 )}
 
                 {fields.includes("height") && (
                   <div>
                     <Label>Высота (мм)</Label>
-                    <NumericInput value={params.height} onChange={v => updateParam("height", v)} min={100} max={2000} />
+                    <NumericInput value={params.height} onValueChange={v => updateParam("height", v)} min={100} max={2000} />
                   </div>
                 )}
 
                 {fields.includes("thickness") && (
                   <div>
                     <Label>Толщина (мм)</Label>
-                    <NumericInput value={params.thickness} onChange={v => updateParam("thickness", v)} min={10} max={60} />
+                    <NumericInput value={params.thickness} onValueChange={v => updateParam("thickness", v)} min={10} max={60} />
                   </div>
                 )}
 
                 {fields.includes("quantity") && (
                   <div>
                     <Label>Количество</Label>
-                    <NumericInput value={params.quantity} onChange={v => updateParam("quantity", v)} min={1} max={100} />
+                    <NumericInput value={params.quantity} onValueChange={v => updateParam("quantity", v)} min={1} max={100} />
                   </div>
                 )}
 
                 {fields.includes("bowlCount") && (
                   <div>
                     <Label>Количество чаш</Label>
-                    <NumericInput value={params.bowlCount} onChange={v => updateParam("bowlCount", v)} min={0} max={5} />
+                    <NumericInput value={params.bowlCount} onValueChange={v => updateParam("bowlCount", v)} min={0} max={5} />
                   </div>
                 )}
 

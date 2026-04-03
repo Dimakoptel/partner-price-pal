@@ -11,7 +11,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Send, Paperclip } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
