@@ -156,6 +156,7 @@ export type Database = {
           source: string | null
           telegram: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           address?: string | null
@@ -187,6 +188,7 @@ export type Database = {
           source?: string | null
           telegram?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           address?: string | null
@@ -218,6 +220,7 @@ export type Database = {
           source?: string | null
           telegram?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -899,6 +902,162 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_discounts: {
+        Row: {
+          category_id: string
+          client_id: string
+          created_at: string
+          discount_percent: number
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          client_id: string
+          created_at?: string
+          discount_percent?: number
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          client_id?: string
+          created_at?: string
+          discount_percent?: number
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_discounts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_discounts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_request_messages: {
+        Row: {
+          attachment_urls: string[]
+          created_at: string
+          id: string
+          message: string
+          request_id: string
+          user_id: string
+        }
+        Insert: {
+          attachment_urls?: string[]
+          created_at?: string
+          id?: string
+          message?: string
+          request_id: string
+          user_id: string
+        }
+        Update: {
+          attachment_urls?: string[]
+          created_at?: string
+          id?: string
+          message?: string
+          request_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_request_messages_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "partner_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_requests: {
+        Row: {
+          assigned_manager_id: string | null
+          attachment_urls: string[]
+          category_id: string | null
+          client_id: string
+          converted_order_id: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          number: string
+          params: Json
+          partner_price: number | null
+          product_type: string | null
+          retail_price: number | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_manager_id?: string | null
+          attachment_urls?: string[]
+          category_id?: string | null
+          client_id: string
+          converted_order_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          number?: string
+          params?: Json
+          partner_price?: number | null
+          product_type?: string | null
+          retail_price?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_manager_id?: string | null
+          attachment_urls?: string[]
+          category_id?: string | null
+          client_id?: string
+          converted_order_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          number?: string
+          params?: Json
+          partner_price?: number | null
+          product_type?: string | null
+          retail_price?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_requests_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_requests_converted_order_id_fkey"
+            columns: ["converted_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
@@ -1677,7 +1836,7 @@ export type Database = {
       reserve_order_stock: { Args: { p_order_id: string }; Returns: number }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "partner"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1805,7 +1964,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "partner"],
     },
   },
 } as const
