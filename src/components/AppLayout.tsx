@@ -154,7 +154,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-60 bg-sidebar flex flex-col border-r border-sidebar-border shrink-0 transition-transform lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
         {/* Logo */}
         <div className="px-5 py-5 border-b border-sidebar-border">
-          <Link to="/" className="block" onClick={() => setMobileOpen(false)}>
+          <Link to={homeRoute} className="block" onClick={() => setMobileOpen(false)}>
             {logoUrl ? (
               <img src={logoUrl} alt="Logo" className="h-8 max-w-[140px] object-contain" />
             ) : (
