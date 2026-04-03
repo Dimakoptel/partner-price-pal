@@ -141,7 +141,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     items: group.items.filter(canSeeItem),
   })).filter((group) => group.items.length > 0);
 
-  const visibleStandalone = STANDALONE_ITEMS.filter(canSeeItem);
+  const visibleStandalone = isPartner ? [] : STANDALONE_ITEMS.filter(canSeeItem);
 
   const isActive = (path: string) => location.pathname === path;
 
