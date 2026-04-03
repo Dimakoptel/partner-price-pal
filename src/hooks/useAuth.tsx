@@ -78,6 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setProfile(null);
         setIsAdmin(false);
+        setIsPartner(false);
+        setPartnerClientId(null);
         setIsApproved(false);
       }
       setLoading(false);
