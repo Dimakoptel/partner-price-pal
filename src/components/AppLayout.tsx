@@ -100,7 +100,7 @@ const STANDALONE_ITEMS: NavItem[] = [
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, profile, signOut, isAdmin } = useAuth();
+  const { user, profile, signOut, isAdmin, isPartner } = useAuth();
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const { getSetting } = useCompanySettings();
