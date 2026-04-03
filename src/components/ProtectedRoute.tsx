@@ -18,7 +18,7 @@ const ROUTE_MODULE_MAP: Record<string, ModuleKey> = {
 };
 
 export function ProtectedRoute() {
-  const { user, loading, isApproved, isAdmin, signOut } = useAuth();
+  const { user, loading, isApproved, isAdmin, isPartner, signOut } = useAuth();
   const { hasAccess, loading: permLoading } = usePermissions();
   const location = useLocation();
 
@@ -32,16 +32,40 @@ export function ProtectedRoute() {
 
   if (!user) return <Navigate to="/auth" replace />;
 
-  if (!isApproved && !isAdmin) {
+  // Partners go to partner portal
+  if (isPartner && !location.pathname.startsWith("/partner")) {
+    return <Navigate to="/partner" replace />;
+  }
+
+  if (!isApproved && !isAdmin && !isPartner) {
     return <PendingApprovalScreen onSignOut={signOut} />;
   }
 
-  // Check module access
-  const moduleKey = ROUTE_MODULE_MAP[location.pathname];
-  if (moduleKey && !hasAccess(moduleKey)) {
-    return <NoAccessScreen />;
+  // Check module access (skip for partners on partner routes)
+  if (!isPartner) {
+    const moduleKey = ROUTE_MODULE_MAP[location.pathname];
+    if (moduleKey && !hasAccess(moduleKey)) {
+      return <NoAccessScreen />;
+    }
   }
 
+  return <Outlet />;
+}
+
+export function PartnerRoute() {
+  const { user, loading, isPartner, isApproved, isAdmin, signOut } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Загрузка...</div>
+      </div>
+    );
+  }
+
+  if (!user) return <Navigate to="/auth" replace />;
+  if (!isPartner && !isAdmin) return <Navigate to="/" replace />;
+  if (!isApproved && !isAdmin) return <PendingApprovalScreen onSignOut={signOut} />;
   return <Outlet />;
 }
 
