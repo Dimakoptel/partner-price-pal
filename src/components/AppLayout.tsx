@@ -75,6 +75,26 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ];
 
+const PARTNER_NAV_GROUPS: NavGroup[] = [
+  {
+    key: "requests",
+    label: "Запросы",
+    icon: ClipboardList,
+    items: [
+      { path: "/partner/requests", label: "Мои запросы", icon: ClipboardList },
+      { path: "/partner/requests/new", label: "Новый запрос", icon: FilePlus },
+    ],
+  },
+  {
+    key: "info",
+    label: "Информация",
+    icon: Info,
+    items: [
+      { path: "/partner/pricelist", label: "Прайс-лист", icon: FileSpreadsheet },
+    ],
+  },
+];
+
 const STANDALONE_ITEMS: NavItem[] = [
   { path: "/admin", label: "Администрирование", icon: Settings, adminOnly: true },
 ];
