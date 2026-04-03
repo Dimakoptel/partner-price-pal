@@ -133,7 +133,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     setExpandedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const visibleGroups = NAV_GROUPS.map((group) => ({
+  const activeNavGroups = isPartner ? PARTNER_NAV_GROUPS : NAV_GROUPS;
+  const homeRoute = isPartner ? "/partner" : "/";
+
+  const visibleGroups = activeNavGroups.map((group) => ({
     ...group,
     items: group.items.filter(canSeeItem),
   })).filter((group) => group.items.length > 0);
