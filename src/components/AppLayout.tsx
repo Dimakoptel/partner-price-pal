@@ -170,15 +170,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 py-4 px-3 overflow-y-auto space-y-1">
           {/* Home */}
           <Link
-            to="/"
+            to={homeRoute}
             onClick={() => setMobileOpen(false)}
             className={`flex items-center gap-3 px-3 py-2.5 text-sm transition-all ${
-              isActive("/")
+              isActive(homeRoute)
                 ? "bg-sidebar-accent text-sidebar-accent-foreground"
                 : "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/50"
             }`}
           >
-            <Home className={`w-4 h-4 ${isActive("/") ? "text-sidebar-accent-foreground" : "text-sidebar-muted"}`} />
+            <Home className={`w-4 h-4 ${isActive(homeRoute) ? "text-sidebar-accent-foreground" : "text-sidebar-muted"}`} />
             <span className="font-light tracking-wide">Главная</span>
           </Link>
 
