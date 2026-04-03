@@ -4,7 +4,7 @@ import {
   Calculator, Settings, LogOut, History,
   Sun, Moon, BookOpen, Menu,
   Factory, Warehouse, ChevronDown, Home, FileSpreadsheet,
-  Users, Target, Info
+  Users, Target, Info, FilePlus, ClipboardList
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
