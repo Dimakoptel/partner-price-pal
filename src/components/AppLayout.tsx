@@ -263,7 +263,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 {profile?.full_name || user?.email}
               </div>
               <div className="text-[10px] text-sidebar-muted tracking-wider uppercase">
-                {isAdmin ? "Админ" : "Пользователь"}
+                {isAdmin ? "Админ" : isPartner ? "Партнёр" : "Пользователь"}
               </div>
             </div>
             <button onClick={signOut} className="p-2 text-sidebar-muted hover:text-sidebar-accent-foreground transition-colors" title="Выйти">
