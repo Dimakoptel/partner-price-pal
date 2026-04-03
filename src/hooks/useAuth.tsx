@@ -24,6 +24,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<{ full_name: string; phone?: string; telegram?: string } | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isPartner, setIsPartner] = useState(false);
+  const [partnerClientId, setPartnerClientId] = useState<string | null>(null);
   const [isApproved, setIsApproved] = useState(false);
 
   const fetchProfile = async (userId: string) => {
