@@ -11,7 +11,9 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string, phone?: string, telegram?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
+  isPartner: boolean;
   isApproved: boolean;
+  partnerClientId: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,6 +24,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<{ full_name: string; phone?: string; telegram?: string } | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isPartner, setIsPartner] = useState(false);
+  const [partnerClientId, setPartnerClientId] = useState<string | null>(null);
   const [isApproved, setIsApproved] = useState(false);
 
   const fetchProfile = async (userId: string) => {
@@ -37,11 +41,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const fetchRole = async (userId: string) => {
-    const { data } = await supabase.rpc("has_role", {
+    const { data: adminData } = await supabase.rpc("has_role", {
       _user_id: userId,
       _role: "admin",
     });
-    setIsAdmin(data === true);
+    setIsAdmin(adminData === true);
+
+    const { data: partnerData } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "partner" as any,
+    });
+    setIsPartner(partnerData === true);
+
+    // If partner, fetch linked client_id
+    if (partnerData === true) {
+      const { data: clientData } = await (supabase
+        .from("clients") as any)
+        .select("id")
+        .eq("user_id", userId)
+        .single();
+      setPartnerClientId(clientData?.id || null);
+    } else {
+      setPartnerClientId(null);
+    }
   };
 
   useEffect(() => {
@@ -56,6 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setProfile(null);
         setIsAdmin(false);
+        setIsPartner(false);
+        setPartnerClientId(null);
         setIsApproved(false);
       }
       setLoading(false);
@@ -101,7 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, session, loading, profile, signIn, signUp, signOut, isAdmin, isApproved }}
+      value={{ user, session, loading, profile, signIn, signUp, signOut, isAdmin, isPartner, partnerClientId, isApproved }}
     >
       {children}
     </AuthContext.Provider>

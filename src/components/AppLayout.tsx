@@ -4,7 +4,7 @@ import {
   Calculator, Settings, LogOut, History,
   Sun, Moon, BookOpen, Menu,
   Factory, Warehouse, ChevronDown, Home, FileSpreadsheet,
-  Users, Target, Info
+  Users, Target, Info, FilePlus, ClipboardList
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
@@ -75,12 +75,32 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ];
 
+const PARTNER_NAV_GROUPS: NavGroup[] = [
+  {
+    key: "requests",
+    label: "Запросы",
+    icon: ClipboardList,
+    items: [
+      { path: "/partner/requests", label: "Мои запросы", icon: ClipboardList },
+      { path: "/partner/requests/new", label: "Новый запрос", icon: FilePlus },
+    ],
+  },
+  {
+    key: "info",
+    label: "Информация",
+    icon: Info,
+    items: [
+      { path: "/partner/pricelist", label: "Прайс-лист", icon: FileSpreadsheet },
+    ],
+  },
+];
+
 const STANDALONE_ITEMS: NavItem[] = [
   { path: "/admin", label: "Администрирование", icon: Settings, adminOnly: true },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, profile, signOut, isAdmin } = useAuth();
+  const { user, profile, signOut, isAdmin, isPartner } = useAuth();
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const { getSetting } = useCompanySettings();
@@ -113,12 +133,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     setExpandedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const visibleGroups = NAV_GROUPS.map((group) => ({
+  const activeNavGroups = isPartner ? PARTNER_NAV_GROUPS : NAV_GROUPS;
+  const homeRoute = isPartner ? "/partner" : "/";
+
+  const visibleGroups = activeNavGroups.map((group) => ({
     ...group,
     items: group.items.filter(canSeeItem),
   })).filter((group) => group.items.length > 0);
 
-  const visibleStandalone = STANDALONE_ITEMS.filter(canSeeItem);
+  const visibleStandalone = isPartner ? [] : STANDALONE_ITEMS.filter(canSeeItem);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -131,7 +154,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-60 bg-sidebar flex flex-col border-r border-sidebar-border shrink-0 transition-transform lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
         {/* Logo */}
         <div className="px-5 py-5 border-b border-sidebar-border">
-          <Link to="/" className="block" onClick={() => setMobileOpen(false)}>
+          <Link to={homeRoute} className="block" onClick={() => setMobileOpen(false)}>
             {logoUrl ? (
               <img src={logoUrl} alt="Logo" className="h-8 max-w-[140px] object-contain" />
             ) : (
@@ -147,15 +170,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 py-4 px-3 overflow-y-auto space-y-1">
           {/* Home */}
           <Link
-            to="/"
+            to={homeRoute}
             onClick={() => setMobileOpen(false)}
             className={`flex items-center gap-3 px-3 py-2.5 text-sm transition-all ${
-              isActive("/")
+              isActive(homeRoute)
                 ? "bg-sidebar-accent text-sidebar-accent-foreground"
                 : "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/50"
             }`}
           >
-            <Home className={`w-4 h-4 ${isActive("/") ? "text-sidebar-accent-foreground" : "text-sidebar-muted"}`} />
+            <Home className={`w-4 h-4 ${isActive(homeRoute) ? "text-sidebar-accent-foreground" : "text-sidebar-muted"}`} />
             <span className="font-light tracking-wide">Главная</span>
           </Link>
 
@@ -240,7 +263,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 {profile?.full_name || user?.email}
               </div>
               <div className="text-[10px] text-sidebar-muted tracking-wider uppercase">
-                {isAdmin ? "Админ" : "Пользователь"}
+                {isAdmin ? "Админ" : isPartner ? "Партнёр" : "Пользователь"}
               </div>
             </div>
             <button onClick={signOut} className="p-2 text-sidebar-muted hover:text-sidebar-accent-foreground transition-colors" title="Выйти">
