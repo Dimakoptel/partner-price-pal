@@ -55,10 +55,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // If partner, fetch linked client_id
     if (partnerData === true) {
-      const { data: clientData } = await supabase
-        .from("clients")
+      const { data: clientData } = await (supabase
+        .from("clients") as any)
         .select("id")
-        .eq("user_id" as any, userId)
+        .eq("user_id", userId)
         .single();
       setPartnerClientId(clientData?.id || null);
     } else {
