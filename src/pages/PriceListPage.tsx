@@ -111,8 +111,13 @@ export default function PriceListPage() {
         const val = col === "dealer" ? item.price_dealer : col === "wholesale" ? item.price_wholesale : col === "partner" ? item.price_partner : item.price_rrp;
         return `<td style="padding:6px 8px;border:1px solid #ddd;text-align:right;font-size:12px;">${formatPrice(val)}</td>`;
       }).join("");
+      const photoUrl = item.photo_urls?.filter(Boolean)[0] || item.photo_url || "";
+      const photoCell = showPhotos 
+        ? `<td style="padding:4px 8px;border:1px solid #ddd;">${photoUrl ? `<img src="${DOMPurify.sanitize(photoUrl)}" style="width:50px;height:50px;object-fit:cover;border-radius:4px;" />` : `<div style="width:50px;height:50px;background:#f0f0f0;border-radius:4px;"></div>`}</td>`
+        : "";
       return `<tr>
         <td style="padding:6px 8px;border:1px solid #ddd;font-size:11px;font-family:monospace;color:#888;">${DOMPurify.sanitize(item.sku || "—")}</td>
+        ${photoCell}
         <td style="padding:6px 8px;border:1px solid #ddd;font-size:12px;">${DOMPurify.sanitize(item.name)}</td>
         <td style="padding:6px 8px;border:1px solid #ddd;font-size:11px;">${DOMPurify.sanitize(item.size_mm || "—")}</td>
         <td style="padding:6px 8px;border:1px solid #ddd;font-size:11px;">${item.unit}</td>
