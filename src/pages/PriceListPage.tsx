@@ -136,6 +136,7 @@ export default function PriceListPage() {
       <table style="width:100%;border-collapse:collapse;">
         <thead><tr style="background:#f5f5f5;">
           <th style="padding:8px;border:1px solid #ddd;text-align:left;font-size:12px;">Артикул</th>
+          ${showPhotos ? '<th style="padding:8px;border:1px solid #ddd;text-align:left;font-size:12px;">Фото</th>' : ''}
           <th style="padding:8px;border:1px solid #ddd;text-align:left;font-size:12px;">Наименование</th>
           <th style="padding:8px;border:1px solid #ddd;text-align:left;font-size:12px;">Размер</th>
           <th style="padding:8px;border:1px solid #ddd;text-align:left;font-size:12px;">Ед.</th>
