@@ -76,11 +76,8 @@ export default function Index() {
       <div className="max-w-5xl mx-auto">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-8">
           <h1 className="text-2xl font-light text-foreground tracking-tight">
-            {greeting()}{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}
+            {greeting()}{profile?.full_name ? `, ${profile.full_name.split(" ").length > 1 ? profile.full_name.split(" ")[1] : profile.full_name.split(" ")[0]}` : ""}
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            MES COZY ART — система управления производством
-          </p>
         </motion.div>
 
         {/* Stats */}
