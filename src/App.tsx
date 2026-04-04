@@ -27,6 +27,7 @@ import PartnerRequestsPage from "./pages/partner/PartnerRequestsPage";
 import PartnerNewRequestPage from "./pages/partner/PartnerNewRequestPage";
 import PartnerRequestDetailPage from "./pages/partner/PartnerRequestDetailPage";
 import PartnerPriceListPage from "./pages/partner/PartnerPriceListPage";
+import PartnerWaitingPage from "./pages/partner/PartnerWaitingPage";
 
 const queryClient = new QueryClient();
 
