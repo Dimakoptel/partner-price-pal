@@ -3,10 +3,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { CheckCircle, XCircle, Search, UserCheck, Clock, Pencil, Save, X, Shield } from "lucide-react";
+import { CheckCircle, XCircle, Search, UserCheck, Clock, Pencil, Save, X, Shield, UserPlus } from "lucide-react";
 import { useAccessGroups } from "@/hooks/usePermissions";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const PENDING_ROLE_LABELS: Record<string, string> = {
+  staff: "Сотрудник",
+  dealer: "Дилер",
+  agent: "Агент",
+  designer: "Дизайнер",
+};
 
 interface UserProfile {
   id: string;
@@ -16,6 +23,7 @@ interface UserProfile {
   telegram: string | null;
   is_approved: boolean;
   created_at: string;
+  pending_role: string | null;
 }
 
 export default function UsersTab() {
@@ -28,9 +36,9 @@ export default function UsersTab() {
     setLoading(true);
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, user_id, full_name, phone, telegram, is_approved, created_at")
+      .select("id, user_id, full_name, phone, telegram, is_approved, created_at, pending_role")
       .order("created_at", { ascending: false });
-    if (!error && data) setUsers(data);
+    if (!error && data) setUsers(data as any);
     setLoading(false);
   };
 
@@ -47,6 +55,29 @@ export default function UsersTab() {
       setUsers(prev => prev.map(u => u.user_id === userId ? { ...u, is_approved: !currentStatus } : u));
       toast.success(!currentStatus ? "Пользователь одобрен" : "Доступ отозван");
     }
+  };
+
+  const confirmAsPartner = async (userId: string) => {
+    // Assign partner role in user_roles
+    const { error: roleError } = await supabase.from("user_roles").upsert(
+      { user_id: userId, role: "partner" as any },
+      { onConflict: "user_id,role" }
+    );
+    if (roleError) {
+      toast.error("Ошибка назначения роли партнёра");
+      return;
+    }
+    // Approve the profile
+    const { error: approveError } = await supabase
+      .from("profiles")
+      .update({ is_approved: true } as any)
+      .eq("user_id", userId);
+    if (approveError) {
+      toast.error("Ошибка одобрения");
+      return;
+    }
+    setUsers(prev => prev.map(u => u.user_id === userId ? { ...u, is_approved: true } : u));
+    toast.success("Партнёр подтверждён и получил роль partner");
   };
 
   const updateName = async (userId: string, newName: string) => {
@@ -91,7 +122,14 @@ export default function UsersTab() {
           </h3>
           <div className="space-y-2">
             {pending.map(u => (
-              <UserRow key={u.id} user={u} onToggle={toggleApproval} onUpdateName={updateName} accessGroups={accessGroups} />
+              <UserRow
+                key={u.id}
+                user={u}
+                onToggle={toggleApproval}
+                onUpdateName={updateName}
+                onConfirmPartner={confirmAsPartner}
+                accessGroups={accessGroups}
+              />
             ))}
           </div>
         </div>
@@ -106,7 +144,14 @@ export default function UsersTab() {
         ) : (
           <div className="space-y-2">
             {approved.map(u => (
-              <UserRow key={u.id} user={u} onToggle={toggleApproval} onUpdateName={updateName} accessGroups={accessGroups} />
+              <UserRow
+                key={u.id}
+                user={u}
+                onToggle={toggleApproval}
+                onUpdateName={updateName}
+                onConfirmPartner={confirmAsPartner}
+                accessGroups={accessGroups}
+              />
             ))}
           </div>
         )}
@@ -115,17 +160,20 @@ export default function UsersTab() {
   );
 }
 
-function UserRow({ user, onToggle, onUpdateName, accessGroups }: { 
+function UserRow({ user, onToggle, onUpdateName, onConfirmPartner, accessGroups }: { 
   user: UserProfile; 
   onToggle: (userId: string, status: boolean) => void; 
   onUpdateName: (userId: string, name: string) => Promise<void>;
+  onConfirmPartner: (userId: string) => Promise<void>;
   accessGroups: ReturnType<typeof useAccessGroups>;
 }) {
   const [editing, setEditing] = useState(false);
   const [nameValue, setNameValue] = useState(user.full_name || "");
   const [saving, setSaving] = useState(false);
+  const [confirmingPartner, setConfirmingPartner] = useState(false);
 
   const userGroupIds = accessGroups.getUserGroups(user.user_id);
+  const isPartnerPending = user.pending_role && user.pending_role !== "staff" && !user.is_approved;
 
   const handleSave = async () => {
     if (!nameValue.trim()) return;
@@ -138,6 +186,12 @@ function UserRow({ user, onToggle, onUpdateName, accessGroups }: {
   const handleCancel = () => {
     setNameValue(user.full_name || "");
     setEditing(false);
+  };
+
+  const handleConfirmPartner = async () => {
+    setConfirmingPartner(true);
+    await onConfirmPartner(user.user_id);
+    setConfirmingPartner(false);
   };
 
   const handleAssignGroup = async (groupId: string) => {
@@ -182,26 +236,45 @@ function UserRow({ user, onToggle, onUpdateName, accessGroups }: {
               </Button>
             </div>
           )}
-          <div className="flex gap-3 text-xs text-muted-foreground mt-0.5">
+          <div className="flex gap-3 text-xs text-muted-foreground mt-0.5 flex-wrap">
             {user.phone && <span>📞 {user.phone}</span>}
             {user.telegram && <span>TG: {user.telegram}</span>}
+            {user.pending_role && (
+              <Badge variant={user.pending_role === "staff" ? "outline" : "default"} className="text-[10px] h-4">
+                {PENDING_ROLE_LABELS[user.pending_role] || user.pending_role}
+              </Badge>
+            )}
           </div>
           <p className="text-[10px] text-muted-foreground mt-0.5">
             {new Date(user.created_at).toLocaleDateString("ru-RU")}
           </p>
         </div>
-        <Button
-          size="sm"
-          variant={user.is_approved ? "outline" : "default"}
-          onClick={() => onToggle(user.user_id, user.is_approved)}
-          className="gap-1.5 shrink-0 ml-2"
-        >
-          {user.is_approved ? (
-            <><XCircle className="w-4 h-4" /> Отозвать</>
-          ) : (
-            <><CheckCircle className="w-4 h-4" /> Одобрить</>
+        <div className="flex items-center gap-1.5 shrink-0 ml-2">
+          {isPartnerPending && (
+            <Button
+              size="sm"
+              variant="default"
+              onClick={handleConfirmPartner}
+              disabled={confirmingPartner}
+              className="gap-1.5"
+            >
+              <UserPlus className="w-4 h-4" />
+              Партнёр
+            </Button>
           )}
-        </Button>
+          <Button
+            size="sm"
+            variant={user.is_approved ? "outline" : "default"}
+            onClick={() => onToggle(user.user_id, user.is_approved)}
+            className="gap-1.5"
+          >
+            {user.is_approved ? (
+              <><XCircle className="w-4 h-4" /> Отозвать</>
+            ) : (
+              <><CheckCircle className="w-4 h-4" /> Одобрить</>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Group assignments */}
