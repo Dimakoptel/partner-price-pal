@@ -18,7 +18,7 @@ const ROUTE_MODULE_MAP: Record<string, ModuleKey> = {
 };
 
 export function ProtectedRoute() {
-  const { user, loading, isApproved, isAdmin, isPartner, signOut } = useAuth();
+  const { user, loading, isApproved, isAdmin, isPartner, signOut, pendingRole } = useAuth();
   const { hasAccess, loading: permLoading } = usePermissions();
   const location = useLocation();
 
@@ -35,6 +35,11 @@ export function ProtectedRoute() {
   // Partners go to partner portal
   if (isPartner && !location.pathname.startsWith("/partner")) {
     return <Navigate to="/partner" replace />;
+  }
+
+  // Non-staff pending role users → partner waiting page
+  if (!isAdmin && !isPartner && pendingRole && pendingRole !== "staff" && !isApproved) {
+    return <Navigate to="/partner/waiting" replace />;
   }
 
   if (!isApproved && !isAdmin && !isPartner) {

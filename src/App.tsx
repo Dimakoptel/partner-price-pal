@@ -27,6 +27,7 @@ import PartnerRequestsPage from "./pages/partner/PartnerRequestsPage";
 import PartnerNewRequestPage from "./pages/partner/PartnerNewRequestPage";
 import PartnerRequestDetailPage from "./pages/partner/PartnerRequestDetailPage";
 import PartnerPriceListPage from "./pages/partner/PartnerPriceListPage";
+import PartnerWaitingPage from "./pages/partner/PartnerWaitingPage";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,8 @@ const App = () => (
               <Route path="/partner/requests/:id" element={<PartnerRequestDetailPage />} />
               <Route path="/partner/pricelist" element={<PartnerPriceListPage />} />
             </Route>
+            {/* Partner waiting (no auth guard - accessible to all logged in) */}
+            <Route path="/partner/waiting" element={<PartnerWaitingPage />} />
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/admin/checklist" element={<AdminChecklistPage />} />

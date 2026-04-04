@@ -1400,6 +1400,7 @@ export type Database = {
           full_name: string | null
           id: string
           is_approved: boolean
+          pending_role: string | null
           phone: string | null
           role: string
           telegram: string | null
@@ -1411,6 +1412,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_approved?: boolean
+          pending_role?: string | null
           phone?: string | null
           role?: string
           telegram?: string | null
@@ -1422,6 +1424,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_approved?: boolean
+          pending_role?: string | null
           phone?: string | null
           role?: string
           telegram?: string | null

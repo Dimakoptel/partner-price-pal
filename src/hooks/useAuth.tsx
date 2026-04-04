@@ -6,14 +6,15 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  profile: { full_name: string; phone?: string; telegram?: string } | null;
+  profile: { full_name: string; phone?: string; telegram?: string; pending_role?: string | null } | null;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, fullName: string, phone?: string, telegram?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, phone?: string, telegram?: string, pendingRole?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
   isPartner: boolean;
   isApproved: boolean;
   partnerClientId: string | null;
+  pendingRole: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,21 +23,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<{ full_name: string; phone?: string; telegram?: string } | null>(null);
+  const [profile, setProfile] = useState<AuthContextType["profile"]>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPartner, setIsPartner] = useState(false);
   const [partnerClientId, setPartnerClientId] = useState<string | null>(null);
   const [isApproved, setIsApproved] = useState(false);
+  const [pendingRole, setPendingRole] = useState<string | null>(null);
 
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
-      .select("full_name, phone, telegram, is_approved")
+      .select("full_name, phone, telegram, is_approved, pending_role")
       .eq("user_id", userId)
       .single();
     if (data) {
-      setProfile({ full_name: data.full_name || "", phone: data.phone || undefined, telegram: data.telegram || undefined });
+      setProfile({
+        full_name: data.full_name || "",
+        phone: data.phone || undefined,
+        telegram: data.telegram || undefined,
+        pending_role: (data as any).pending_role || null,
+      });
       setIsApproved(data.is_approved === true);
+      setPendingRole((data as any).pending_role || null);
     }
   };
 
@@ -53,7 +61,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     setIsPartner(partnerData === true);
 
-    // If partner, fetch linked client_id
     if (partnerData === true) {
       const { data: clientData } = await (supabase
         .from("clients") as any)
@@ -81,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsPartner(false);
         setPartnerClientId(null);
         setIsApproved(false);
+        setPendingRole(null);
       }
       setLoading(false);
     });
@@ -103,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, fullName: string, phone?: string, telegram?: string) => {
+  const signUp = async (email: string, password: string, fullName: string, phone?: string, telegram?: string, pendingRole?: string) => {
     const { data: signUpData, error } = await supabase.auth.signUp({
       email,
       password,
@@ -113,8 +121,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
     });
     if (!error && signUpData.user) {
-      // Update profile with phone/telegram
-      await supabase.from("profiles").update({ phone, telegram }).eq("user_id", signUpData.user.id);
+      await supabase.from("profiles").update({
+        phone,
+        telegram,
+        pending_role: pendingRole || null,
+      } as any).eq("user_id", signUpData.user.id);
     }
     return { error };
   };
@@ -125,7 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, session, loading, profile, signIn, signUp, signOut, isAdmin, isPartner, partnerClientId, isApproved }}
+      value={{ user, session, loading, profile, signIn, signUp, signOut, isAdmin, isPartner, partnerClientId, isApproved, pendingRole }}
     >
       {children}
     </AuthContext.Provider>

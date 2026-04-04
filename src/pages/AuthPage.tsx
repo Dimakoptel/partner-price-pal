@@ -4,7 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { LogIn, UserPlus, ArrowLeft } from "lucide-react";
+import { LogIn, UserPlus } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const ROLE_OPTIONS = [
+  { value: "staff", label: "Сотрудник" },
+  { value: "dealer", label: "Дилер" },
+  { value: "agent", label: "Агент" },
+  { value: "designer", label: "Дизайнер" },
+];
 
 export default function AuthPage() {
   const { signIn, signUp } = useAuth();
@@ -14,6 +22,7 @@ export default function AuthPage() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [telegram, setTelegram] = useState("");
+  const [pendingRole, setPendingRole] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,7 +42,12 @@ export default function AuthPage() {
         setLoading(false);
         return;
       }
-      const { error } = await signUp(email, password, fullName, phone, telegram);
+      if (!pendingRole) {
+        setError("Выберите кем вы являетесь");
+        setLoading(false);
+        return;
+      }
+      const { error } = await signUp(email, password, fullName, phone, telegram, pendingRole);
       if (error) setError(error.message);
       else setSuccess("Регистрация прошла успешно! Проверьте почту для подтверждения. После подтверждения email администратор одобрит ваш доступ.");
     }
@@ -93,6 +107,19 @@ export default function AuthPage() {
                     placeholder="@username"
                     className="mt-1 bg-secondary border-border"
                   />
+                </div>
+                <div>
+                  <Label>Кем вы являетесь? <span className="text-destructive">*</span></Label>
+                  <Select value={pendingRole} onValueChange={setPendingRole}>
+                    <SelectTrigger className="mt-1 bg-secondary border-border">
+                      <SelectValue placeholder="Выберите роль" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ROLE_OPTIONS.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </>
             )}
