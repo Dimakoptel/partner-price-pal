@@ -21,6 +21,7 @@ import PipelineBoard from "@/components/crm/PipelineBoard";
 import TaskList from "@/components/crm/TaskList";
 import LeadsTab from "@/components/sales/LeadsTab";
 import OrdersTab from "@/components/sales/OrdersTab";
+import PartnerRequestsManagerTab from "@/components/crm/PartnerRequestsManagerTab";
 
 const CLIENT_TYPE_LABELS: Record<string, string> = {
   b2c: "B2C",
@@ -126,6 +127,9 @@ export default function ClientsPage() {
             </TabsTrigger>
             <TabsTrigger value="commissions" className="text-xs gap-1.5">
               <DollarSign className="w-3 h-3" /> Комиссии
+            </TabsTrigger>
+            <TabsTrigger value="partner_requests" className="text-xs gap-1.5">
+              <BadgeIcon className="w-3 h-3" /> Запросы партнёров
             </TabsTrigger>
           </TabsList>
 
@@ -353,6 +357,13 @@ export default function ClientsPage() {
                   </Table>
                 </div>
               )}
+            </motion.div>
+          </TabsContent>
+
+          {/* ===== PARTNER REQUESTS TAB ===== */}
+          <TabsContent value="partner_requests">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              <PartnerRequestsManagerTab />
             </motion.div>
           </TabsContent>
         </Tabs>
