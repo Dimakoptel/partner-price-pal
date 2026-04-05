@@ -375,7 +375,7 @@ interface Props {
   onSave?: () => void;
   saving?: boolean;
   saveLabel?: string;
-  saveIcon?: "save" | "cart";
+  saveIcon?: "save" | "cart" | "send";
   companySettings?: CompanySettingsAccessor;
   specialist?: SpecialistInfo;
   calcName?: string;
