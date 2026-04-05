@@ -60,7 +60,7 @@ export default function PartnerDashboardPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
           <StatCard label="Новые запросы" value={newRequests} icon={FilePlus} onClick={() => navigate("/partner/requests")} />
           <StatCard label="На рассмотрении" value={quotedRequests} icon={Package} onClick={() => navigate("/partner/requests")} />
-          <StatCard label="В заказах" value={orderedRequests} icon={History} onClick={() => navigate("/partner/requests")} />
+          <StatCard label="Активные заказы" value={activeOrders} icon={Factory} onClick={() => navigate("/partner/orders")} />
           <StatCard label="Всего запросов" value={requests.length} icon={FileSpreadsheet} onClick={() => navigate("/partner/requests")} />
         </div>
 
