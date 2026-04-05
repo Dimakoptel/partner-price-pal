@@ -823,6 +823,7 @@ export type Database = {
           number: string
           order_type: string
           paid_amount: number
+          partner_request_id: string | null
           responsible_id: string
           status: string
           total_amount: number
@@ -849,6 +850,7 @@ export type Database = {
           number?: string
           order_type?: string
           paid_amount?: number
+          partner_request_id?: string | null
           responsible_id: string
           status?: string
           total_amount?: number
@@ -875,6 +877,7 @@ export type Database = {
           number?: string
           order_type?: string
           paid_amount?: number
+          partner_request_id?: string | null
           responsible_id?: string
           status?: string
           total_amount?: number
@@ -902,6 +905,13 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_partner_request_id_fkey"
+            columns: ["partner_request_id"]
+            isOneToOne: false
+            referencedRelation: "partner_requests"
             referencedColumns: ["id"]
           },
         ]
@@ -1500,6 +1510,7 @@ export type Database = {
           is_auto_saved: boolean
           lead_id: string | null
           params: Json
+          partner_request_id: string | null
           product_label: string
           product_type: string
           result: Json
@@ -1513,6 +1524,7 @@ export type Database = {
           is_auto_saved?: boolean
           lead_id?: string | null
           params: Json
+          partner_request_id?: string | null
           product_label: string
           product_type: string
           result: Json
@@ -1526,6 +1538,7 @@ export type Database = {
           is_auto_saved?: boolean
           lead_id?: string | null
           params?: Json
+          partner_request_id?: string | null
           product_label?: string
           product_type?: string
           result?: Json
@@ -1544,6 +1557,13 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_calculations_partner_request_id_fkey"
+            columns: ["partner_request_id"]
+            isOneToOne: false
+            referencedRelation: "partner_requests"
             referencedColumns: ["id"]
           },
         ]
