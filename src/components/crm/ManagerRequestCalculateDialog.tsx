@@ -7,7 +7,7 @@ import { usePricing } from "@/hooks/usePricing";
 import { useColors } from "@/hooks/useColors";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Calculator, Send, ShoppingCart } from "lucide-react";
+import { Calculator } from "lucide-react";
 import CalculatorForm from "@/components/CalculatorForm";
 import ResultPanel from "@/components/ResultPanel";
 import { useCompanySettings } from "@/hooks/useCompanySettings";

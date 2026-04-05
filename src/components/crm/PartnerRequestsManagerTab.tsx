@@ -52,7 +52,7 @@ interface PartnerRequest {
 
 export default function PartnerRequestsManagerTab() {
   const { user } = useAuth();
-  const { categories } = useProductCategories();
+  const [selectedRequest, setSelectedRequest] = useState<PartnerRequest | null>(null);
   const [search, setSearch] = useState("");
   const [selectedRequest, setSelectedRequest] = useState<PartnerRequest | null>(null);
   const [calcDialogOpen, setCalcDialogOpen] = useState(false);
