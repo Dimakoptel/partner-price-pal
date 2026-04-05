@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import DOMPurify from "dompurify";
 import { CalculationResult } from "@/lib/calculator";
 import { Button } from "@/components/ui/button";
-import { Printer, Share2, Save, MessageCircle, Mail, ShoppingCart } from "lucide-react";
+import { Printer, Share2, Save, MessageCircle, Mail, ShoppingCart, Send } from "lucide-react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
