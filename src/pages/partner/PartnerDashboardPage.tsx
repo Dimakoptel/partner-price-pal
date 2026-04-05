@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import AppLayout from "@/components/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { usePartnerRequests } from "@/hooks/usePartnerRequests";
-import { FilePlus, History, FileSpreadsheet, ArrowRight, Package } from "lucide-react";
+import { usePartnerOrders } from "@/hooks/usePartnerOrders";
+import { FilePlus, History, FileSpreadsheet, ArrowRight, Package, ShoppingCart, Factory } from "lucide-react";
 
 function StatCard({ label, value, icon: Icon, onClick }: {
   label: string; value: string | number; icon: any; onClick?: () => void;
