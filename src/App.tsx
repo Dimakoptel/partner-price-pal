@@ -68,6 +68,7 @@ const App = () => (
               <Route path="/partner/requests/new" element={<PartnerNewRequestPage />} />
               <Route path="/partner/requests/:id" element={<PartnerRequestDetailPage />} />
               <Route path="/partner/pricelist" element={<PartnerPriceListPage />} />
+              <Route path="/partner/orders" element={<PartnerOrdersPage />} />
             </Route>
             {/* Partner waiting (no auth guard - accessible to all logged in) */}
             <Route path="/partner/waiting" element={<PartnerWaitingPage />} />
