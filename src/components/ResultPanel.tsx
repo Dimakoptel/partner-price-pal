@@ -534,7 +534,7 @@ export default function ResultPanel({ result, onSave, saving, saveLabel, saveIco
       <div className="mt-4 flex flex-wrap gap-2">
         {onSave && (
           <Button size="sm" variant="secondary" onClick={onSave} disabled={saving} className="gap-1.5">
-            {saveIcon === "cart" ? <ShoppingCart className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+            {saveIcon === "cart" ? <ShoppingCart className="w-4 h-4" /> : saveIcon === "send" ? <Send className="w-4 h-4" /> : <Save className="w-4 h-4" />}
             {saveLabel || (saving ? "Сохранено" : "Сохранить")}
           </Button>
         )}
