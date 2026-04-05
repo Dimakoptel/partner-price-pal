@@ -128,6 +128,10 @@ export default function ClientsPage() {
             <TabsTrigger value="commissions" className="text-xs gap-1.5">
               <DollarSign className="w-3 h-3" /> Комиссии
             </TabsTrigger>
+            <TabsTrigger value="partner_requests" className="text-xs gap-1.5">
+              <BadgeIcon className="w-3 h-3" /> Запросы партнёров
+            </TabsTrigger>
+            </TabsTrigger>
           </TabsList>
 
           {/* ===== LEADS TAB ===== */}
