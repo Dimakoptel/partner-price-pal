@@ -86,6 +86,14 @@ const PARTNER_NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    key: "orders",
+    label: "Заказы",
+    icon: Factory,
+    items: [
+      { path: "/partner/orders", label: "Мои заказы", icon: Factory },
+    ],
+  },
+  {
     key: "info",
     label: "Информация",
     icon: Info,

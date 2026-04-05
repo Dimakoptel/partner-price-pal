@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import AppLayout from "@/components/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { usePartnerRequests } from "@/hooks/usePartnerRequests";
-import { FilePlus, History, FileSpreadsheet, ArrowRight, Package } from "lucide-react";
+import { usePartnerOrders } from "@/hooks/usePartnerOrders";
+import { FilePlus, History, FileSpreadsheet, ArrowRight, Package, ShoppingCart, Factory } from "lucide-react";
 
 function StatCard({ label, value, icon: Icon, onClick }: {
   label: string; value: string | number; icon: any; onClick?: () => void;
@@ -29,10 +30,12 @@ export default function PartnerDashboardPage() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { requests } = usePartnerRequests();
+  const { orders } = usePartnerOrders();
 
   const newRequests = requests.filter(r => r.status === "new").length;
   const quotedRequests = requests.filter(r => r.status === "quoted").length;
   const orderedRequests = requests.filter(r => r.status === "ordered").length;
+  const activeOrders = orders.filter(o => !["completed", "cancelled", "delivered"].includes(o.status)).length;
 
   const greeting = () => {
     const h = new Date().getHours();
@@ -57,7 +60,7 @@ export default function PartnerDashboardPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
           <StatCard label="Новые запросы" value={newRequests} icon={FilePlus} onClick={() => navigate("/partner/requests")} />
           <StatCard label="На рассмотрении" value={quotedRequests} icon={Package} onClick={() => navigate("/partner/requests")} />
-          <StatCard label="В заказах" value={orderedRequests} icon={History} onClick={() => navigate("/partner/requests")} />
+          <StatCard label="Активные заказы" value={activeOrders} icon={Factory} onClick={() => navigate("/partner/orders")} />
           <StatCard label="Всего запросов" value={requests.length} icon={FileSpreadsheet} onClick={() => navigate("/partner/requests")} />
         </div>
 
