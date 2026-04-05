@@ -30,10 +30,12 @@ export default function PartnerDashboardPage() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { requests } = usePartnerRequests();
+  const { orders } = usePartnerOrders();
 
   const newRequests = requests.filter(r => r.status === "new").length;
   const quotedRequests = requests.filter(r => r.status === "quoted").length;
   const orderedRequests = requests.filter(r => r.status === "ordered").length;
+  const activeOrders = orders.filter(o => !["completed", "cancelled", "delivered"].includes(o.status)).length;
 
   const greeting = () => {
     const h = new Date().getHours();
