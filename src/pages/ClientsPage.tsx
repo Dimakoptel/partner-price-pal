@@ -21,6 +21,7 @@ import PipelineBoard from "@/components/crm/PipelineBoard";
 import TaskList from "@/components/crm/TaskList";
 import LeadsTab from "@/components/sales/LeadsTab";
 import OrdersTab from "@/components/sales/OrdersTab";
+import PartnerRequestsManagerTab from "@/components/crm/PartnerRequestsManagerTab";
 
 const CLIENT_TYPE_LABELS: Record<string, string> = {
   b2c: "B2C",
