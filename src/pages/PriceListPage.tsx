@@ -34,10 +34,9 @@ const PRICE_COLUMNS: { key: PriceColumn; label: string; sublabel: string }[] = [
 
 export default function PriceListPage() {
   const { priceListItems, loading, createItem, updateItem, deleteItem } = useNomenclature();
-  const { isAdmin, profile } = useAuth();
+  const { isAdmin } = useAuth();
   const { hasAccess } = usePermissions();
   const { getSetting } = useCompanySettings();
-  const { theme } = useTheme();
   const canEdit = isAdmin || hasAccess("clients");
   // Managers (admin or clients access) see all prices, others see only RRP
   const canSeePrices = isAdmin || hasAccess("clients");
