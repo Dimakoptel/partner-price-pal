@@ -197,7 +197,7 @@ export default function PriceListPage() {
                   <Printer className="w-4 h-4" /> Печать
                 </Button>
               )}
-              {canEdit && (
+              {isAdmin && (
                 <Button
                   onClick={() => { setEditItem(null); setEditOpen(true); }}
                   className="gap-2"
