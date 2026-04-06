@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import AppLayout from "@/components/AppLayout";
 import { useNomenclature, NomenclatureItem } from "@/hooks/useNomenclature";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
