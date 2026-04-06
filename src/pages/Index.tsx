@@ -7,8 +7,8 @@ import { useLeads } from "@/hooks/useLeads";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Calculator, TrendingUp, Package, History,
-  ArrowRight, Users, Factory, Warehouse, UserCheck, Clock
+  Calculator, TrendingUp, History,
+  ArrowRight, Users, Factory, Warehouse, Clock
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
