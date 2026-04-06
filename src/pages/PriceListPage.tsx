@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
 import AppLayout from "@/components/AppLayout";
 import { useNomenclature, NomenclatureItem } from "@/hooks/useNomenclature";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
-import { useTheme } from "@/hooks/useTheme";
+
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -33,10 +34,9 @@ const PRICE_COLUMNS: { key: PriceColumn; label: string; sublabel: string }[] = [
 
 export default function PriceListPage() {
   const { priceListItems, loading, createItem, updateItem, deleteItem } = useNomenclature();
-  const { isAdmin, profile } = useAuth();
+  const { isAdmin } = useAuth();
   const { hasAccess } = usePermissions();
   const { getSetting } = useCompanySettings();
-  const { theme } = useTheme();
   const canEdit = isAdmin || hasAccess("clients");
   // Managers (admin or clients access) see all prices, others see only RRP
   const canSeePrices = isAdmin || hasAccess("clients");
@@ -197,7 +197,7 @@ export default function PriceListPage() {
                   <Printer className="w-4 h-4" /> Печать
                 </Button>
               )}
-              {canEdit && (
+              {isAdmin && (
                 <Button
                   onClick={() => { setEditItem(null); setEditOpen(true); }}
                   className="gap-2"
@@ -254,6 +254,7 @@ export default function PriceListPage() {
                       className="hover:bg-muted/30 cursor-pointer"
                       onClick={() => setDetailItem(item)}
                     >
+                      <TableCell className="text-xs font-mono text-muted-foreground">{item.sku || "—"}</TableCell>
                       {showPhotos && (
                         <TableCell>
                           {(item.photo_urls?.filter(Boolean).length > 0 || item.photo_url) ? (
@@ -270,7 +271,6 @@ export default function PriceListPage() {
                           )}
                         </TableCell>
                       )}
-                      <TableCell className="text-xs font-mono text-muted-foreground">{item.sku || "—"}</TableCell>
                       <TableCell className="text-sm font-medium">{item.name}</TableCell>
                       <TableCell className="text-xs">{item.size_mm || "—"}</TableCell>
                       <TableCell className="text-xs">
@@ -476,6 +476,7 @@ function NomenclatureFormDialog({
     description: item?.description || "",
   });
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const set = (key: string, value: any) => setForm((p) => ({ ...p, [key]: value }));
 
@@ -493,6 +494,42 @@ function NomenclatureFormDialog({
 
   const removePhoto = (index: number) => {
     set("photo_urls", form.photo_urls.filter((_: string, i: number) => i !== index));
+  };
+
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    const newUrls = [...form.photo_urls];
+    for (let i = 0; i < files.length && newUrls.length < 5; i++) {
+      const file = files[i];
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `nomenclature/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+      const { data, error } = await supabase.storage.from("company-assets").upload(path, file);
+      if (error) {
+        toast.error(`Ошибка загрузки ${file.name}`);
+        continue;
+      }
+      const { data: urlData } = supabase.storage.from("company-assets").getPublicUrl(data.path);
+      newUrls.push(urlData.publicUrl);
+    }
+    set("photo_urls", newUrls);
+    setUploading(false);
+  };
+
+  const handleDrawingUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    const file = files[0];
+    const ext = file.name.split(".").pop() || "pdf";
+    const path = `drawings/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const { data, error } = await supabase.storage.from("company-assets").upload(path, file);
+    if (error) {
+      toast.error("Ошибка загрузки файла");
+    } else {
+      const { data: urlData } = supabase.storage.from("company-assets").getPublicUrl(data.path);
+      set("drawing_url", urlData.publicUrl);
+    }
+    setUploading(false);
   };
 
   const handleSubmit = async () => {
@@ -561,8 +598,33 @@ function NomenclatureFormDialog({
           <div className="col-span-2 border-t border-border pt-3">
             <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Фото (до 5)</p>
           </div>
+
+          {/* File upload button */}
+          <div className="col-span-2">
+            <label className="inline-flex items-center gap-2 cursor-pointer">
+              <Button variant="outline" size="sm" asChild disabled={uploading || form.photo_urls.length >= 5}>
+                <span>
+                  <Plus className="w-3.5 h-3.5 mr-1" />
+                  {uploading ? "Загрузка..." : "Загрузить фото с диска"}
+                </span>
+              </Button>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => handleFileUpload(e.target.files)}
+                disabled={uploading || form.photo_urls.length >= 5}
+              />
+            </label>
+          </div>
+
+          {/* Photo previews & URL inputs */}
           {form.photo_urls.map((url: string, i: number) => (
             <div key={i} className="col-span-2 flex gap-2 items-center">
+              {url && (
+                <img src={url} alt="" className="w-10 h-10 object-cover rounded border border-border shrink-0" />
+              )}
               <Input
                 value={url}
                 onChange={(e) => updatePhotoUrl(i, e.target.value)}
@@ -577,7 +639,7 @@ function NomenclatureFormDialog({
           {form.photo_urls.length < 5 && (
             <div className="col-span-2">
               <Button variant="outline" size="sm" onClick={addPhotoSlot} className="gap-1">
-                <Plus className="w-3.5 h-3.5" /> Добавить фото
+                <Plus className="w-3.5 h-3.5" /> Добавить URL фото
               </Button>
             </div>
           )}
@@ -586,8 +648,16 @@ function NomenclatureFormDialog({
             <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Документы</p>
           </div>
           <div className="col-span-2 space-y-1">
-            <Label className="text-xs">Чертёж / Эскиз (URL)</Label>
-            <Input value={form.drawing_url} onChange={(e) => set("drawing_url", e.target.value)} placeholder="https://..." />
+            <Label className="text-xs">Чертёж / Эскиз</Label>
+            <div className="flex gap-2">
+              <Input value={form.drawing_url} onChange={(e) => set("drawing_url", e.target.value)} placeholder="URL или загрузите файл" className="flex-1" />
+              <label className="cursor-pointer">
+                <Button variant="outline" size="sm" asChild disabled={uploading}>
+                  <span>📎 Файл</span>
+                </Button>
+                <input type="file" accept=".pdf,.dwg,.png,.jpg,.jpeg" className="hidden" onChange={(e) => handleDrawingUpload(e.target.files)} disabled={uploading} />
+              </label>
+            </div>
           </div>
           <div className="col-span-2 space-y-1">
             <Label className="text-xs">Описание</Label>
@@ -596,7 +666,7 @@ function NomenclatureFormDialog({
         </div>
         <div className="flex justify-end gap-2 mt-4">
           <Button variant="outline" onClick={onClose}>Отмена</Button>
-          <Button onClick={handleSubmit} disabled={saving}>
+          <Button onClick={handleSubmit} disabled={saving || uploading}>
             {saving ? "Сохранение..." : item ? "Сохранить" : "Добавить"}
           </Button>
         </div>
