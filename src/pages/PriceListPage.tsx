@@ -254,6 +254,7 @@ export default function PriceListPage() {
                       className="hover:bg-muted/30 cursor-pointer"
                       onClick={() => setDetailItem(item)}
                     >
+                      <TableCell className="text-xs font-mono text-muted-foreground">{item.sku || "—"}</TableCell>
                       {showPhotos && (
                         <TableCell>
                           {(item.photo_urls?.filter(Boolean).length > 0 || item.photo_url) ? (
@@ -270,7 +271,6 @@ export default function PriceListPage() {
                           )}
                         </TableCell>
                       )}
-                      <TableCell className="text-xs font-mono text-muted-foreground">{item.sku || "—"}</TableCell>
                       <TableCell className="text-sm font-medium">{item.name}</TableCell>
                       <TableCell className="text-xs">{item.size_mm || "—"}</TableCell>
                       <TableCell className="text-xs">
