@@ -2,11 +2,14 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { CheckCircle, XCircle, Search, UserCheck, Clock, Pencil, Save, X, Shield, UserPlus } from "lucide-react";
+import { CheckCircle, XCircle, Search, UserCheck, Clock, Pencil, Save, X, Shield, UserPlus, Trash2 } from "lucide-react";
 import { useAccessGroups } from "@/hooks/usePermissions";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const PENDING_ROLE_LABELS: Record<string, string> = {
   staff: "Сотрудник",
@@ -31,6 +34,9 @@ export default function UsersTab() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const accessGroups = useAccessGroups();
+  const [editUser, setEditUser] = useState<UserProfile | null>(null);
+  const [deleteUser, setDeleteUser] = useState<UserProfile | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -58,38 +64,55 @@ export default function UsersTab() {
   };
 
   const confirmAsPartner = async (userId: string) => {
-    // Assign partner role in user_roles
     const { error: roleError } = await supabase.from("user_roles").upsert(
       { user_id: userId, role: "partner" as any },
       { onConflict: "user_id,role" }
     );
-    if (roleError) {
-      toast.error("Ошибка назначения роли партнёра");
-      return;
-    }
-    // Approve the profile
+    if (roleError) { toast.error("Ошибка назначения роли партнёра"); return; }
     const { error: approveError } = await supabase
       .from("profiles")
       .update({ is_approved: true } as any)
       .eq("user_id", userId);
-    if (approveError) {
-      toast.error("Ошибка одобрения");
-      return;
-    }
+    if (approveError) { toast.error("Ошибка одобрения"); return; }
     setUsers(prev => prev.map(u => u.user_id === userId ? { ...u, is_approved: true } : u));
     toast.success("Партнёр подтверждён и получил роль partner");
   };
 
-  const updateName = async (userId: string, newName: string) => {
+  const handleDeleteUser = async () => {
+    if (!deleteUser) return;
+    setDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("delete-user", {
+        body: { user_id: deleteUser.user_id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setUsers(prev => prev.filter(u => u.user_id !== deleteUser.user_id));
+      toast.success("Пользователь удалён");
+    } catch (err: any) {
+      toast.error("Ошибка удаления: " + err.message);
+    }
+    setDeleting(false);
+    setDeleteUser(null);
+  };
+
+  const handleSaveProfile = async (profile: UserProfile) => {
     const { error } = await supabase
       .from("profiles")
-      .update({ full_name: newName })
-      .eq("user_id", userId);
+      .update({
+        full_name: profile.full_name,
+        phone: profile.phone,
+        telegram: profile.telegram,
+        pending_role: profile.pending_role,
+        is_approved: profile.is_approved,
+      } as any)
+      .eq("user_id", profile.user_id);
     if (error) {
-      toast.error("Ошибка обновления имени");
+      toast.error("Ошибка сохранения");
     } else {
-      setUsers(prev => prev.map(u => u.user_id === userId ? { ...u, full_name: newName } : u));
-      toast.success("Имя обновлено");
+      setUsers(prev => prev.map(u => u.user_id === profile.user_id ? { ...u, ...profile } : u));
+      toast.success("Профиль обновлён");
+      setEditUser(null);
     }
   };
 
@@ -107,12 +130,7 @@ export default function UsersTab() {
     <div className="space-y-4">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="Поиск по имени, телефону, telegram..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="pl-10 bg-secondary border-border"
-        />
+        <Input placeholder="Поиск по имени, телефону, telegram..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10 bg-secondary border-border" />
       </div>
 
       {pending.length > 0 && (
@@ -122,14 +140,8 @@ export default function UsersTab() {
           </h3>
           <div className="space-y-2">
             {pending.map(u => (
-              <UserRow
-                key={u.id}
-                user={u}
-                onToggle={toggleApproval}
-                onUpdateName={updateName}
-                onConfirmPartner={confirmAsPartner}
-                accessGroups={accessGroups}
-              />
+              <UserRow key={u.id} user={u} onToggle={toggleApproval} onConfirmPartner={confirmAsPartner}
+                onEdit={() => setEditUser(u)} onDelete={() => setDeleteUser(u)} accessGroups={accessGroups} />
             ))}
           </div>
         </div>
@@ -144,49 +156,113 @@ export default function UsersTab() {
         ) : (
           <div className="space-y-2">
             {approved.map(u => (
-              <UserRow
-                key={u.id}
-                user={u}
-                onToggle={toggleApproval}
-                onUpdateName={updateName}
-                onConfirmPartner={confirmAsPartner}
-                accessGroups={accessGroups}
-              />
+              <UserRow key={u.id} user={u} onToggle={toggleApproval} onConfirmPartner={confirmAsPartner}
+                onEdit={() => setEditUser(u)} onDelete={() => setDeleteUser(u)} accessGroups={accessGroups} />
             ))}
           </div>
         )}
       </div>
+
+      {/* Edit Profile Dialog */}
+      {editUser && (
+        <EditProfileDialog user={editUser} onClose={() => setEditUser(null)} onSave={handleSaveProfile} />
+      )}
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteUser} onOpenChange={(v) => { if (!v) setDeleteUser(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить пользователя?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Пользователь <strong>{deleteUser?.full_name || "Без имени"}</strong> будет удалён безвозвратно.
+              Все его данные (профиль, роли, группы доступа) будут потеряны.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Отмена</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteUser} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {deleting ? "Удаление..." : "Удалить"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
 
-function UserRow({ user, onToggle, onUpdateName, onConfirmPartner, accessGroups }: { 
-  user: UserProfile; 
-  onToggle: (userId: string, status: boolean) => void; 
-  onUpdateName: (userId: string, name: string) => Promise<void>;
+function EditProfileDialog({ user, onClose, onSave }: {
+  user: UserProfile;
+  onClose: () => void;
+  onSave: (p: UserProfile) => Promise<void>;
+}) {
+  const [form, setForm] = useState({ ...user });
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async () => {
+    setSaving(true);
+    await onSave(form);
+    setSaving(false);
+  };
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Редактирование профиля</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <Label className="text-xs">ФИО</Label>
+            <Input value={form.full_name || ""} onChange={e => setForm(p => ({ ...p, full_name: e.target.value }))} />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Телефон</Label>
+            <Input value={form.phone || ""} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Telegram</Label>
+            <Input value={form.telegram || ""} onChange={e => setForm(p => ({ ...p, telegram: e.target.value }))} />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Тип аккаунта</Label>
+            <Select value={form.pending_role || ""} onValueChange={v => setForm(p => ({ ...p, pending_role: v || null }))}>
+              <SelectTrigger><SelectValue placeholder="Не указан" /></SelectTrigger>
+              <SelectContent>
+                {Object.entries(PENDING_ROLE_LABELS).map(([k, v]) => (
+                  <SelectItem key={k} value={k}>{v}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-2">
+            <input type="checkbox" id="is_approved" checked={form.is_approved}
+              onChange={e => setForm(p => ({ ...p, is_approved: e.target.checked }))}
+              className="rounded border-border" />
+            <Label htmlFor="is_approved" className="text-sm">Доступ одобрен</Label>
+          </div>
+        </div>
+        <div className="flex justify-end gap-2 mt-4">
+          <Button variant="outline" onClick={onClose}>Отмена</Button>
+          <Button onClick={handleSubmit} disabled={saving}>
+            {saving ? "Сохранение..." : "Сохранить"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function UserRow({ user, onToggle, onConfirmPartner, onEdit, onDelete, accessGroups }: {
+  user: UserProfile;
+  onToggle: (userId: string, status: boolean) => void;
   onConfirmPartner: (userId: string) => Promise<void>;
+  onEdit: () => void;
+  onDelete: () => void;
   accessGroups: ReturnType<typeof useAccessGroups>;
 }) {
-  const [editing, setEditing] = useState(false);
-  const [nameValue, setNameValue] = useState(user.full_name || "");
-  const [saving, setSaving] = useState(false);
   const [confirmingPartner, setConfirmingPartner] = useState(false);
-
   const userGroupIds = accessGroups.getUserGroups(user.user_id);
   const isPartnerPending = user.pending_role && user.pending_role !== "staff" && !user.is_approved;
-
-  const handleSave = async () => {
-    if (!nameValue.trim()) return;
-    setSaving(true);
-    await onUpdateName(user.user_id, nameValue.trim());
-    setSaving(false);
-    setEditing(false);
-  };
-
-  const handleCancel = () => {
-    setNameValue(user.full_name || "");
-    setEditing(false);
-  };
 
   const handleConfirmPartner = async () => {
     setConfirmingPartner(true);
@@ -212,30 +288,9 @@ function UserRow({ user, onToggle, onUpdateName, onConfirmPartner, accessGroups 
     <div className="p-3 rounded-lg bg-secondary/50 border border-border/50 space-y-2">
       <div className="flex items-center justify-between">
         <div className="min-w-0 flex-1">
-          {editing ? (
-            <div className="flex items-center gap-1.5">
-              <Input
-                value={nameValue}
-                onChange={e => setNameValue(e.target.value)}
-                className="h-7 text-sm bg-background border-border"
-                autoFocus
-                onKeyDown={e => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") handleCancel(); }}
-              />
-              <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={handleSave} disabled={saving}>
-                <Save className="w-3.5 h-3.5" />
-              </Button>
-              <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={handleCancel}>
-                <X className="w-3.5 h-3.5" />
-              </Button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5">
-              <p className="font-medium text-sm truncate">{user.full_name || "Без имени"}</p>
-              <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground" onClick={() => setEditing(true)}>
-                <Pencil className="w-3 h-3" />
-              </Button>
-            </div>
-          )}
+          <div className="flex items-center gap-1.5">
+            <p className="font-medium text-sm truncate">{user.full_name || "Без имени"}</p>
+          </div>
           <div className="flex gap-3 text-xs text-muted-foreground mt-0.5 flex-wrap">
             {user.phone && <span>📞 {user.phone}</span>}
             {user.telegram && <span>TG: {user.telegram}</span>}
@@ -245,34 +300,22 @@ function UserRow({ user, onToggle, onUpdateName, onConfirmPartner, accessGroups 
               </Badge>
             )}
           </div>
-          <p className="text-[10px] text-muted-foreground mt-0.5">
-            {new Date(user.created_at).toLocaleDateString("ru-RU")}
-          </p>
+          <p className="text-[10px] text-muted-foreground mt-0.5">{new Date(user.created_at).toLocaleDateString("ru-RU")}</p>
         </div>
         <div className="flex items-center gap-1.5 shrink-0 ml-2">
           {isPartnerPending && (
-            <Button
-              size="sm"
-              variant="default"
-              onClick={handleConfirmPartner}
-              disabled={confirmingPartner}
-              className="gap-1.5"
-            >
-              <UserPlus className="w-4 h-4" />
-              Партнёр
+            <Button size="sm" variant="default" onClick={handleConfirmPartner} disabled={confirmingPartner} className="gap-1.5">
+              <UserPlus className="w-4 h-4" /> Партнёр
             </Button>
           )}
-          <Button
-            size="sm"
-            variant={user.is_approved ? "outline" : "default"}
-            onClick={() => onToggle(user.user_id, user.is_approved)}
-            className="gap-1.5"
-          >
-            {user.is_approved ? (
-              <><XCircle className="w-4 h-4" /> Отозвать</>
-            ) : (
-              <><CheckCircle className="w-4 h-4" /> Одобрить</>
-            )}
+          <Button size="sm" variant={user.is_approved ? "outline" : "default"} onClick={() => onToggle(user.user_id, user.is_approved)} className="gap-1.5">
+            {user.is_approved ? <><XCircle className="w-4 h-4" /> Отозвать</> : <><CheckCircle className="w-4 h-4" /> Одобрить</>}
+          </Button>
+          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={onEdit} title="Редактировать">
+            <Pencil className="w-3.5 h-3.5" />
+          </Button>
+          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={onDelete} title="Удалить">
+            <Trash2 className="w-3.5 h-3.5" />
           </Button>
         </div>
       </div>
@@ -280,18 +323,14 @@ function UserRow({ user, onToggle, onUpdateName, onConfirmPartner, accessGroups 
       {/* Group assignments */}
       <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-border/30">
         <Shield className="w-3.5 h-3.5 text-muted-foreground" />
-        {userGroupIds.length === 0 && (
-          <span className="text-xs text-muted-foreground">Нет группы</span>
-        )}
+        {userGroupIds.length === 0 && <span className="text-xs text-muted-foreground">Нет группы</span>}
         {userGroupIds.map(gid => {
           const group = accessGroups.groups.find(g => g.id === gid);
           if (!group) return null;
           return (
             <Badge key={gid} variant="secondary" className="text-xs gap-1">
               {group.name}
-              <button onClick={() => handleRemoveGroup(gid)} className="ml-0.5 hover:text-destructive">
-                <X className="w-3 h-3" />
-              </button>
+              <button onClick={() => handleRemoveGroup(gid)} className="ml-0.5 hover:text-destructive"><X className="w-3 h-3" /></button>
             </Badge>
           );
         })}
