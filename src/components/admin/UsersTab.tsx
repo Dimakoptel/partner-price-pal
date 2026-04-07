@@ -228,6 +228,10 @@ function EditProfileDialog({ user, onClose, onSave }: {
             <Input value={form.telegram || ""} onChange={e => setForm(p => ({ ...p, telegram: e.target.value }))} />
           </div>
           <div className="space-y-1">
+            <Label className="text-xs">Город</Label>
+            <Input value={(form as any).city || ""} onChange={e => setForm(p => ({ ...p, city: e.target.value } as any))} />
+          </div>
+          <div className="space-y-1">
             <Label className="text-xs">Тип аккаунта</Label>
             <Select value={form.pending_role || ""} onValueChange={v => setForm(p => ({ ...p, pending_role: v || null }))}>
               <SelectTrigger><SelectValue placeholder="Не указан" /></SelectTrigger>
