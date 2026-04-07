@@ -106,6 +106,7 @@ export default function UsersTab() {
         full_name: profile.full_name,
         phone: profile.phone,
         telegram: profile.telegram,
+        city: (profile as any).city,
         pending_role: profile.pending_role,
         is_approved: profile.is_approved,
       } as any)
