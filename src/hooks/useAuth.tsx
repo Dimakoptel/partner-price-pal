@@ -111,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, fullName: string, phone?: string, telegram?: string, pendingRole?: string) => {
+  const signUp = async (email: string, password: string, fullName: string, phone?: string, telegram?: string, pendingRole?: string, city?: string) => {
     const { data: signUpData, error } = await supabase.auth.signUp({
       email,
       password,
@@ -125,6 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         phone,
         telegram,
         pending_role: pendingRole || null,
+        city: city || null,
       } as any).eq("user_id", signUpData.user.id);
     }
     return { error };
