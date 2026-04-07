@@ -26,6 +26,7 @@ interface UserProfile {
   full_name: string | null;
   phone: string | null;
   telegram: string | null;
+  city: string | null;
   is_approved: boolean;
   created_at: string;
   pending_role: string | null;
