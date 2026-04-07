@@ -45,7 +45,7 @@ export default function UsersTab() {
     setLoading(true);
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, user_id, full_name, phone, telegram, is_approved, created_at, pending_role")
+      .select("id, user_id, full_name, phone, telegram, city, is_approved, created_at, pending_role")
       .order("created_at", { ascending: false });
     if (!error && data) setUsers(data as any);
     setLoading(false);
