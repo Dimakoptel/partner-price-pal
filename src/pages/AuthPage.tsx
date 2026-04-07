@@ -111,6 +111,17 @@ export default function AuthPage() {
                   />
                 </div>
                 <div>
+                  <Label htmlFor="city">Город <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="city"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="Москва"
+                    required
+                    className="mt-1 bg-secondary border-border"
+                  />
+                </div>
+                <div>
                   <Label>Кем вы являетесь? <span className="text-destructive">*</span></Label>
                   <Select value={pendingRole} onValueChange={setPendingRole}>
                     <SelectTrigger className="mt-1 bg-secondary border-border">
