@@ -23,6 +23,7 @@ export default function AuthPage() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [telegram, setTelegram] = useState("");
+  const [city, setCity] = useState("");
   const [pendingRole, setPendingRole] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
