@@ -1406,6 +1406,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          city: string | null
           created_at: string
           full_name: string | null
           id: string
@@ -1418,6 +1419,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          city?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
@@ -1430,6 +1432,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          city?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
