@@ -8,7 +8,7 @@ interface AuthContextType {
   loading: boolean;
   profile: { full_name: string; phone?: string; telegram?: string; pending_role?: string | null } | null;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, fullName: string, phone?: string, telegram?: string, pendingRole?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, phone?: string, telegram?: string, pendingRole?: string, city?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
   isPartner: boolean;
@@ -111,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, fullName: string, phone?: string, telegram?: string, pendingRole?: string) => {
+  const signUp = async (email: string, password: string, fullName: string, phone?: string, telegram?: string, pendingRole?: string, city?: string) => {
     const { data: signUpData, error } = await supabase.auth.signUp({
       email,
       password,
@@ -125,6 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         phone,
         telegram,
         pending_role: pendingRole || null,
+        city: city || null,
       } as any).eq("user_id", signUpData.user.id);
     }
     return { error };

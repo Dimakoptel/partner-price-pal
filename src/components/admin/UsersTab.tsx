@@ -16,6 +16,8 @@ const PENDING_ROLE_LABELS: Record<string, string> = {
   dealer: "Дилер",
   agent: "Агент",
   designer: "Дизайнер",
+  client: "Клиент",
+  manager: "Менеджер",
 };
 
 interface UserProfile {
@@ -24,6 +26,7 @@ interface UserProfile {
   full_name: string | null;
   phone: string | null;
   telegram: string | null;
+  city: string | null;
   is_approved: boolean;
   created_at: string;
   pending_role: string | null;
@@ -42,7 +45,7 @@ export default function UsersTab() {
     setLoading(true);
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, user_id, full_name, phone, telegram, is_approved, created_at, pending_role")
+      .select("id, user_id, full_name, phone, telegram, city, is_approved, created_at, pending_role")
       .order("created_at", { ascending: false });
     if (!error && data) setUsers(data as any);
     setLoading(false);
@@ -103,6 +106,7 @@ export default function UsersTab() {
         full_name: profile.full_name,
         phone: profile.phone,
         telegram: profile.telegram,
+        city: (profile as any).city,
         pending_role: profile.pending_role,
         is_approved: profile.is_approved,
       } as any)
@@ -224,6 +228,10 @@ function EditProfileDialog({ user, onClose, onSave }: {
             <Input value={form.telegram || ""} onChange={e => setForm(p => ({ ...p, telegram: e.target.value }))} />
           </div>
           <div className="space-y-1">
+            <Label className="text-xs">Город</Label>
+            <Input value={(form as any).city || ""} onChange={e => setForm(p => ({ ...p, city: e.target.value } as any))} />
+          </div>
+          <div className="space-y-1">
             <Label className="text-xs">Тип аккаунта</Label>
             <Select value={form.pending_role || ""} onValueChange={v => setForm(p => ({ ...p, pending_role: v || null }))}>
               <SelectTrigger><SelectValue placeholder="Не указан" /></SelectTrigger>
@@ -294,6 +302,7 @@ function UserRow({ user, onToggle, onConfirmPartner, onEdit, onDelete, accessGro
           <div className="flex gap-3 text-xs text-muted-foreground mt-0.5 flex-wrap">
             {user.phone && <span>📞 {user.phone}</span>}
             {user.telegram && <span>TG: {user.telegram}</span>}
+            {user.city && <span>📍 {user.city}</span>}
             {user.pending_role && (
               <Badge variant={user.pending_role === "staff" ? "outline" : "default"} className="text-[10px] h-4">
                 {PENDING_ROLE_LABELS[user.pending_role] || user.pending_role}

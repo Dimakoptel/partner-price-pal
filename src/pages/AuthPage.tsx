@@ -12,6 +12,7 @@ const ROLE_OPTIONS = [
   { value: "dealer", label: "Дилер" },
   { value: "agent", label: "Агент" },
   { value: "designer", label: "Дизайнер" },
+  { value: "client", label: "Клиент" },
 ];
 
 export default function AuthPage() {
@@ -22,6 +23,7 @@ export default function AuthPage() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [telegram, setTelegram] = useState("");
+  const [city, setCity] = useState("");
   const [pendingRole, setPendingRole] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -37,8 +39,8 @@ export default function AuthPage() {
       const { error } = await signIn(email, password);
       if (error) setError(error.message);
     } else {
-      if (!fullName.trim() || !phone.trim()) {
-        setError("ФИО и телефон обязательны для регистрации");
+      if (!fullName.trim() || !phone.trim() || !city.trim()) {
+        setError("ФИО, телефон и город обязательны для регистрации");
         setLoading(false);
         return;
       }
@@ -47,7 +49,7 @@ export default function AuthPage() {
         setLoading(false);
         return;
       }
-      const { error } = await signUp(email, password, fullName, phone, telegram, pendingRole);
+      const { error } = await signUp(email, password, fullName, phone, telegram, pendingRole, city);
       if (error) setError(error.message);
       else setSuccess("Регистрация прошла успешно! Проверьте почту для подтверждения. После подтверждения email администратор одобрит ваш доступ.");
     }
@@ -105,6 +107,17 @@ export default function AuthPage() {
                     value={telegram}
                     onChange={(e) => setTelegram(e.target.value)}
                     placeholder="@username"
+                    className="mt-1 bg-secondary border-border"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="city">Город <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="city"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="Москва"
+                    required
                     className="mt-1 bg-secondary border-border"
                   />
                 </div>
