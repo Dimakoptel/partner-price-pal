@@ -302,6 +302,7 @@ function UserRow({ user, onToggle, onConfirmPartner, onEdit, onDelete, accessGro
           <div className="flex gap-3 text-xs text-muted-foreground mt-0.5 flex-wrap">
             {user.phone && <span>📞 {user.phone}</span>}
             {user.telegram && <span>TG: {user.telegram}</span>}
+            {user.city && <span>📍 {user.city}</span>}
             {user.pending_role && (
               <Badge variant={user.pending_role === "staff" ? "outline" : "default"} className="text-[10px] h-4">
                 {PENDING_ROLE_LABELS[user.pending_role] || user.pending_role}
