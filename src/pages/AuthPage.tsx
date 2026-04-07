@@ -39,8 +39,8 @@ export default function AuthPage() {
       const { error } = await signIn(email, password);
       if (error) setError(error.message);
     } else {
-      if (!fullName.trim() || !phone.trim()) {
-        setError("ФИО и телефон обязательны для регистрации");
+      if (!fullName.trim() || !phone.trim() || !city.trim()) {
+        setError("ФИО, телефон и город обязательны для регистрации");
         setLoading(false);
         return;
       }

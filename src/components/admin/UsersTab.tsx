@@ -16,6 +16,8 @@ const PENDING_ROLE_LABELS: Record<string, string> = {
   dealer: "Дилер",
   agent: "Агент",
   designer: "Дизайнер",
+  client: "Клиент",
+  manager: "Менеджер",
 };
 
 interface UserProfile {

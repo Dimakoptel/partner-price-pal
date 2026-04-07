@@ -37,6 +37,11 @@ export function ProtectedRoute() {
     return <Navigate to="/partner" replace />;
   }
 
+  // Partners (dealer, agent, designer) → partner portal
+  if (isPartner && !location.pathname.startsWith("/partner")) {
+    return <Navigate to="/partner" replace />;
+  }
+
   // Non-staff pending role users → partner waiting page
   if (!isAdmin && !isPartner && pendingRole && pendingRole !== "staff" && !isApproved) {
     return <Navigate to="/partner/waiting" replace />;
