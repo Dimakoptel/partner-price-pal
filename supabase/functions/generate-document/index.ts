@@ -165,10 +165,15 @@ Deno.serve(async (req: Request) => {
         .replace("{{items_cards}}", itemsCards);
     }
 
+    const filename = document_type === "invoice"
+      ? `invoice_${order.number || order_id}.html`
+      : `warranty_${order.number || order_id}.html`;
+
     return new Response(html, {
       headers: {
         ...corsHeaders,
         "Content-Type": "text/html; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${filename}"`,
       },
     });
   } catch (e: any) {
