@@ -12,6 +12,7 @@ const ROLE_OPTIONS = [
   { value: "dealer", label: "Дилер" },
   { value: "agent", label: "Агент" },
   { value: "designer", label: "Дизайнер" },
+  { value: "client", label: "Клиент" },
 ];
 
 export default function AuthPage() {
