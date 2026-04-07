@@ -8,7 +8,7 @@ interface AuthContextType {
   loading: boolean;
   profile: { full_name: string; phone?: string; telegram?: string; pending_role?: string | null } | null;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, fullName: string, phone?: string, telegram?: string, pendingRole?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, phone?: string, telegram?: string, pendingRole?: string, city?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
   isPartner: boolean;
