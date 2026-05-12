@@ -20,6 +20,7 @@ import ProductionPage from "./pages/ProductionPage";
 import WarehousePage from "./pages/WarehousePage";
 import PriceListPage from "./pages/PriceListPage";
 import AdminLaunchChecklistPage from "./pages/AdminLaunchChecklistPage";
+import PayrollPage from "./pages/Payroll/PayrollPage";
 
 // Partner pages
 import PartnerDashboardPage from "./pages/partner/PartnerDashboardPage";
@@ -76,6 +77,7 @@ const App = () => (
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/admin/checklist" element={<AdminChecklistPage />} />
               <Route path="/admin/launch-checklist" element={<AdminLaunchChecklistPage />} />
+              <Route path="/payroll" element={<PayrollPage />} />
               {/* Legacy route redirect */}
               <Route path="/admin/integrations" element={<Navigate to="/admin" replace />} />
             </Route>

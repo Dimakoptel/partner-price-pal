@@ -4,7 +4,7 @@ import {
   Calculator, Settings, LogOut, History,
   Sun, Moon, BookOpen, Menu,
   Factory, Warehouse, ChevronDown, Home, FileSpreadsheet,
-  Users, Target, Info, FilePlus, ClipboardList
+  Users, Target, Info, FilePlus, ClipboardList, Wallet
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
@@ -104,6 +104,7 @@ const PARTNER_NAV_GROUPS: NavGroup[] = [
 ];
 
 const STANDALONE_ITEMS: NavItem[] = [
+  { path: "/payroll", label: "Расчёт ЗП", icon: Wallet, adminOnly: true },
   { path: "/admin", label: "Администрирование", icon: Settings, adminOnly: true },
 ];
 

@@ -432,6 +432,39 @@ export type Database = {
         }
         Relationships: []
       }
+      employees: {
+        Row: {
+          created_at: string
+          hourly_rate: number
+          id: string
+          is_active: boolean
+          name: string
+          position: string | null
+          skill_level: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          hourly_rate?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          position?: string | null
+          skill_level?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          hourly_rate?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          position?: string | null
+          skill_level?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       group_permissions: {
         Row: {
           allowed: boolean
@@ -732,6 +765,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      operations: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          name: string
+          norm_hours: number | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          norm_hours?: number | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          norm_hours?: number | null
+        }
+        Relationships: []
       }
       order_items: {
         Row: {
@@ -1760,6 +1817,57 @@ export type Database = {
             columns: ["deal_id"]
             isOneToOne: false
             referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      timesheets: {
+        Row: {
+          coefficient: number
+          comment: string | null
+          created_at: string
+          employee_id: string
+          hours_worked: number
+          id: string
+          operation_id: string | null
+          order_id: string | null
+          work_date: string
+        }
+        Insert: {
+          coefficient?: number
+          comment?: string | null
+          created_at?: string
+          employee_id: string
+          hours_worked: number
+          id?: string
+          operation_id?: string | null
+          order_id?: string | null
+          work_date: string
+        }
+        Update: {
+          coefficient?: number
+          comment?: string | null
+          created_at?: string
+          employee_id?: string
+          hours_worked?: number
+          id?: string
+          operation_id?: string | null
+          order_id?: string | null
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timesheets_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timesheets_operation_id_fkey"
+            columns: ["operation_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
             referencedColumns: ["id"]
           },
         ]
