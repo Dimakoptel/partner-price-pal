@@ -20,6 +20,7 @@ import ProductionPage from "./pages/ProductionPage";
 import WarehousePage from "./pages/WarehousePage";
 import PriceListPage from "./pages/PriceListPage";
 import AdminLaunchChecklistPage from "./pages/AdminLaunchChecklistPage";
+import PayrollPage from "./pages/Payroll/PayrollPage";
 
 // Partner pages
 import PartnerDashboardPage from "./pages/partner/PartnerDashboardPage";
