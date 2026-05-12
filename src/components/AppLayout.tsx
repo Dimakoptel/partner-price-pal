@@ -104,6 +104,7 @@ const PARTNER_NAV_GROUPS: NavGroup[] = [
 ];
 
 const STANDALONE_ITEMS: NavItem[] = [
+  { path: "/payroll", label: "Расчёт ЗП", icon: Wallet, adminOnly: true },
   { path: "/admin", label: "Администрирование", icon: Settings, adminOnly: true },
 ];
 
