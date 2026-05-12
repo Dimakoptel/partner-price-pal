@@ -81,9 +81,6 @@ const App = () => (
               {/* Legacy route redirect */}
               <Route path="/admin/integrations" element={<Navigate to="/admin" replace />} />
             </Route>
-              {/* Legacy route redirect */}
-              <Route path="/admin/integrations" element={<Navigate to="/admin" replace />} />
-            </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
           </CartProvider>
