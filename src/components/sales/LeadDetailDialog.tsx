@@ -32,10 +32,57 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
   const convertMutation = useConvertLeadToOrder();
   const leadStatuses = useDictOptions("lead_statuses");
 
+  // Load linked calculation
+  const calcQuery = useQuery({
+    queryKey: ["lead_calculation", lead?.calculation_id],
+    queryFn: async () => {
+      if (!lead?.calculation_id) return null;
+      const { data, error } = await supabase
+        .from("saved_calculations")
+        .select("*")
+        .eq("id", lead.calculation_id)
+        .maybeSingle();
+      if (error) return null;
+      return data;
+    },
+    enabled: open && !!lead?.calculation_id,
+  });
+
+  // Load linked client
+  const clientQuery = useQuery({
+    queryKey: ["lead_client", lead?.client_id],
+    queryFn: async () => {
+      if (!lead?.client_id) return null;
+      const { data, error } = await supabase
+        .from("clients")
+        .select("*")
+        .eq("id", lead.client_id)
+        .maybeSingle();
+      if (error) return null;
+      return data;
+    },
+    enabled: open && !!lead?.client_id,
+  });
+
+  // Load linked order
+  const orderQuery = useQuery({
+    queryKey: ["lead_order", lead?.converted_to_order_id],
+    queryFn: async () => {
+      if (!lead?.converted_to_order_id) return null;
+      const { data, error } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("id", lead.converted_to_order_id)
+        .maybeSingle();
+      if (error) return null;
+      return data;
+    },
+    enabled: open && !!lead?.converted_to_order_id,
+  });
+
   if (!lead) return null;
 
   const si = leadStatuses.find(lead.status);
-  // Calculate step from sort_order for progress
   const stepsOnly = leadStatuses.options.filter((s) => s.value !== "lost");
   const currentStepIdx = stepsOnly.findIndex((s) => s.value === lead.status);
   const totalSteps = stepsOnly.length;
@@ -43,54 +90,6 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
 
   const formatAmount = (n: number | null) =>
     n && n > 0 ? new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0 }).format(n) : "—";
-
-  // Load linked calculation
-  const calcQuery = useQuery({
-    queryKey: ["lead_calculation", lead.calculation_id],
-    queryFn: async () => {
-      if (!lead.calculation_id) return null;
-      const { data, error } = await supabase
-        .from("saved_calculations")
-        .select("*")
-        .eq("id", lead.calculation_id)
-        .single();
-      if (error) return null;
-      return data;
-    },
-    enabled: open && !!lead.calculation_id,
-  });
-
-  // Load linked client
-  const clientQuery = useQuery({
-    queryKey: ["lead_client", lead.client_id],
-    queryFn: async () => {
-      if (!lead.client_id) return null;
-      const { data, error } = await supabase
-        .from("clients")
-        .select("*")
-        .eq("id", lead.client_id)
-        .single();
-      if (error) return null;
-      return data;
-    },
-    enabled: open && !!lead.client_id,
-  });
-
-  // Load linked order
-  const orderQuery = useQuery({
-    queryKey: ["lead_order", lead.converted_to_order_id],
-    queryFn: async () => {
-      if (!lead.converted_to_order_id) return null;
-      const { data, error } = await supabase
-        .from("orders")
-        .select("*")
-        .eq("id", lead.converted_to_order_id)
-        .single();
-      if (error) return null;
-      return data;
-    },
-    enabled: open && !!lead.converted_to_order_id,
-  });
 
   const calc = calcQuery.data as any;
   const linkedClient = clientQuery.data as any;
