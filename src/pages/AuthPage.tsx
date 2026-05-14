@@ -35,9 +35,24 @@ export default function AuthPage() {
     setSuccess("");
     setLoading(true);
 
+    const mapAuthError = (err: { message?: string } | null, ctx: "login" | "register"): string => {
+      if (!err) return "Произошла ошибка. Попробуйте снова.";
+      if (ctx === "login") return "Неверный email или пароль";
+      const msg = err.message || "";
+      if (/already registered|already exists|duplicate/i.test(msg)) {
+        return "Регистрация не удалась. Если у вас уже есть аккаунт, войдите.";
+      }
+      if (/password/i.test(msg)) return "Пароль не соответствует требованиям безопасности.";
+      if (/email/i.test(msg)) return "Указан некорректный email.";
+      return "Не удалось завершить регистрацию. Попробуйте снова.";
+    };
+
     if (mode === "login") {
       const { error } = await signIn(email, password);
-      if (error) setError(error.message);
+      if (error) {
+        console.error("[auth] signIn error:", error);
+        setError(mapAuthError(error, "login"));
+      }
     } else {
       if (!fullName.trim() || !phone.trim() || !city.trim()) {
         setError("ФИО, телефон и город обязательны для регистрации");
@@ -50,7 +65,10 @@ export default function AuthPage() {
         return;
       }
       const { error } = await signUp(email, password, fullName, phone, telegram, pendingRole, city);
-      if (error) setError(error.message);
+      if (error) {
+        console.error("[auth] signUp error:", error);
+        setError(mapAuthError(error, "register"));
+      }
       else setSuccess("Регистрация прошла успешно! Проверьте почту для подтверждения. После подтверждения email администратор одобрит ваш доступ.");
     }
     setLoading(false);
