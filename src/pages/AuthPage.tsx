@@ -65,7 +65,10 @@ export default function AuthPage() {
         return;
       }
       const { error } = await signUp(email, password, fullName, phone, telegram, pendingRole, city);
-      if (error) setError(error.message);
+      if (error) {
+        console.error("[auth] signUp error:", error);
+        setError(mapAuthError(error, "register"));
+      }
       else setSuccess("Регистрация прошла успешно! Проверьте почту для подтверждения. После подтверждения email администратор одобрит ваш доступ.");
     }
     setLoading(false);
