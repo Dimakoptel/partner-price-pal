@@ -105,6 +105,26 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: "Order not found" }), { status: 404, headers: corsHeaders });
     }
 
+    // Authorization check: caller must be admin, have clients module access,
+    // be the responsible manager, or own the partner client linked to the order.
+    const { data: isAdminData } = await supabase.rpc("is_admin", { _user_id: user.id });
+    const { data: hasAccessData } = await supabase.rpc("has_module_access", {
+      _user_id: user.id,
+      _module: "clients",
+    });
+    let allowed = Boolean(isAdminData) || Boolean(hasAccessData) || order.responsible_id === user.id;
+    if (!allowed && order.client_id) {
+      const { data: clientRow } = await supabase
+        .from("clients")
+        .select("user_id")
+        .eq("id", order.client_id)
+        .maybeSingle();
+      if (clientRow?.user_id === user.id) allowed = true;
+    }
+    if (!allowed) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: corsHeaders });
+    }
+
     // Load order items with variant info
     const { data: items } = await supabase
       .from("order_items")
