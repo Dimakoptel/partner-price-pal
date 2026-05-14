@@ -14,8 +14,35 @@ export default function TimesheetsTab() {
   const { data: employees = [] } = useEmployees();
   const { data: operations = [] } = useOperations();
   const { data: timesheets = [], isLoading } = useTimesheets();
+  const { data: skillCoefs = [] } = useDictionaryItems("payroll_skill_coefficient");
   const create = useCreateTimesheet();
   const del = useDeleteTimesheet();
+
+  // Build skill -> coefficient map from dictionary
+  const skillMap = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const it of skillCoefs) {
+      const c = (it.metadata as any)?.coefficient;
+      if (c != null) m.set(it.code, Number(c));
+    }
+    return m;
+  }, [skillCoefs]);
+
+  // Coefficient options: 0 (отсутствие), 1 (норма), then per skill level + переработка 1.5
+  const coefOptions = useMemo(() => {
+    const opts = [
+      { value: "0", label: "0 — отсутствие" },
+      { value: "1", label: "1.0 — норма" },
+    ];
+    for (const it of skillCoefs) {
+      const c = (it.metadata as any)?.coefficient;
+      if (c != null && Number(c) !== 1) {
+        opts.push({ value: String(c), label: `${c} — ${it.name}` });
+      }
+    }
+    if (!opts.find((o) => o.value === "1.5")) opts.push({ value: "1.5", label: "1.5 — переработка" });
+    return opts;
+  }, [skillCoefs]);
 
   const today = new Date().toISOString().slice(0, 10);
   const [form, setForm] = useState({
