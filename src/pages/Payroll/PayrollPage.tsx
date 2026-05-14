@@ -1,9 +1,10 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Clock, Wallet } from "lucide-react";
+import { Users, Clock, Wallet, Wrench } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import EmployeesTab from "./EmployeesTab";
 import TimesheetsTab from "./TimesheetsTab";
 import PayrollReportTab from "./PayrollReportTab";
+import OperationsTab from "./OperationsTab";
 
 export default function PayrollPage() {
   return (
@@ -19,10 +20,12 @@ export default function PayrollPage() {
             <TabsTrigger value="report"><Wallet className="mr-1 h-4 w-4" />Расчёт ЗП</TabsTrigger>
             <TabsTrigger value="timesheets"><Clock className="mr-1 h-4 w-4" />Табель</TabsTrigger>
             <TabsTrigger value="employees"><Users className="mr-1 h-4 w-4" />Сотрудники</TabsTrigger>
+            <TabsTrigger value="operations"><Wrench className="mr-1 h-4 w-4" />Операции</TabsTrigger>
           </TabsList>
           <TabsContent value="report"><PayrollReportTab /></TabsContent>
           <TabsContent value="timesheets"><TimesheetsTab /></TabsContent>
           <TabsContent value="employees"><EmployeesTab /></TabsContent>
+          <TabsContent value="operations"><OperationsTab /></TabsContent>
         </Tabs>
       </div>
     </AppLayout>

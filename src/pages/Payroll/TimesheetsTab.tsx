@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useEmployees, useOperations, useTimesheets, useCreateTimesheet, useDeleteTimesheet } from "@/hooks/usePayroll";
+import { useDictionaryItems } from "@/hooks/useDictionary";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,18 +10,39 @@ import { Card } from "@/components/ui/card";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-const COEF_OPTIONS = [
-  { value: "0", label: "0 — отсутствие" },
-  { value: "1", label: "1.0 — обычные" },
-  { value: "1.5", label: "1.5 — переработка" },
-];
-
 export default function TimesheetsTab() {
   const { data: employees = [] } = useEmployees();
   const { data: operations = [] } = useOperations();
   const { data: timesheets = [], isLoading } = useTimesheets();
+  const { data: skillCoefs = [] } = useDictionaryItems("payroll_skill_coefficient");
   const create = useCreateTimesheet();
   const del = useDeleteTimesheet();
+
+  // Build skill -> coefficient map from dictionary
+  const skillMap = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const it of skillCoefs) {
+      const c = (it.metadata as any)?.coefficient;
+      if (c != null) m.set(it.code, Number(c));
+    }
+    return m;
+  }, [skillCoefs]);
+
+  // Coefficient options: 0 (отсутствие), 1 (норма), then per skill level + переработка 1.5
+  const coefOptions = useMemo(() => {
+    const opts = [
+      { value: "0", label: "0 — отсутствие" },
+      { value: "1", label: "1.0 — норма" },
+    ];
+    for (const it of skillCoefs) {
+      const c = (it.metadata as any)?.coefficient;
+      if (c != null && Number(c) !== 1) {
+        opts.push({ value: String(c), label: `${c} — ${it.name}` });
+      }
+    }
+    if (!opts.find((o) => o.value === "1.5")) opts.push({ value: "1.5", label: "1.5 — переработка" });
+    return opts;
+  }, [skillCoefs]);
 
   const today = new Date().toISOString().slice(0, 10);
   const [form, setForm] = useState({
@@ -66,10 +88,14 @@ export default function TimesheetsTab() {
         <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4">
           <div>
             <Label>Сотрудник *</Label>
-            <Select value={form.employee_id} onValueChange={(v) => setForm({ ...form, employee_id: v })}>
+            <Select value={form.employee_id} onValueChange={(v) => {
+              const emp = employees.find((e) => e.id === v);
+              const auto = emp?.skill_level ? skillMap.get(emp.skill_level) : undefined;
+              setForm({ ...form, employee_id: v, coefficient: auto != null ? String(auto) : form.coefficient });
+            }}>
               <SelectTrigger><SelectValue placeholder="Выберите" /></SelectTrigger>
               <SelectContent>
-                {employees.map((e) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+                {employees.map((e) => <SelectItem key={e.id} value={e.id}>{e.name}{e.skill_level ? ` · ${e.skill_level}` : ""}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -95,11 +121,11 @@ export default function TimesheetsTab() {
             <Input type="number" step="0.25" min="0.25" value={form.hours_worked} onChange={(e) => setForm({ ...form, hours_worked: e.target.value })} />
           </div>
           <div>
-            <Label>Коэффициент</Label>
+            <Label>Коэффициент квалификации</Label>
             <Select value={form.coefficient} onValueChange={(v) => setForm({ ...form, coefficient: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {COEF_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                {coefOptions.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>

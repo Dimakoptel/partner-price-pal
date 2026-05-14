@@ -769,21 +769,27 @@ export type Database = {
       operations: {
         Row: {
           category: string | null
+          cost_per_hour: number
           created_at: string
+          description: string | null
           id: string
           name: string
           norm_hours: number | null
         }
         Insert: {
           category?: string | null
+          cost_per_hour?: number
           created_at?: string
+          description?: string | null
           id?: string
           name: string
           norm_hours?: number | null
         }
         Update: {
           category?: string | null
+          cost_per_hour?: number
           created_at?: string
+          description?: string | null
           id?: string
           name?: string
           norm_hours?: number | null
