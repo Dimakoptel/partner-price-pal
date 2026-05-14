@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useEmployees, useOperations, useTimesheets, useCreateTimesheet, useDeleteTimesheet } from "@/hooks/usePayroll";
+import { useDictionaryItems } from "@/hooks/useDictionary";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,12 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card } from "@/components/ui/card";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
-
-const COEF_OPTIONS = [
-  { value: "0", label: "0 — отсутствие" },
-  { value: "1", label: "1.0 — обычные" },
-  { value: "1.5", label: "1.5 — переработка" },
-];
 
 export default function TimesheetsTab() {
   const { data: employees = [] } = useEmployees();
