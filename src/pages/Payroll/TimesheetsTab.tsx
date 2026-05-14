@@ -88,10 +88,14 @@ export default function TimesheetsTab() {
         <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4">
           <div>
             <Label>Сотрудник *</Label>
-            <Select value={form.employee_id} onValueChange={(v) => setForm({ ...form, employee_id: v })}>
+            <Select value={form.employee_id} onValueChange={(v) => {
+              const emp = employees.find((e) => e.id === v);
+              const auto = emp?.skill_level ? skillMap.get(emp.skill_level) : undefined;
+              setForm({ ...form, employee_id: v, coefficient: auto != null ? String(auto) : form.coefficient });
+            }}>
               <SelectTrigger><SelectValue placeholder="Выберите" /></SelectTrigger>
               <SelectContent>
-                {employees.map((e) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+                {employees.map((e) => <SelectItem key={e.id} value={e.id}>{e.name}{e.skill_level ? ` · ${e.skill_level}` : ""}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -117,11 +121,11 @@ export default function TimesheetsTab() {
             <Input type="number" step="0.25" min="0.25" value={form.hours_worked} onChange={(e) => setForm({ ...form, hours_worked: e.target.value })} />
           </div>
           <div>
-            <Label>Коэффициент</Label>
+            <Label>Коэффициент квалификации</Label>
             <Select value={form.coefficient} onValueChange={(v) => setForm({ ...form, coefficient: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {COEF_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                {coefOptions.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
