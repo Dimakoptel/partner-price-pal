@@ -17,15 +17,33 @@ export interface Operation {
   name: string;
   category: string | null;
   norm_hours: number | null;
+  cost_per_hour: number;
+  unit: "m2" | "hour" | "piece";
+  rate: number;
+  description: string | null;
   created_at: string;
+}
+
+export interface NomenclatureOperation {
+  id: string;
+  nomenclature_id: string;
+  operation_id: string;
+  quantity_override: number | null;
+  fixed_cost: number | null;
+  sort_order: number;
+  created_at: string;
+  operations?: Operation | null;
 }
 
 export interface Timesheet {
   id: string;
   employee_id: string;
   operation_id: string | null;
+  nomenclature_id: string | null;
   order_id: string | null;
   hours_worked: number;
+  units_done: number | null;
+  computed_wage: number | null;
   work_date: string;
   coefficient: number;
   comment: string | null;
