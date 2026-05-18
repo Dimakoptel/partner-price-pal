@@ -1041,9 +1041,27 @@ export function calculateSink(params: SinkParams, pricing: Record<string, number
 
   const supportLabel = `Кронштейн стальной ${weightPerItem > 60 ? "усиленный" : "стандартный"} для раковины COZY ART ${params.length} × ${params.width} × ${displayHeight} мм`;
 
+  // Лицевые поверхности: плита-верх (минус отверстия чаш) + рёбра плиты + опуски снаружи + чаши изнутри (стенки + дно)
+  const plateTopFace = Math.max(0, plateArea - (bowlLength * bowlWidth * params.bowlCount) / 1_000_000);
+  const plateEdges = (2 * (params.length + params.width) * THICKNESS_PLATE) / 1_000_000;
+  let overhangFace = 0;
+  if (oh > 0) {
+    const s = params.overhangSides;
+    if (s.front) overhangFace += (params.length * oh) / 1_000_000;
+    if (s.back) overhangFace += (params.length * oh) / 1_000_000;
+    if (s.left) overhangFace += (params.width * oh) / 1_000_000;
+    if (s.right) overhangFace += (params.width * oh) / 1_000_000;
+  }
+  const bowlInner = (
+    (Math.max(0, bowlLength - 2 * THICKNESS_BOWL_WALL) * Math.max(0, bowlWidth - 2 * THICKNESS_BOWL_WALL)) +
+    2 * (bowlLength + bowlWidth) * Math.max(0, bowlDepth - THICKNESS_BOWL_BOTTOM)
+  ) / 1_000_000;
+  const faceM2 = plateTopFace + plateEdges + overhangFace + bowlInner * params.bowlCount;
+
   return {
     productLabel: label,
     area: +plateArea.toFixed(4),
+    surfaceAreaM2: +faceM2.toFixed(4),
     weight: totalWeight,
     weightPerItem,
     basePrice: Math.round(platePrice * qty),
