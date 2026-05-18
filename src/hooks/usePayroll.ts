@@ -127,10 +127,25 @@ export function useDeleteEmployee() {
   });
 }
 
+export function useNomenclatureSpec(nomenclatureId?: string) {
+  return useQuery({
+    queryKey: ["nomenclature_operations", nomenclatureId],
+    enabled: !!nomenclatureId,
+    queryFn: async () => {
+      const { data, error } = await T("nomenclature_operations")
+        .select("*, operations(*)")
+        .eq("nomenclature_id", nomenclatureId)
+        .order("sort_order");
+      if (error) throw error;
+      return data as NomenclatureOperation[];
+    },
+  });
+}
+
 export function useCreateTimesheet() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: Omit<Timesheet, "id" | "created_at" | "employees" | "operations">) => {
+    mutationFn: async (payload: Partial<Timesheet> & { employee_id: string; work_date: string; hours_worked: number; coefficient: number }) => {
       const { error } = await T("timesheets").insert(payload);
       if (error) throw error;
     },
