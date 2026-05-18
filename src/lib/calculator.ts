@@ -106,6 +106,13 @@ export interface BacksplashValidationError {
 export interface CalculationResult {
   productLabel: string;
   area: number;
+  /**
+   * Площадь обрабатываемых поверхностей одного изделия, м².
+   * Учитываются ТОЛЬКО лицевые / видимые поверхности (верх, рёбра, опуски, опоры,
+   * внутренние стенки чаши и т.п.). Нижняя/оборотная плоскость не входит.
+   * Используется внутри для расчёта сдельной зарплаты (шлифовка, грунтовка, лак).
+   */
+  surfaceAreaM2?: number;
   weight: number;
   weightPerItem?: number;
   basePrice: number;
