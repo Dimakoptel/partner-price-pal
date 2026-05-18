@@ -481,9 +481,16 @@ export function calculateWindowsill(params: WindowsillParams, pricing: Record<st
 
   const optionPriceTotal = Math.round((dropsPrice + (isIvory ? Math.round((basePrice + dropsPrice) * (IVORY_MULT - 1)) : 0) + (isCustom ? CUSTOM_COLOR : 0)) * qty);
 
+  // Лицевые поверхности: верх + рёбра по периметру*толщина + опуски
+  let faceM2 = areaMain + (2 * (params.length + params.width) * thickness) / 1_000_000;
+  for (const [, h, len] of dropEntries) {
+    if (h > 0) faceM2 += (len * h) / 1_000_000;
+  }
+
   return {
     productLabel: label,
     area: +areaMain.toFixed(4),
+    surfaceAreaM2: +faceM2.toFixed(4),
     weight: totalWeight,
     weightPerItem: qty > 1 ? Math.round((volMain + volDrops) * DENSITY * 10) / 10 : undefined,
     basePrice: Math.round(basePrice * qty),
