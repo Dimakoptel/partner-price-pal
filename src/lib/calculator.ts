@@ -325,9 +325,32 @@ export function calculateCountertop(params: CountertopParams, pricing: Record<st
 
   label += `, архитектурный бетон, цвет ${params.color}`;
 
+  // === Лицевые обрабатываемые поверхности (1 изделие, м²) ===
+  // Верх + видимые рёбра по периметру + опуски + наружные грани опор
+  let faceM2 = area;
+  if (params.isRound && params.diameter) {
+    faceM2 += (Math.PI * params.diameter * params.thickness) / 1_000_000;
+    if (params.drops.front > 0) {
+      faceM2 += (Math.PI * params.diameter * params.drops.front) / 1_000_000;
+    }
+  } else {
+    faceM2 += (2 * (params.length + params.width) * params.thickness) / 1_000_000;
+    for (const [side, h] of Object.entries(params.drops)) {
+      if (h > 0) {
+        const len = side === "front" || side === "back" ? params.length : params.width;
+        faceM2 += (len * h) / 1_000_000;
+      }
+    }
+    for (const side of ["left", "right"] as const) {
+      const h = params.supports[side];
+      if (h > 0) faceM2 += (params.width * h) / 1_000_000;
+    }
+  }
+
   return {
     productLabel: label,
     area: +area.toFixed(4),
+    surfaceAreaM2: +faceM2.toFixed(4),
     weight: totalWeight,
     basePrice: Math.round(totalBase),
     optionPrice: Math.round(totalOpt),
