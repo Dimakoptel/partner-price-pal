@@ -596,9 +596,13 @@ export function calculateBacksplash(params: BacksplashParams, pricing: Record<st
     optionItems.push({ name: `Разбит на ${numElements} элемент(ов) по ~${elementWidth} мм, ${numElements - 1} стык(ов)`, price: 0 });
   }
 
+  // Лицевая поверхность: фронт + видимые рёбра (тонкая панель)
+  const faceM2 = area + (2 * (params.width + params.height) * thickness) / 1_000_000;
+
   return {
     productLabel: label,
     area,
+    surfaceAreaM2: +faceM2.toFixed(4),
     weight: 0, // backsplash doesn't calculate weight per spec
     basePrice: Math.round((area * PRICE_PER_M2) * qty),
     optionPrice: Math.round(optionPrice * qty),
