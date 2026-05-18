@@ -824,9 +824,13 @@ export function calculateStepSlab(params: StepSlabParams, pricing: Record<string
   }
   label += `, ${params.isHeated ? "с обогревом, " : ""}архитектурный фибробетон${params.isHeated ? " с утеплённой подложкой" : ""}, цвет ${params.color}`;
 
+  // Лицевые поверхности: верх + рёбра по периметру*толщина бетона
+  const faceM2 = area + (2 * (params.length + params.width) * params.thicknessConcrete) / 1_000_000;
+
   return {
     productLabel: label,
     area: +area.toFixed(4),
+    surfaceAreaM2: +faceM2.toFixed(4),
     weight: totalWeight,
     weightPerItem,
     basePrice: Math.round(basePricePerItem * qty),
