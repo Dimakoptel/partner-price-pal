@@ -717,9 +717,16 @@ export function calculateStair(params: StairParams, pricing: Record<string, numb
   let label = `Ступень индивидуальная COZY ART ${params.length} × ${params.width} × ${thickness} мм`;
   label += `, архитектурный бетон, цвет ${params.color}`;
 
+  // Лицевые поверхности: верх ступени + передний/боковые рёбра + подступенок (фронт)
+  let faceM2 = areaTread + (params.length * thickness + 2 * params.width * thickness) / 1_000_000;
+  if (params.hasRiser && params.riserHeight > 0) {
+    faceM2 += (params.length * params.riserHeight) / 1_000_000;
+  }
+
   return {
     productLabel: label,
     area: +areaTread.toFixed(4),
+    surfaceAreaM2: +faceM2.toFixed(4),
     weight: totalWeight,
     weightPerItem: treadWeightPerItem,
     basePrice: totalTreadPrice,
