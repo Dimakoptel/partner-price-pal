@@ -106,6 +106,13 @@ export interface BacksplashValidationError {
 export interface CalculationResult {
   productLabel: string;
   area: number;
+  /**
+   * Площадь обрабатываемых поверхностей одного изделия, м².
+   * Учитываются ТОЛЬКО лицевые / видимые поверхности (верх, рёбра, опуски, опоры,
+   * внутренние стенки чаши и т.п.). Нижняя/оборотная плоскость не входит.
+   * Используется внутри для расчёта сдельной зарплаты (шлифовка, грунтовка, лак).
+   */
+  surfaceAreaM2?: number;
   weight: number;
   weightPerItem?: number;
   basePrice: number;
@@ -318,9 +325,32 @@ export function calculateCountertop(params: CountertopParams, pricing: Record<st
 
   label += `, архитектурный бетон, цвет ${params.color}`;
 
+  // === Лицевые обрабатываемые поверхности (1 изделие, м²) ===
+  // Верх + видимые рёбра по периметру + опуски + наружные грани опор
+  let faceM2 = area;
+  if (params.isRound && params.diameter) {
+    faceM2 += (Math.PI * params.diameter * params.thickness) / 1_000_000;
+    if (params.drops.front > 0) {
+      faceM2 += (Math.PI * params.diameter * params.drops.front) / 1_000_000;
+    }
+  } else {
+    faceM2 += (2 * (params.length + params.width) * params.thickness) / 1_000_000;
+    for (const [side, h] of Object.entries(params.drops)) {
+      if (h > 0) {
+        const len = side === "front" || side === "back" ? params.length : params.width;
+        faceM2 += (len * h) / 1_000_000;
+      }
+    }
+    for (const side of ["left", "right"] as const) {
+      const h = params.supports[side];
+      if (h > 0) faceM2 += (params.width * h) / 1_000_000;
+    }
+  }
+
   return {
     productLabel: label,
     area: +area.toFixed(4),
+    surfaceAreaM2: +faceM2.toFixed(4),
     weight: totalWeight,
     basePrice: Math.round(totalBase),
     optionPrice: Math.round(totalOpt),
@@ -451,9 +481,16 @@ export function calculateWindowsill(params: WindowsillParams, pricing: Record<st
 
   const optionPriceTotal = Math.round((dropsPrice + (isIvory ? Math.round((basePrice + dropsPrice) * (IVORY_MULT - 1)) : 0) + (isCustom ? CUSTOM_COLOR : 0)) * qty);
 
+  // Лицевые поверхности: верх + рёбра по периметру*толщина + опуски
+  let faceM2 = areaMain + (2 * (params.length + params.width) * thickness) / 1_000_000;
+  for (const [, h, len] of dropEntries) {
+    if (h > 0) faceM2 += (len * h) / 1_000_000;
+  }
+
   return {
     productLabel: label,
     area: +areaMain.toFixed(4),
+    surfaceAreaM2: +faceM2.toFixed(4),
     weight: totalWeight,
     weightPerItem: qty > 1 ? Math.round((volMain + volDrops) * DENSITY * 10) / 10 : undefined,
     basePrice: Math.round(basePrice * qty),
@@ -559,9 +596,13 @@ export function calculateBacksplash(params: BacksplashParams, pricing: Record<st
     optionItems.push({ name: `Разбит на ${numElements} элемент(ов) по ~${elementWidth} мм, ${numElements - 1} стык(ов)`, price: 0 });
   }
 
+  // Лицевая поверхность: фронт + видимые рёбра (тонкая панель)
+  const faceM2 = area + (2 * (params.width + params.height) * thickness) / 1_000_000;
+
   return {
     productLabel: label,
     area,
+    surfaceAreaM2: +faceM2.toFixed(4),
     weight: 0, // backsplash doesn't calculate weight per spec
     basePrice: Math.round((area * PRICE_PER_M2) * qty),
     optionPrice: Math.round(optionPrice * qty),
@@ -676,9 +717,16 @@ export function calculateStair(params: StairParams, pricing: Record<string, numb
   let label = `Ступень индивидуальная COZY ART ${params.length} × ${params.width} × ${thickness} мм`;
   label += `, архитектурный бетон, цвет ${params.color}`;
 
+  // Лицевые поверхности: верх ступени + передний/боковые рёбра + подступенок (фронт)
+  let faceM2 = areaTread + (params.length * thickness + 2 * params.width * thickness) / 1_000_000;
+  if (params.hasRiser && params.riserHeight > 0) {
+    faceM2 += (params.length * params.riserHeight) / 1_000_000;
+  }
+
   return {
     productLabel: label,
     area: +areaTread.toFixed(4),
+    surfaceAreaM2: +faceM2.toFixed(4),
     weight: totalWeight,
     weightPerItem: treadWeightPerItem,
     basePrice: totalTreadPrice,
@@ -776,9 +824,13 @@ export function calculateStepSlab(params: StepSlabParams, pricing: Record<string
   }
   label += `, ${params.isHeated ? "с обогревом, " : ""}архитектурный фибробетон${params.isHeated ? " с утеплённой подложкой" : ""}, цвет ${params.color}`;
 
+  // Лицевые поверхности: верх + рёбра по периметру*толщина бетона
+  const faceM2 = area + (2 * (params.length + params.width) * params.thicknessConcrete) / 1_000_000;
+
   return {
     productLabel: label,
     area: +area.toFixed(4),
+    surfaceAreaM2: +faceM2.toFixed(4),
     weight: totalWeight,
     weightPerItem,
     basePrice: Math.round(basePricePerItem * qty),
@@ -989,9 +1041,27 @@ export function calculateSink(params: SinkParams, pricing: Record<string, number
 
   const supportLabel = `Кронштейн стальной ${weightPerItem > 60 ? "усиленный" : "стандартный"} для раковины COZY ART ${params.length} × ${params.width} × ${displayHeight} мм`;
 
+  // Лицевые поверхности: плита-верх (минус отверстия чаш) + рёбра плиты + опуски снаружи + чаши изнутри (стенки + дно)
+  const plateTopFace = Math.max(0, plateArea - (bowlLength * bowlWidth * params.bowlCount) / 1_000_000);
+  const plateEdges = (2 * (params.length + params.width) * THICKNESS_PLATE) / 1_000_000;
+  let overhangFace = 0;
+  if (oh > 0) {
+    const s = params.overhangSides;
+    if (s.front) overhangFace += (params.length * oh) / 1_000_000;
+    if (s.back) overhangFace += (params.length * oh) / 1_000_000;
+    if (s.left) overhangFace += (params.width * oh) / 1_000_000;
+    if (s.right) overhangFace += (params.width * oh) / 1_000_000;
+  }
+  const bowlInner = (
+    (Math.max(0, bowlLength - 2 * THICKNESS_BOWL_WALL) * Math.max(0, bowlWidth - 2 * THICKNESS_BOWL_WALL)) +
+    2 * (bowlLength + bowlWidth) * Math.max(0, bowlDepth - THICKNESS_BOWL_BOTTOM)
+  ) / 1_000_000;
+  const faceM2 = plateTopFace + plateEdges + overhangFace + bowlInner * params.bowlCount;
+
   return {
     productLabel: label,
     area: +plateArea.toFixed(4),
+    surfaceAreaM2: +faceM2.toFixed(4),
     weight: totalWeight,
     weightPerItem,
     basePrice: Math.round(platePrice * qty),

@@ -679,6 +679,7 @@ export type Database = {
           size_mm: string | null
           sku: string
           sort_order: number
+          surface_area_m2: number
           unit: string
           updated_at: string
           weight_kg: number | null
@@ -703,6 +704,7 @@ export type Database = {
           size_mm?: string | null
           sku?: string
           sort_order?: number
+          surface_area_m2?: number
           unit?: string
           updated_at?: string
           weight_kg?: number | null
@@ -727,6 +729,7 @@ export type Database = {
           size_mm?: string | null
           sku?: string
           sort_order?: number
+          surface_area_m2?: number
           unit?: string
           updated_at?: string
           weight_kg?: number | null
@@ -766,6 +769,36 @@ export type Database = {
           },
         ]
       }
+      nomenclature_operations: {
+        Row: {
+          created_at: string
+          fixed_cost: number | null
+          id: string
+          nomenclature_id: string
+          operation_id: string
+          quantity_override: number | null
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          fixed_cost?: number | null
+          id?: string
+          nomenclature_id: string
+          operation_id: string
+          quantity_override?: number | null
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          fixed_cost?: number | null
+          id?: string
+          nomenclature_id?: string
+          operation_id?: string
+          quantity_override?: number | null
+          sort_order?: number
+        }
+        Relationships: []
+      }
       operations: {
         Row: {
           category: string | null
@@ -775,6 +808,8 @@ export type Database = {
           id: string
           name: string
           norm_hours: number | null
+          rate: number
+          unit: string
         }
         Insert: {
           category?: string | null
@@ -784,6 +819,8 @@ export type Database = {
           id?: string
           name: string
           norm_hours?: number | null
+          rate?: number
+          unit?: string
         }
         Update: {
           category?: string | null
@@ -793,6 +830,8 @@ export type Database = {
           id?: string
           name?: string
           norm_hours?: number | null
+          rate?: number
+          unit?: string
         }
         Relationships: []
       }
@@ -1831,34 +1870,43 @@ export type Database = {
         Row: {
           coefficient: number
           comment: string | null
+          computed_wage: number | null
           created_at: string
           employee_id: string
           hours_worked: number
           id: string
+          nomenclature_id: string | null
           operation_id: string | null
           order_id: string | null
+          units_done: number | null
           work_date: string
         }
         Insert: {
           coefficient?: number
           comment?: string | null
+          computed_wage?: number | null
           created_at?: string
           employee_id: string
           hours_worked: number
           id?: string
+          nomenclature_id?: string | null
           operation_id?: string | null
           order_id?: string | null
+          units_done?: number | null
           work_date: string
         }
         Update: {
           coefficient?: number
           comment?: string | null
+          computed_wage?: number | null
           created_at?: string
           employee_id?: string
           hours_worked?: number
           id?: string
+          nomenclature_id?: string | null
           operation_id?: string | null
           order_id?: string | null
+          units_done?: number | null
           work_date?: string
         }
         Relationships: [

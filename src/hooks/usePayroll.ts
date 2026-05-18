@@ -17,15 +17,33 @@ export interface Operation {
   name: string;
   category: string | null;
   norm_hours: number | null;
+  cost_per_hour: number;
+  unit: "m2" | "hour" | "piece";
+  rate: number;
+  description: string | null;
   created_at: string;
+}
+
+export interface NomenclatureOperation {
+  id: string;
+  nomenclature_id: string;
+  operation_id: string;
+  quantity_override: number | null;
+  fixed_cost: number | null;
+  sort_order: number;
+  created_at: string;
+  operations?: Operation | null;
 }
 
 export interface Timesheet {
   id: string;
   employee_id: string;
   operation_id: string | null;
+  nomenclature_id: string | null;
   order_id: string | null;
   hours_worked: number;
+  units_done: number | null;
+  computed_wage: number | null;
   work_date: string;
   coefficient: number;
   comment: string | null;
@@ -109,10 +127,25 @@ export function useDeleteEmployee() {
   });
 }
 
+export function useNomenclatureSpec(nomenclatureId?: string) {
+  return useQuery({
+    queryKey: ["nomenclature_operations", nomenclatureId],
+    enabled: !!nomenclatureId,
+    queryFn: async () => {
+      const { data, error } = await T("nomenclature_operations")
+        .select("*, operations(*)")
+        .eq("nomenclature_id", nomenclatureId)
+        .order("sort_order");
+      if (error) throw error;
+      return data as NomenclatureOperation[];
+    },
+  });
+}
+
 export function useCreateTimesheet() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: Omit<Timesheet, "id" | "created_at" | "employees" | "operations">) => {
+    mutationFn: async (payload: Partial<Timesheet> & { employee_id: string; work_date: string; hours_worked: number; coefficient: number }) => {
       const { error } = await T("timesheets").insert(payload);
       if (error) throw error;
     },
