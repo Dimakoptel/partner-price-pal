@@ -77,7 +77,7 @@ export function buildShareText(result: CalculationResult, cs?: CompanySettingsAc
   }
   if (result.installationNote) {
     text += `\n${result.installationNote}\n`;
-  } else {
+  } else if (result.installationPrice > 0) {
     text += `Монтаж (при необходимости): ${formatPrice(result.installationPrice)} ₽\n`;
   }
   text += `\n📌 УСЛОВИЯ\n`;
