@@ -72,9 +72,10 @@ export default function CalculatorPage() {
 
   const handleCalculate = (params: any) => {
     if (!selectedProduct || selectedProduct === "box") return;
-    const { needsBox, ...calcParams } = params;
+    const { needsBox, includeInstallation = true, includeSupport = true, ...calcParams } = params;
     setCurrentParams(params);
     setAddedToCart(false);
+
 
     let res: CalculationResult;
     if (selectedProduct === "countertop") {
