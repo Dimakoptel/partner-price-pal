@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { Phone, Mail, Calendar, FileText, ShoppingCart, UserPlus, User, Package, AlertCircle, Pencil } from "lucide-react";
+import { Phone, Mail, Calendar, FileText, ShoppingCart, UserPlus, User, Package, AlertCircle, Pencil, ChevronDown, ChevronUp } from "lucide-react";
 import LeadFormDialog from "./LeadFormDialog";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -15,6 +15,10 @@ import type { Lead } from "@/hooks/useLeads";
 import { useConvertLeadToOrder } from "@/hooks/useLeadConversion";
 import { useDictOptions } from "@/hooks/useDictOptions";
 import { Textarea } from "@/components/ui/textarea";
+import ResultPanel from "@/components/ResultPanel";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
+import { useColors } from "@/hooks/useColors";
+import type { CalculationResult } from "@/lib/calculator";
 
 interface Props {
   lead: Lead | null;
@@ -29,8 +33,12 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
   const [lostReason, setLostReason] = useState("");
   const [showLostDialog, setShowLostDialog] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [showFullCalc, setShowFullCalc] = useState(false);
   const convertMutation = useConvertLeadToOrder();
   const leadStatuses = useDictOptions("lead_statuses");
+  const { getSetting } = useCompanySettings();
+  const { colors } = useColors();
+  const colorsForPrint = colors.map((c) => ({ name: c.name, image_url: c.image_url, show_in_print: c.show_in_print }));
 
   // Load linked calculation
   const calcQuery = useQuery({
@@ -103,7 +111,7 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl">Лид: {lead.client_name || "Без имени"}</DialogTitle>
@@ -222,7 +230,7 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
           <>
             <Separator />
             <div>
-              <span className="text-xs text-muted-foreground block mb-2">Привязанный расчёт</span>
+              <span className="text-xs text-muted-foreground block mb-2">Привязанный расчёт (КП)</span>
               <div className="border border-border p-3 bg-secondary/30">
                 <div className="flex items-center gap-2 mb-1">
                   <FileText className="w-4 h-4 text-muted-foreground" />
@@ -233,10 +241,30 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
                 </div>
                 {calc.result && (
                   <div className="mt-2 text-sm font-medium text-primary">
-                    {formatAmount((calc.result as any)?.totalPrice || (calc.result as any)?.total || 0)}
+                    {formatAmount((calc.result as any)?.grandTotal || (calc.result as any)?.totalPrice || 0)}
                   </div>
                 )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-3 w-full gap-2"
+                  onClick={() => setShowFullCalc((v) => !v)}
+                >
+                  {showFullCalc ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                  {showFullCalc ? "Свернуть КП" : "Показать полный расчёт (КП)"}
+                </Button>
               </div>
+
+              {showFullCalc && calc.result && (
+                <div className="mt-3">
+                  <ResultPanel
+                    result={calc.result as CalculationResult}
+                    companySettings={{ getSetting }}
+                    colorsForPrint={colorsForPrint}
+                    calcName={calc.calc_name}
+                  />
+                </div>
+              )}
             </div>
           </>
         )}

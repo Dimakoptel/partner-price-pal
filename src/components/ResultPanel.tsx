@@ -77,7 +77,7 @@ export function buildShareText(result: CalculationResult, cs?: CompanySettingsAc
   }
   if (result.installationNote) {
     text += `\n${result.installationNote}\n`;
-  } else {
+  } else if (result.installationPrice > 0) {
     text += `Монтаж (при необходимости): ${formatPrice(result.installationPrice)} ₽\n`;
   }
   text += `\n📌 УСЛОВИЯ\n`;
@@ -242,14 +242,14 @@ export function buildPrintHtml(result: CalculationResult, cs?: CompanySettingsAc
         <div style="font-size:12px;color:#666;margin-top:4px;white-space:pre-line;">${result.installationNote}</div>
         <div style="font-size:11px;color:#888;margin-top:4px;font-style:italic;">Оплата монтажных работ производится в день завершения монтажа специалисту по монтажу</div>
       </td>
-    </tr>` : `
+    </tr>` : (result.installationPrice > 0 ? `
     <tr>
       <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;">
         <div style="font-size:14px;color:#333;">Монтажные работы <span style="font-size:11px;color:#888;">(при необходимости)</span></div>
         <div style="font-size:11px;color:#888;margin-top:4px;font-style:italic;">Оплата монтажных работ производится в день завершения монтажа специалисту по монтажу</div>
       </td>
       <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600;white-space:nowrap;">${formatPrice(result.installationPrice)} ₽</td>
-    </tr>`}
+    </tr>` : '')}
     <tr>
       <td colspan="2" style="padding:8px 0;font-size:12px;color:#555;">
         ${result.quantity > 1 && result.weightPerItem ? `Ориентировочный вес за 1 шт.: <strong>${result.weightPerItem} кг</strong> · Общий вес: <strong>${result.weight} кг</strong>` : `Ориентировочный вес: <strong>${result.weight} кг</strong>`}
@@ -504,12 +504,12 @@ export default function ResultPanel({ result, onSave, saving, saveLabel, saveIco
             <span className="font-medium text-foreground">Монтажные работы</span>
             <p className="mt-1 whitespace-pre-line">{result.installationNote}</p>
           </div>
-        ) : (
+        ) : result.installationPrice > 0 ? (
           <div className="flex justify-between">
             <span className="text-muted-foreground">Монтаж <span className="text-[10px]">(при необходимости)</span></span>
             <span className="whitespace-nowrap ml-4">{formatPrice(result.installationPrice)} ₽</span>
           </div>
-        )}
+        ) : null}
       </div>
 
       <div className="mt-6 p-3 rounded-lg bg-secondary/50 text-xs text-muted-foreground space-y-1">

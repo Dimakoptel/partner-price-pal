@@ -72,9 +72,10 @@ export default function CalculatorPage() {
 
   const handleCalculate = (params: any) => {
     if (!selectedProduct || selectedProduct === "box") return;
-    const { needsBox, ...calcParams } = params;
+    const { needsBox, includeInstallation = true, includeSupport = true, ...calcParams } = params;
     setCurrentParams(params);
     setAddedToCart(false);
+
 
     let res: CalculationResult;
     if (selectedProduct === "countertop") {
@@ -123,6 +124,19 @@ export default function CalculatorPage() {
       res.boxLabel = `Ящик транспортировочный (${boxResult.dimensions.ospBottomL.toFixed(0)}×${boxResult.dimensions.ospBottomW.toFixed(0)}×${boxResult.dimensions.ospLongSideH.toFixed(0)} мм)`;
       res.boxPrice = totalBoxPrice;
       res.grandTotal += totalBoxPrice;
+    }
+
+    // Strip optional items the user chose to exclude
+    if (!includeInstallation && res.installationPrice) {
+      res.grandTotal -= res.installationPrice;
+      res.installationPrice = 0;
+      res.installationNote = undefined;
+    }
+    if (!includeSupport && res.supportPrice) {
+      res.grandTotal -= res.supportPrice;
+      res.supportPrice = 0;
+      res.supportLabel = undefined;
+      res.supportPricePerItem = undefined;
     }
 
     setResult(res);

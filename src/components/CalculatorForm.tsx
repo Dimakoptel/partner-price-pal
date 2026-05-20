@@ -96,6 +96,8 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
   const [isHeated, setIsHeated] = useState(false);
   const [thicknessConcrete, setThicknessConcrete] = useState(40);
   const [needsBox, setNeedsBox] = useState(false);
+  const [includeInstallation, setIncludeInstallation] = useState(true);
+  const [includeSupport, setIncludeSupport] = useState(true);
   const [validationErrors, setValidationErrors] = useState<(SinkValidationError | CountertopValidationError | StepSlabValidationError | WindowsillValidationError | BacksplashValidationError | StairValidationError)[]>([]);
   const finalColor = color === "другой" ? customColor : color;
 
@@ -111,7 +113,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
       };
       const errors = validateCountertopParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
-      onCalculate({ ...params, needsBox });
+      onCalculate({ ...params, needsBox, includeInstallation, includeSupport });
     } else if (productType === "sink") {
       const params: SinkParams = {
         length, width, quantity, overhangHeight,
@@ -124,14 +126,14 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
       };
       const errors = validateSinkParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
-      onCalculate({ ...params, needsBox });
+      onCalculate({ ...params, needsBox, includeInstallation, includeSupport });
     } else if (productType === "stepslab") {
       const params: StepSlabParams = {
         length, width, thicknessConcrete, color: finalColor, quantity, isHeated,
       };
       const errors = validateStepSlabParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
-      onCalculate({ ...params, needsBox });
+      onCalculate({ ...params, needsBox, includeInstallation, includeSupport });
     } else if (productType === "windowsill") {
       const params: WindowsillParams = {
         length, width, thickness, color: finalColor, quantity,
@@ -139,14 +141,14 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
       };
       const errors = validateWindowsillParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
-      onCalculate({ ...params, needsBox });
+      onCalculate({ ...params, needsBox, includeInstallation, includeSupport });
     } else if (productType === "backsplash") {
       const params: BacksplashParams = {
         width: backsplashWidth, height: backsplashHeight, thickness, color: finalColor, quantity,
       };
       const errors = validateBacksplashParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
-      onCalculate({ ...params, needsBox });
+      onCalculate({ ...params, needsBox, includeInstallation, includeSupport });
     } else if (productType === "stair") {
       const params: StairParams = {
         length, width, thickness, color: finalColor, quantity,
@@ -156,7 +158,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
       };
       const errors = validateStairParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
-      onCalculate({ ...params, needsBox });
+      onCalculate({ ...params, needsBox, includeInstallation, includeSupport });
     }
   };
 
@@ -487,14 +489,28 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
           />
         )}
       </div>
-      {/* Transportation box */}
+      {/* Optional / additional items */}
       <div>
-        <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Транспортировка</h3>
-        <div className="flex items-center gap-3">
-          <Switch checked={needsBox} onCheckedChange={setNeedsBox} />
-          <Label className="text-sm">Требуется транспортировочный ящик</Label>
+        <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Сопутствующие позиции</h3>
+        <p className="text-[10px] text-muted-foreground mb-3">Отключённые позиции не попадут в КП клиенту</p>
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <Switch checked={includeInstallation} onCheckedChange={setIncludeInstallation} />
+            <Label className="text-sm">Включить монтаж</Label>
+          </div>
+          {productType === "sink" && (
+            <div className="flex items-center gap-3">
+              <Switch checked={includeSupport} onCheckedChange={setIncludeSupport} />
+              <Label className="text-sm">Включить кронштейн</Label>
+            </div>
+          )}
+          <div className="flex items-center gap-3">
+            <Switch checked={needsBox} onCheckedChange={setNeedsBox} />
+            <Label className="text-sm">Транспортировочный ящик</Label>
+          </div>
         </div>
       </div>
+
 
       {validationErrors.length > 0 && (
         <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 space-y-2">
