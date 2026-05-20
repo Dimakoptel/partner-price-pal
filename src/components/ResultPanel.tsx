@@ -504,12 +504,12 @@ export default function ResultPanel({ result, onSave, saving, saveLabel, saveIco
             <span className="font-medium text-foreground">Монтажные работы</span>
             <p className="mt-1 whitespace-pre-line">{result.installationNote}</p>
           </div>
-        ) : (
+        ) : result.installationPrice > 0 ? (
           <div className="flex justify-between">
             <span className="text-muted-foreground">Монтаж <span className="text-[10px]">(при необходимости)</span></span>
             <span className="whitespace-nowrap ml-4">{formatPrice(result.installationPrice)} ₽</span>
           </div>
-        )}
+        ) : null}
       </div>
 
       <div className="mt-6 p-3 rounded-lg bg-secondary/50 text-xs text-muted-foreground space-y-1">
