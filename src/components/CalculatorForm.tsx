@@ -96,6 +96,8 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
   const [isHeated, setIsHeated] = useState(false);
   const [thicknessConcrete, setThicknessConcrete] = useState(40);
   const [needsBox, setNeedsBox] = useState(false);
+  const [includeInstallation, setIncludeInstallation] = useState(true);
+  const [includeSupport, setIncludeSupport] = useState(true);
   const [validationErrors, setValidationErrors] = useState<(SinkValidationError | CountertopValidationError | StepSlabValidationError | WindowsillValidationError | BacksplashValidationError | StairValidationError)[]>([]);
   const finalColor = color === "другой" ? customColor : color;
 
