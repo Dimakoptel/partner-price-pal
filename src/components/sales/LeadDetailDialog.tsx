@@ -33,8 +33,12 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
   const [lostReason, setLostReason] = useState("");
   const [showLostDialog, setShowLostDialog] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [showFullCalc, setShowFullCalc] = useState(false);
   const convertMutation = useConvertLeadToOrder();
   const leadStatuses = useDictOptions("lead_statuses");
+  const { getSetting } = useCompanySettings();
+  const { colors } = useColors();
+  const colorsForPrint = colors.map((c) => ({ name: c.name, image_url: c.image_url, show_in_print: c.show_in_print }));
 
   // Load linked calculation
   const calcQuery = useQuery({
