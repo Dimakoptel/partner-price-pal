@@ -230,7 +230,7 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
           <>
             <Separator />
             <div>
-              <span className="text-xs text-muted-foreground block mb-2">Привязанный расчёт</span>
+              <span className="text-xs text-muted-foreground block mb-2">Привязанный расчёт (КП)</span>
               <div className="border border-border p-3 bg-secondary/30">
                 <div className="flex items-center gap-2 mb-1">
                   <FileText className="w-4 h-4 text-muted-foreground" />
@@ -241,10 +241,30 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
                 </div>
                 {calc.result && (
                   <div className="mt-2 text-sm font-medium text-primary">
-                    {formatAmount((calc.result as any)?.totalPrice || (calc.result as any)?.total || 0)}
+                    {formatAmount((calc.result as any)?.grandTotal || (calc.result as any)?.totalPrice || 0)}
                   </div>
                 )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-3 w-full gap-2"
+                  onClick={() => setShowFullCalc((v) => !v)}
+                >
+                  {showFullCalc ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                  {showFullCalc ? "Свернуть КП" : "Показать полный расчёт (КП)"}
+                </Button>
               </div>
+
+              {showFullCalc && calc.result && (
+                <div className="mt-3">
+                  <ResultPanel
+                    result={calc.result as CalculationResult}
+                    companySettings={{ getSetting }}
+                    colorsForPrint={colorsForPrint}
+                    calcName={calc.calc_name}
+                  />
+                </div>
+              )}
             </div>
           </>
         )}
