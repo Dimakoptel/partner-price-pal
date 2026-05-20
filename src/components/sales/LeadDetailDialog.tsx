@@ -111,7 +111,7 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl">Лид: {lead.client_name || "Без имени"}</DialogTitle>
