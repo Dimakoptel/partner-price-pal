@@ -489,14 +489,28 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
           />
         )}
       </div>
-      {/* Transportation box */}
+      {/* Optional / additional items */}
       <div>
-        <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Транспортировка</h3>
-        <div className="flex items-center gap-3">
-          <Switch checked={needsBox} onCheckedChange={setNeedsBox} />
-          <Label className="text-sm">Требуется транспортировочный ящик</Label>
+        <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Сопутствующие позиции</h3>
+        <p className="text-[10px] text-muted-foreground mb-3">Отключённые позиции не попадут в КП клиенту</p>
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <Switch checked={includeInstallation} onCheckedChange={setIncludeInstallation} />
+            <Label className="text-sm">Включить монтаж</Label>
+          </div>
+          {productType === "sink" && (
+            <div className="flex items-center gap-3">
+              <Switch checked={includeSupport} onCheckedChange={setIncludeSupport} />
+              <Label className="text-sm">Включить кронштейн</Label>
+            </div>
+          )}
+          <div className="flex items-center gap-3">
+            <Switch checked={needsBox} onCheckedChange={setNeedsBox} />
+            <Label className="text-sm">Транспортировочный ящик</Label>
+          </div>
         </div>
       </div>
+
 
       {validationErrors.length > 0 && (
         <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 space-y-2">
