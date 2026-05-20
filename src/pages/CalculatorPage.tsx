@@ -126,6 +126,19 @@ export default function CalculatorPage() {
       res.grandTotal += totalBoxPrice;
     }
 
+    // Strip optional items the user chose to exclude
+    if (!includeInstallation && res.installationPrice) {
+      res.grandTotal -= res.installationPrice;
+      res.installationPrice = 0;
+      res.installationNote = undefined;
+    }
+    if (!includeSupport && res.supportPrice) {
+      res.grandTotal -= res.supportPrice;
+      res.supportPrice = 0;
+      res.supportLabel = undefined;
+      res.supportPricePerItem = undefined;
+    }
+
     setResult(res);
 
     // Auto-save every calculation
