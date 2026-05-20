@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { Phone, Mail, Calendar, FileText, ShoppingCart, UserPlus, User, Package, AlertCircle, Pencil } from "lucide-react";
+import { Phone, Mail, Calendar, FileText, ShoppingCart, UserPlus, User, Package, AlertCircle, Pencil, ChevronDown, ChevronUp } from "lucide-react";
 import LeadFormDialog from "./LeadFormDialog";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -15,6 +15,10 @@ import type { Lead } from "@/hooks/useLeads";
 import { useConvertLeadToOrder } from "@/hooks/useLeadConversion";
 import { useDictOptions } from "@/hooks/useDictOptions";
 import { Textarea } from "@/components/ui/textarea";
+import ResultPanel from "@/components/ResultPanel";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
+import { useColors } from "@/hooks/useColors";
+import type { CalculationResult } from "@/lib/calculator";
 
 interface Props {
   lead: Lead | null;
