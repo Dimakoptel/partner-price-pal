@@ -113,7 +113,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
       };
       const errors = validateCountertopParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
-      onCalculate({ ...params, needsBox });
+      onCalculate({ ...params, needsBox, includeInstallation, includeSupport });
     } else if (productType === "sink") {
       const params: SinkParams = {
         length, width, quantity, overhangHeight,
@@ -126,14 +126,14 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
       };
       const errors = validateSinkParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
-      onCalculate({ ...params, needsBox });
+      onCalculate({ ...params, needsBox, includeInstallation, includeSupport });
     } else if (productType === "stepslab") {
       const params: StepSlabParams = {
         length, width, thicknessConcrete, color: finalColor, quantity, isHeated,
       };
       const errors = validateStepSlabParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
-      onCalculate({ ...params, needsBox });
+      onCalculate({ ...params, needsBox, includeInstallation, includeSupport });
     } else if (productType === "windowsill") {
       const params: WindowsillParams = {
         length, width, thickness, color: finalColor, quantity,
@@ -141,14 +141,14 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
       };
       const errors = validateWindowsillParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
-      onCalculate({ ...params, needsBox });
+      onCalculate({ ...params, needsBox, includeInstallation, includeSupport });
     } else if (productType === "backsplash") {
       const params: BacksplashParams = {
         width: backsplashWidth, height: backsplashHeight, thickness, color: finalColor, quantity,
       };
       const errors = validateBacksplashParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
-      onCalculate({ ...params, needsBox });
+      onCalculate({ ...params, needsBox, includeInstallation, includeSupport });
     } else if (productType === "stair") {
       const params: StairParams = {
         length, width, thickness, color: finalColor, quantity,
@@ -158,7 +158,7 @@ export default function CalculatorForm({ productType, onCalculate, colorNames = 
       };
       const errors = validateStairParams(params, pricing);
       if (errors.length > 0) { setValidationErrors(errors); return; }
-      onCalculate({ ...params, needsBox });
+      onCalculate({ ...params, needsBox, includeInstallation, includeSupport });
     }
   };
 
