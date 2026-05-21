@@ -512,7 +512,7 @@ INSERT INTO public.company_settings (key, value, label, category, sort_order) VA
 ('website', 'www.cozyart.ru', 'Сайт', 'contacts', 8),
 ('address', 'г. Новосибирск, ул. Драгомыжского, 8А, корпус 5', 'Адрес', 'contacts', 9),
 ('work_hours', 'Пн-Пт: 09:00 — 18:00', 'Часы работы', 'contacts', 10),
-('production_days', '20', 'Срок изготовления (рабочих дней)', 'production', 11),
+('production_days', '20', 'Срок изготовления (календарных дней)', 'production', 11),
 ('warranty_years', '1', 'Гарантия (лет)', 'production', 12),
 ('print_logo_url', '', 'URL логотипа', 'print_template', 13),
 ('product_icon_countertop', '', 'Иконка: Столешница', 'product_icons', 14),

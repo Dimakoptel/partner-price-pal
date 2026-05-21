@@ -10,10 +10,13 @@
 | Файл | Назначение |
 |------|-----------|
 | [`docs/PROJECT_OVERVIEW.md`](docs/PROJECT_OVERVIEW.md) | Полное описание реализованного функционала (живой документ) |
+| [`docs/LOCAL_DOCKER_SETUP.md`](docs/LOCAL_DOCKER_SETUP.md) | Локальный запуск на ПК в Docker (шаг-за-шагом) |
 | [`KNOWLEDGE.md`](KNOWLEDGE.md) | Справочник логики, формул, правил |
-| [`DEPLOY.md`](DEPLOY.md) | Развёртывание (Lovable Cloud + Docker) |
+| [`DEPLOY.md`](DEPLOY.md) | Развёртывание на сервере (Docker + self-hosted Supabase) |
 | [`docs/SALES_MODULE.md`](docs/SALES_MODULE.md) | Модуль продаж — детально |
 | [`docs/ACCEPTANCE_SALES.md`](docs/ACCEPTANCE_SALES.md) | Приёмочные сценарии |
+| [`docs/LAUNCH_CHECKLIST.md`](docs/LAUNCH_CHECKLIST.md) | Чек-лист релиза |
+| [`docs/AUDIT_*.md`](docs/) | Журнал аудитов |
 | [`docs/LAUNCH_CHECKLIST.md`](docs/LAUNCH_CHECKLIST.md) | Чек-лист релиза |
 | [`docs/AUDIT_*.md`](docs/) | Журнал аудитов |
 
