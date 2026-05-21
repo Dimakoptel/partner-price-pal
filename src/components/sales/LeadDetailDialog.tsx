@@ -33,7 +33,12 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
   const [lostReason, setLostReason] = useState("");
   const [showLostDialog, setShowLostDialog] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [showFullCalc, setShowFullCalc] = useState(false);
+  const [expandedCalcs, setExpandedCalcs] = useState<Set<string>>(new Set());
+  const toggleCalc = (id: string) => setExpandedCalcs((prev) => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
   const convertMutation = useConvertLeadToOrder();
   const leadStatuses = useDictOptions("lead_statuses");
   const { getSetting } = useCompanySettings();
