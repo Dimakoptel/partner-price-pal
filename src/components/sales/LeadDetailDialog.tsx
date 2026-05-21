@@ -33,14 +33,19 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
   const [lostReason, setLostReason] = useState("");
   const [showLostDialog, setShowLostDialog] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [showFullCalc, setShowFullCalc] = useState(false);
+  const [expandedCalcs, setExpandedCalcs] = useState<Set<string>>(new Set());
+  const toggleCalc = (id: string) => setExpandedCalcs((prev) => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
   const convertMutation = useConvertLeadToOrder();
   const leadStatuses = useDictOptions("lead_statuses");
   const { getSetting } = useCompanySettings();
   const { colors } = useColors();
   const colorsForPrint = colors.map((c) => ({ name: c.name, image_url: c.image_url, show_in_print: c.show_in_print }));
 
-  // Load linked calculation
+  // Load linked calculation (main one referenced by lead)
   const calcQuery = useQuery({
     queryKey: ["lead_calculation", lead?.calculation_id],
     queryFn: async () => {
@@ -54,6 +59,24 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
       return data;
     },
     enabled: open && !!lead?.calculation_id,
+  });
+
+  // Load ALL related calculations (by lead_id or by client_id)
+  const allCalcsQuery = useQuery({
+    queryKey: ["lead_all_calculations", lead?.id, lead?.client_id],
+    queryFn: async () => {
+      if (!lead) return [];
+      let query = supabase.from("saved_calculations").select("*").order("created_at", { ascending: false });
+      if (lead.client_id) {
+        query = query.or(`lead_id.eq.${lead.id},client_id.eq.${lead.client_id}`);
+      } else {
+        query = query.eq("lead_id", lead.id);
+      }
+      const { data, error } = await query;
+      if (error) return [];
+      return data || [];
+    },
+    enabled: open && !!lead,
   });
 
   // Load linked client
@@ -225,49 +248,63 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
           </>
         )}
 
-        {/* Linked calculation */}
-        {calc && (
+        {/* All related calculations (КП) */}
+        {(allCalcsQuery.data && allCalcsQuery.data.length > 0) && (
           <>
             <Separator />
-            <div>
-              <span className="text-xs text-muted-foreground block mb-2">Привязанный расчёт (КП)</span>
-              <div className="border border-border p-3 bg-secondary/30">
-                <div className="flex items-center gap-2 mb-1">
-                  <FileText className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-medium text-sm">{calc.calc_name || calc.product_label}</span>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {calc.product_label} · {format(new Date(calc.created_at), "d MMM yyyy", { locale: ru })}
-                </div>
-                {calc.result && (
-                  <div className="mt-2 text-sm font-medium text-primary">
-                    {formatAmount((calc.result as any)?.grandTotal || (calc.result as any)?.totalPrice || 0)}
-                  </div>
-                )}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="mt-3 w-full gap-2"
-                  onClick={() => setShowFullCalc((v) => !v)}
-                >
-                  {showFullCalc ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                  {showFullCalc ? "Свернуть КП" : "Показать полный расчёт (КП)"}
-                </Button>
-              </div>
 
-              {showFullCalc && calc.result && (
-                <div className="mt-3">
-                  <ResultPanel
-                    result={calc.result as CalculationResult}
-                    companySettings={{ getSetting }}
-                    colorsForPrint={colorsForPrint}
-                    calcName={calc.calc_name}
-                  />
-                </div>
-              )}
+            <div>
+              <span className="text-xs text-muted-foreground block mb-2">
+                Расчёты и КП ({allCalcsQuery.data.length})
+              </span>
+              <div className="space-y-2">
+                {allCalcsQuery.data.map((c: any) => {
+                  const isPrimary = c.id === lead.calculation_id;
+                  const isOpen = expandedCalcs.has(c.id);
+                  return (
+                    <div key={c.id} className="border border-border bg-secondary/30">
+                      <div className="p-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <FileText className="w-4 h-4 text-muted-foreground" />
+                          <span className="font-medium text-sm">{c.calc_name || c.product_label}</span>
+                          {isPrimary && <Badge variant="outline" className="text-[10px]">основной</Badge>}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {c.product_label} · {format(new Date(c.created_at), "d MMM yyyy, HH:mm", { locale: ru })}
+                        </div>
+                        {c.result && (
+                          <div className="mt-2 text-sm font-medium text-primary">
+                            {formatAmount((c.result as any)?.grandTotal || (c.result as any)?.totalPrice || 0)}
+                          </div>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="mt-3 w-full gap-2"
+                          onClick={() => toggleCalc(c.id)}
+                        >
+                          {isOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                          {isOpen ? "Свернуть" : "Показать полный расчёт"}
+                        </Button>
+                      </div>
+                      {isOpen && c.result && (
+                        <div className="border-t border-border p-3">
+                          <ResultPanel
+                            result={c.result as CalculationResult}
+                            companySettings={{ getSetting }}
+                            colorsForPrint={colorsForPrint}
+                            calcName={c.calc_name}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </>
         )}
+
 
         <Separator />
 

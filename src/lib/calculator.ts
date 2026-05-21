@@ -924,7 +924,8 @@ export function calculateSink(params: SinkParams, pricing: Record<string, number
   // --- Weight calculation (per item) ---
   const plateVolume = (params.length * params.width * THICKNESS_PLATE) / 1_000_000_000;
   let overhangVolume = 0;
-  const oh = params.overhangHeight > 0 ? Math.min(300, Math.max(0, params.overhangHeight)) : 0;
+  const MAX_OH = pricing.sink_max_overhang || 1000;
+  const oh = params.overhangHeight > 0 ? Math.min(MAX_OH, Math.max(0, params.overhangHeight)) : 0;
   if (oh > 0) {
     const sides = params.overhangSides;
     if (sides.front) overhangVolume += (params.length * oh * THICKNESS_PLATE) / 1_000_000_000;
