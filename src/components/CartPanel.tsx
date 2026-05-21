@@ -83,7 +83,7 @@ export default function CartPanel() {
     const warranty = cs.getSetting("warranty_years") || "1";
     text += `• Доставка и грузчики — отдельно\n`;
     text += `• Оплата монтажных работ производится в день завершения монтажа\n`;
-    text += `• Срок изготовления: от ${days} рабочих дней\n`;
+    text += `• Срок изготовления: от ${days} календарных дней\n`;
     text += `• Гарантия: ${warranty} год\n`;
     const phone = cs.getSetting("phone_main");
     if (phone) text += `\n📞 ${phone}`;
@@ -242,7 +242,7 @@ export default function CartPanel() {
   <div class="conditions"><ul>
     <li>Доставка и услуги грузчиков — по тарифам партнёров (оплачиваются отдельно)</li>
     <li>Оплата монтажных работ производится в день завершения монтажа специалисту по монтажу</li>
-    <li>Срок изготовления: от ${prodDays} рабочих дней</li>
+    <li>Срок изготовления: от ${prodDays} календарных дней</li>
     <li>Гарантия: ${warranty} год на изделие</li>
   </ul></div>
 

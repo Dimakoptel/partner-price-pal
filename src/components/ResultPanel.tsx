@@ -87,7 +87,7 @@ export function buildShareText(result: CalculationResult, cs?: CompanySettingsAc
     text += `• Кронштейн и монтаж приобретаются при необходимости\n`;
   }
   text += `• Доставка и грузчики — отдельно\n`;
-  text += `• Срок изготовления: от ${days} рабочих дней\n`;
+  text += `• Срок изготовления: от ${days} календарных дней\n`;
   text += `• Гарантия: ${warranty} год\n`;
   if (cs) {
     const phone = cs.getSetting("phone_main");
@@ -166,7 +166,7 @@ export function buildPrintHtml(result: CalculationResult, cs?: CompanySettingsAc
   }
   defaultConditions.push(
     "Доставка и услуги грузчиков — по тарифам партнёров (оплачиваются отдельно)",
-    `Срок изготовления: от ${prodDays} рабочих дней`,
+    `Срок изготовления: от ${prodDays} календарных дней`,
     `Гарантия: ${warranty} год на изделие`,
   );
   const conditionLines = (customConditions
@@ -517,7 +517,7 @@ export default function ResultPanel({ result, onSave, saving, saveLabel, saveIco
           <p>• Кронштейн и монтаж приобретаются при необходимости</p>
         )}
         <p>• Доставка и грузчики оплачиваются отдельно</p>
-        <p>• Срок изготовления: от {prodDays} рабочих дней</p>
+        <p>• Срок изготовления: от {prodDays} календарных дней</p>
         <p>• Гарантия: 1 год</p>
       </div>
 
