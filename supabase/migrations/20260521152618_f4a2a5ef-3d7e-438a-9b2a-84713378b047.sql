@@ -1,0 +1,1 @@
+UPDATE public.pricing_settings SET label = 'Срок изготовления (календарных дней)' WHERE key = 'production_days';
