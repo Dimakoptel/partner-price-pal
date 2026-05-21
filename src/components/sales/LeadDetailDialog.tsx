@@ -248,14 +248,11 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
           </>
         )}
 
-        {/* Linked calculation */}
-        {calc && (
-          <>
-            <Separator />
         {/* All related calculations (КП) */}
         {(allCalcsQuery.data && allCalcsQuery.data.length > 0) && (
           <>
             <Separator />
+
             <div>
               <span className="text-xs text-muted-foreground block mb-2">
                 Расчёты и КП ({allCalcsQuery.data.length})
