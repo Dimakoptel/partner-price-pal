@@ -40,7 +40,7 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
   const { colors } = useColors();
   const colorsForPrint = colors.map((c) => ({ name: c.name, image_url: c.image_url, show_in_print: c.show_in_print }));
 
-  // Load linked calculation
+  // Load linked calculation (main one referenced by lead)
   const calcQuery = useQuery({
     queryKey: ["lead_calculation", lead?.calculation_id],
     queryFn: async () => {
@@ -54,6 +54,24 @@ export default function LeadDetailDialog({ lead, open, onOpenChange, onStatusCha
       return data;
     },
     enabled: open && !!lead?.calculation_id,
+  });
+
+  // Load ALL related calculations (by lead_id or by client_id)
+  const allCalcsQuery = useQuery({
+    queryKey: ["lead_all_calculations", lead?.id, lead?.client_id],
+    queryFn: async () => {
+      if (!lead) return [];
+      let query = supabase.from("saved_calculations").select("*").order("created_at", { ascending: false });
+      if (lead.client_id) {
+        query = query.or(`lead_id.eq.${lead.id},client_id.eq.${lead.client_id}`);
+      } else {
+        query = query.eq("lead_id", lead.id);
+      }
+      const { data, error } = await query;
+      if (error) return [];
+      return data || [];
+    },
+    enabled: open && !!lead,
   });
 
   // Load linked client
