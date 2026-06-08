@@ -104,3 +104,19 @@
     box-shadow: 0 4px 12px -2px hsl(0 0% 0% / 0.18), 0 12px 28px -6px hsl(0 0% 0% / 0.12);
   }
 }
+
+/* ============ Print styles (A4) ============ */
+@media print {
+  @page { size: A4; margin: 12mm; }
+  html, body { background: #fff !important; color: #000 !important; }
+  body * { visibility: hidden; }
+  .print-area, .print-area * { visibility: visible; }
+  .print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 0; }
+  .print\:hidden, .no-print { display: none !important; }
+  .print-area .card, .print-area [class*="bg-"] {
+    background: #fff !important; box-shadow: none !important; border-color: #ddd !important;
+  }
+  .print-area table { border-collapse: collapse; width: 100%; font-size: 11pt; }
+  .print-area th, .print-area td { border: 1px solid #999; padding: 4px 6px; }
+  .print-area h1, .print-area h2, .print-area h3 { color: #000 !important; }
+}
