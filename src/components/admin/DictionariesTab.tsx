@@ -189,44 +189,47 @@ export default function DictionariesTab() {
             ))}
           </div>
 
-          {/* Add new */}
-          {!currentType.is_system && (
-            <>
-              <Separator className="mb-4" />
-              <div className="flex items-end gap-2 flex-wrap">
-                <div className="flex-1 min-w-[120px]">
-                  <Label className="text-xs">Код</Label>
-                  <Input
-                    value={newCode}
-                    onChange={(e) => setNewCode(e.target.value)}
-                    placeholder="new_value"
-                    className="bg-secondary border-border text-sm"
-                  />
-                </div>
-                <div className="flex-1 min-w-[120px]">
-                  <Label className="text-xs">Название</Label>
-                  <Input
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Новое значение"
-                    className="bg-secondary border-border text-sm"
-                  />
-                </div>
-                <div className="w-24">
-                  <Label className="text-xs">Цвет</Label>
-                  <Input
-                    type="color"
-                    value={newColor || "#6366f1"}
-                    onChange={(e) => setNewColor(e.target.value)}
-                    className="bg-secondary border-border h-9 p-1"
-                  />
-                </div>
-                <Button onClick={handleAddItem} size="sm" className="gap-1.5 shrink-0">
-                  <Plus className="w-3.5 h-3.5" /> Добавить
-                </Button>
+          {/* Add new — доступно для всех справочников, включая системные */}
+          <>
+            <Separator className="mb-4" />
+            {currentType.is_system && (
+              <p className="text-xs text-warning mb-2">
+                ⚠ Системный справочник — добавление/удаление значений может повлиять на работу модулей.
+              </p>
+            )}
+            <div className="flex items-end gap-2 flex-wrap">
+              <div className="flex-1 min-w-[120px]">
+                <Label className="text-xs">Код</Label>
+                <Input
+                  value={newCode}
+                  onChange={(e) => setNewCode(e.target.value)}
+                  placeholder="new_value"
+                  className="bg-secondary border-border text-sm"
+                />
               </div>
-            </>
-          )}
+              <div className="flex-1 min-w-[120px]">
+                <Label className="text-xs">Название</Label>
+                <Input
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="Новое значение"
+                  className="bg-secondary border-border text-sm"
+                />
+              </div>
+              <div className="w-24">
+                <Label className="text-xs">Цвет</Label>
+                <Input
+                  type="color"
+                  value={newColor || "#6366f1"}
+                  onChange={(e) => setNewColor(e.target.value)}
+                  className="bg-secondary border-border h-9 p-1"
+                />
+              </div>
+              <Button onClick={handleAddItem} size="sm" className="gap-1.5 shrink-0">
+                <Plus className="w-3.5 h-3.5" /> Добавить
+              </Button>
+            </div>
+          </>
         </motion.div>
       )}
 
