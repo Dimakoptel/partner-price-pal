@@ -14,6 +14,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Trash2, Plus, Save, Calculator, Package, Wrench, Clock, Wallet, AlertCircle } from "lucide-react";
+import PricingPanel from "./PricingPanel";
 
 type Nom = {
   id: string; name: string; sku: string; category: string | null;
@@ -685,6 +686,16 @@ export default function CostCalcTab() {
           <Button variant="outline" onClick={reset}>Сброс</Button>
         </div>
       </Card>
+
+      {/* ============== Ценообразование ============== */}
+      <PricingPanel
+        cost={totals.cost}
+        surfaceM2={surfaceM2}
+        weightKg={weightKg}
+        margin={margin}
+        onMarginChange={setMargin}
+      />
+
 
       {/* ============== История ============== */}
       <Card className="p-4 space-y-2">
