@@ -125,6 +125,123 @@ export type Database = {
         }
         Relationships: []
       }
+      calc_operations: {
+        Row: {
+          calculation_id: string
+          created_at: string
+          employee_id: string | null
+          hourly_rate: number
+          id: string
+          norm_hours: number
+          operation_id: string | null
+          operation_name: string
+          quantity: number
+          rate: number
+          sort_order: number
+          total_cost: number
+          unit: string
+        }
+        Insert: {
+          calculation_id: string
+          created_at?: string
+          employee_id?: string | null
+          hourly_rate?: number
+          id?: string
+          norm_hours?: number
+          operation_id?: string | null
+          operation_name: string
+          quantity?: number
+          rate?: number
+          sort_order?: number
+          total_cost?: number
+          unit?: string
+        }
+        Update: {
+          calculation_id?: string
+          created_at?: string
+          employee_id?: string | null
+          hourly_rate?: number
+          id?: string
+          norm_hours?: number
+          operation_id?: string | null
+          operation_name?: string
+          quantity?: number
+          rate?: number
+          sort_order?: number
+          total_cost?: number
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calc_operations_calculation_id_fkey"
+            columns: ["calculation_id"]
+            isOneToOne: false
+            referencedRelation: "calculations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calc_operations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calc_operations_operation_id_fkey"
+            columns: ["operation_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calculations: {
+        Row: {
+          created_at: string
+          id: string
+          materials_snapshot: Json
+          name: string
+          nomenclature_id: string | null
+          notes: string | null
+          product_snapshot: Json
+          totals: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          materials_snapshot?: Json
+          name: string
+          nomenclature_id?: string | null
+          notes?: string | null
+          product_snapshot?: Json
+          totals?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          materials_snapshot?: Json
+          name?: string
+          nomenclature_id?: string | null
+          notes?: string | null
+          product_snapshot?: Json
+          totals?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calculations_nomenclature_id_fkey"
+            columns: ["nomenclature_id"]
+            isOneToOne: false
+            referencedRelation: "nomenclature"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           address: string | null
