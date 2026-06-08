@@ -236,10 +236,6 @@ export default function DictionariesTab() {
           {/* Add new — доступно для всех справочников, включая системные */}
           <>
             <Separator className="mb-4" />
-            {currentType.is_system && (
-              <p className="text-xs text-warning mb-2">
-                ⚠ Системный справочник — добавление/удаление значений может повлиять на работу модулей.
-              </p>
             )}
             <div className="flex items-end gap-2 flex-wrap">
               <div className="flex-1 min-w-[120px]">
