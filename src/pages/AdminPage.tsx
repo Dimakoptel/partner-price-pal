@@ -30,7 +30,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-type AdminSection = "calculators" | "references" | "sales" | "production" | "warehouse" | "integrations" | "system";
+type AdminSection = "calculators" | "references" | "sales" | "production" | "warehouse" | "integrations" | "settings" | "system";
 
 const SECTIONS: { key: AdminSection; label: string; icon: typeof DollarSign }[] = [
   { key: "calculators", label: "Калькуляторы", icon: Calculator },
@@ -39,6 +39,7 @@ const SECTIONS: { key: AdminSection; label: string; icon: typeof DollarSign }[] 
   { key: "production", label: "Производство", icon: Factory },
   { key: "warehouse", label: "Склад", icon: Warehouse },
   { key: "integrations", label: "Интеграции", icon: RefreshCw },
+  { key: "settings", label: "Системные настройки", icon: SlidersHorizontal },
   { key: "system", label: "Система", icon: Settings },
 ];
 
