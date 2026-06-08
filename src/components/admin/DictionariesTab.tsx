@@ -15,6 +15,18 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+
+// Коды, на которые завязана бизнес-логика. Их можно переименовать в UI, но НЕ удалять
+// и не менять сам code, иначе соответствующие сценарии перестанут работать.
+const RESERVED_CODES: Record<string, string[]> = {
+  production_stage_status: ["pending", "in_progress", "completed", "skipped"],
+  production_order_status: ["planned", "in_progress", "completed", "cancelled", "paused"],
+  order_statuses: ["draft", "confirmed", "in_production", "ready", "shipped", "cancelled", "pending_approval"],
+  lead_statuses: ["new", "qualified", "won", "lost"],
+  client_types: ["agent", "partner", "customer"],
+  pricing_scenario: ["entry", "standard", "premium"],
+};
+
 export default function DictionariesTab() {
   const [selectedType, setSelectedType] = useState<string>("");
   const { types, items, isLoading, createItem, updateItem, deleteItem } = useDictionary(selectedType);
@@ -128,6 +140,21 @@ export default function DictionariesTab() {
               </Badge>
             )}
           </div>
+
+          {RESERVED_CODES[currentType.code] && (
+            <div className="text-xs text-muted-foreground mb-3 p-2 border border-border bg-muted/30 rounded">
+              <span className="font-medium text-foreground">Зарезервированные коды:</span>{" "}
+              {RESERVED_CODES[currentType.code].map((c) => (
+                <code key={c} className="mx-0.5 px-1 py-0.5 bg-secondary rounded text-[10px]">{c}</code>
+              ))}
+              <div className="mt-1">
+                Эти коды используются бизнес-логикой (кнопки «Начать», «Завершить», переходы статусов).
+                Можно <b>переименовать</b>, менять <b>цвет</b> и <b>порядок</b>, добавлять <b>новые</b> значения,
+                но <b>не меняйте сами коды</b> и не отключайте зарезервированные — иначе сценарии перестанут работать.
+              </div>
+            </div>
+          )}
+
 
           {/* Items table */}
           <div className="space-y-1.5 mb-6">
