@@ -58,13 +58,13 @@ export default function DictionaryItemDialog({ open, onOpenChange, item, typeId,
     color: "",
     sort_order: 0,
     is_active: true,
+    semantic_tags: "" as string, // comma-separated, edited as text
   });
   const [metadata, setMetadata] = useState<Record<string, any>>({});
   const [metadataJson, setMetadataJson] = useState("{}");
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [typeCode, setTypeCode] = useState<string>("");
 
-  // Resolve type code so we can show preset fields
   useEffect(() => {
     if (!typeId) return;
     supabase
@@ -83,12 +83,13 @@ export default function DictionaryItemDialog({ open, onOpenChange, item, typeId,
         color: item.color || "",
         sort_order: item.sort_order,
         is_active: item.is_active,
+        semantic_tags: Array.isArray(item.semantic_tags) ? item.semantic_tags.join(", ") : "",
       });
       const md = item.metadata || {};
       setMetadata(md);
       setMetadataJson(JSON.stringify(md, null, 2));
     } else {
-      setForm({ code: "", name: "", color: "", sort_order: 0, is_active: true });
+      setForm({ code: "", name: "", color: "", sort_order: 0, is_active: true, semantic_tags: "" });
       setMetadata({});
       setMetadataJson("{}");
     }
