@@ -401,8 +401,50 @@ export default function CostCalcTab() {
     setManualMode(false); setManualArea(0); setManualWeight(0); setManualComplexity(1);
   };
 
+  const exportJson = () => {
+    const snapshot = {
+      exported_at: new Date().toISOString(),
+      name: name || "Без названия",
+      product: useManual
+        ? { manual: true, surface_area_m2: surfaceM2, weight_kg: weightKg, complexity_coef: productCoef }
+        : selectedNom,
+      operations: rows.map((r) => {
+        const { hours, cost } = calcRow(r, productCoef);
+        return { ...r, hours, cost };
+      }),
+      materials: mats,
+      totals: { ...totals, margin_pct: margin, product_coef: productCoef },
+    };
+    const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${(name || "calculation").replace(/[^\w\dА-Яа-я-]+/g, "_")}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    toast.success("JSON выгружен");
+  };
+
+  const handlePrint = () => window.print();
+
   return (
-    <div className="space-y-4 max-w-3xl mx-auto pb-32">
+    <div className="space-y-4 max-w-3xl mx-auto pb-32 print-area">
+      {/* Панель действий (скрыта при печати) */}
+      <div className="flex flex-wrap items-center justify-between gap-2 print:hidden">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Radio className={`h-3.5 w-3.5 ${rtConnected ? "text-emerald-500 animate-pulse" : "text-muted-foreground"}`} />
+          {rtConnected ? "Realtime подключён" : "Подключение..."}
+        </div>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={exportJson}>
+            <Download className="h-4 w-4 mr-1" /> JSON
+          </Button>
+          <Button size="sm" variant="outline" onClick={handlePrint}>
+            <Printer className="h-4 w-4 mr-1" /> Печать A4
+          </Button>
+        </div>
+      </div>
+
       {/* ============== Параметры изделия ============== */}
       <Card className="p-4 space-y-3">
         <div className="flex items-center gap-2">
