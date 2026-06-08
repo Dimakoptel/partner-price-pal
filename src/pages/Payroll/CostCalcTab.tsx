@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Trash2, Plus, Save, Calculator, Package, Wrench, Clock, Wallet, AlertCircle } from "lucide-react";
+import { Trash2, Plus, Save, Calculator, Package, Wrench, Clock, Wallet, AlertCircle, Download, Printer, Radio } from "lucide-react";
 import PricingPanel from "./PricingPanel";
 
 type Nom = {
@@ -141,6 +141,37 @@ export default function CostCalcTab() {
     },
     enabled: !!user,
   });
+
+  // ---------- Realtime: при изменении ставок/операций/номенклатуры — обновлять кэш ----------
+  const [rtConnected, setRtConnected] = useState(false);
+  useEffect(() => {
+    const channel = supabase
+      .channel("cost-calc-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "employees" },
+        (payload) => {
+          qc.invalidateQueries({ queryKey: ["cost-emps"] });
+          // Обновить ставку в активных строках, если эту запись редактировали
+          const row = (payload.new ?? payload.old) as { id?: string; hourly_rate?: number } | null;
+          if (row?.id && payload.new) {
+            setRows((rs) => rs.map((r) =>
+              r.employee_id === row.id && typeof row.hourly_rate === "number"
+                ? { ...r, hourly_rate: Number(row.hourly_rate) }
+                : r
+            ));
+            toast.info("Ставка сотрудника обновлена — пересчёт выполнен");
+          }
+        })
+      .on("postgres_changes", { event: "*", schema: "public", table: "operations" },
+        () => qc.invalidateQueries({ queryKey: ["cost-ops"] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "nomenclature" },
+        () => qc.invalidateQueries({ queryKey: ["cost-noms"] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "dictionary_items" },
+        () => qc.invalidateQueries({ queryKey: ["dict_options"] }))
+      .subscribe((status) => setRtConnected(status === "SUBSCRIBED"));
+
+    return () => { supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const noms = nomsQ.data ?? [];
   const ops = opsQ.data ?? [];
@@ -370,8 +401,50 @@ export default function CostCalcTab() {
     setManualMode(false); setManualArea(0); setManualWeight(0); setManualComplexity(1);
   };
 
+  const exportJson = () => {
+    const snapshot = {
+      exported_at: new Date().toISOString(),
+      name: name || "Без названия",
+      product: useManual
+        ? { manual: true, surface_area_m2: surfaceM2, weight_kg: weightKg, complexity_coef: productCoef }
+        : selectedNom,
+      operations: rows.map((r) => {
+        const { hours, cost } = calcRow(r, productCoef);
+        return { ...r, hours, cost };
+      }),
+      materials: mats,
+      totals: { ...totals, margin_pct: margin, product_coef: productCoef },
+    };
+    const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${(name || "calculation").replace(/[^\w\dА-Яа-я-]+/g, "_")}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    toast.success("JSON выгружен");
+  };
+
+  const handlePrint = () => window.print();
+
   return (
-    <div className="space-y-4 max-w-3xl mx-auto pb-32">
+    <div className="space-y-4 max-w-3xl mx-auto pb-32 print-area">
+      {/* Панель действий (скрыта при печати) */}
+      <div className="flex flex-wrap items-center justify-between gap-2 print:hidden">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Radio className={`h-3.5 w-3.5 ${rtConnected ? "text-emerald-500 animate-pulse" : "text-muted-foreground"}`} />
+          {rtConnected ? "Realtime подключён" : "Подключение..."}
+        </div>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={exportJson}>
+            <Download className="h-4 w-4 mr-1" /> JSON
+          </Button>
+          <Button size="sm" variant="outline" onClick={handlePrint}>
+            <Printer className="h-4 w-4 mr-1" /> Печать A4
+          </Button>
+        </div>
+      </div>
+
       {/* ============== Параметры изделия ============== */}
       <Card className="p-4 space-y-3">
         <div className="flex items-center gap-2">
