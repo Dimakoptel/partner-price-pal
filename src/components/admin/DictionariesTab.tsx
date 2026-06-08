@@ -16,16 +16,28 @@ import {
 import { toast } from "sonner";
 
 
-// Коды, на которые завязана бизнес-логика. Их можно переименовать в UI, но НЕ удалять
-// и не менять сам code, иначе соответствующие сценарии перестанут работать.
-const RESERVED_CODES: Record<string, string[]> = {
-  production_stage_status: ["pending", "in_progress", "completed", "skipped"],
-  production_order_status: ["planned", "in_progress", "completed", "cancelled", "paused"],
-  order_statuses: ["draft", "confirmed", "in_production", "ready", "shipped", "cancelled", "pending_approval"],
-  lead_statuses: ["new", "qualified", "won", "lost"],
-  client_types: ["agent", "partner", "customer"],
-  pricing_scenario: ["entry", "standard", "premium"],
+// Семантические метки, которые система ищет в справочниках, чтобы оставаться
+// работоспособной независимо от переименования/удаления конкретных кодов.
+// Достаточно, чтобы каждая метка была проставлена хотя бы на одном активном элементе.
+const SEMANTIC_TAGS_INFO: Record<string, { tag: string; hint: string }[]> = {
+  production_stage_status: [
+    { tag: "initial", hint: "Начальный (этап ещё не начат)" },
+    { tag: "active", hint: "В работе" },
+    { tag: "final", hint: "Завершён" },
+    { tag: "skipped", hint: "Пропущен" },
+  ],
+  production_order_status: [
+    { tag: "initial", hint: "Запланирован" },
+    { tag: "active", hint: "В работе" },
+    { tag: "final", hint: "Завершён" },
+    { tag: "paused", hint: "Приостановлен" },
+    { tag: "cancelled", hint: "Отменён" },
+  ],
 };
+
+// Legacy fallback (used elsewhere; safe to keep)
+const RESERVED_CODES: Record<string, string[]> = {};
+
 
 export default function DictionariesTab() {
   const [selectedType, setSelectedType] = useState<string>("");
@@ -141,19 +153,24 @@ export default function DictionariesTab() {
             )}
           </div>
 
-          {RESERVED_CODES[currentType.code] && (
-            <div className="text-xs text-muted-foreground mb-3 p-2 border border-border bg-muted/30 rounded">
-              <span className="font-medium text-foreground">Зарезервированные коды:</span>{" "}
-              {RESERVED_CODES[currentType.code].map((c) => (
-                <code key={c} className="mx-0.5 px-1 py-0.5 bg-secondary rounded text-[10px]">{c}</code>
-              ))}
-              <div className="mt-1">
-                Эти коды используются бизнес-логикой (кнопки «Начать», «Завершить», переходы статусов).
-                Можно <b>переименовать</b>, менять <b>цвет</b> и <b>порядок</b>, добавлять <b>новые</b> значения,
-                но <b>не меняйте сами коды</b> и не отключайте зарезервированные — иначе сценарии перестанут работать.
+          {SEMANTIC_TAGS_INFO[currentType.code] && (
+            <div className="text-xs text-muted-foreground mb-3 p-2 border border-border bg-muted/30 rounded space-y-1">
+              <div>
+                <span className="font-medium text-foreground">Семантические метки в этом справочнике:</span>{" "}
+                {SEMANTIC_TAGS_INFO[currentType.code].map((t) => (
+                  <code key={t.tag} className="mx-0.5 px-1 py-0.5 bg-secondary rounded text-[10px]" title={t.hint}>{t.tag}</code>
+                ))}
+              </div>
+              <div>
+                Система привязывает кнопки и переходы к <b>меткам</b>, а не к кодам.
+                Можно свободно <b>переименовывать, удалять и добавлять</b> любые значения —
+                достаточно, чтобы каждая нужная метка оставалась хотя бы на одном активном
+                элементе (метки редактируются в карточке элемента, поле «Семантические метки»).
               </div>
             </div>
           )}
+
+
 
 
           {/* Items table */}
@@ -219,11 +236,6 @@ export default function DictionariesTab() {
           {/* Add new — доступно для всех справочников, включая системные */}
           <>
             <Separator className="mb-4" />
-            {currentType.is_system && (
-              <p className="text-xs text-warning mb-2">
-                ⚠ Системный справочник — добавление/удаление значений может повлиять на работу модулей.
-              </p>
-            )}
             <div className="flex items-end gap-2 flex-wrap">
               <div className="flex-1 min-w-[120px]">
                 <Label className="text-xs">Код</Label>

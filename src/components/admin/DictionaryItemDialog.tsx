@@ -58,13 +58,13 @@ export default function DictionaryItemDialog({ open, onOpenChange, item, typeId,
     color: "",
     sort_order: 0,
     is_active: true,
+    semantic_tags: "" as string, // comma-separated, edited as text
   });
   const [metadata, setMetadata] = useState<Record<string, any>>({});
   const [metadataJson, setMetadataJson] = useState("{}");
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [typeCode, setTypeCode] = useState<string>("");
 
-  // Resolve type code so we can show preset fields
   useEffect(() => {
     if (!typeId) return;
     supabase
@@ -83,12 +83,13 @@ export default function DictionaryItemDialog({ open, onOpenChange, item, typeId,
         color: item.color || "",
         sort_order: item.sort_order,
         is_active: item.is_active,
+        semantic_tags: Array.isArray(item.semantic_tags) ? item.semantic_tags.join(", ") : "",
       });
       const md = item.metadata || {};
       setMetadata(md);
       setMetadataJson(JSON.stringify(md, null, 2));
     } else {
-      setForm({ code: "", name: "", color: "", sort_order: 0, is_active: true });
+      setForm({ code: "", name: "", color: "", sort_order: 0, is_active: true, semantic_tags: "" });
       setMetadata({});
       setMetadataJson("{}");
     }
@@ -129,6 +130,11 @@ export default function DictionaryItemDialog({ open, onOpenChange, item, typeId,
       if (!typeId) throw new Error("Нет справочника");
       if (jsonError) throw new Error(jsonError);
 
+      const tagsArr = form.semantic_tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+
       const payload = {
         type_id: typeId,
         code: form.code,
@@ -137,6 +143,7 @@ export default function DictionaryItemDialog({ open, onOpenChange, item, typeId,
         sort_order: form.sort_order,
         is_active: form.is_active,
         metadata,
+        semantic_tags: tagsArr,
       };
 
       if (item) {
@@ -216,6 +223,22 @@ export default function DictionaryItemDialog({ open, onOpenChange, item, typeId,
           <div className="flex items-center gap-2">
             <Switch checked={form.is_active} onCheckedChange={(v) => setForm({ ...form, is_active: v })} />
             <Label className="text-sm">Активен</Label>
+          </div>
+
+          <div>
+            <Label className="text-xs">Семантические метки</Label>
+            <Input
+              value={form.semantic_tags}
+              onChange={(e) => setForm({ ...form, semantic_tags: e.target.value })}
+              placeholder="initial, active, final"
+              className="font-mono text-xs"
+            />
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Через запятую. По меткам система определяет роль элемента (например{" "}
+              <code>initial</code>, <code>active</code>, <code>final</code>, <code>skipped</code>,{" "}
+              <code>paused</code>, <code>cancelled</code>). Можно свободно менять код и название —
+              кнопки и переходы будут продолжать работать, пока метки на месте.
+            </p>
           </div>
 
           {/* Preset metadata fields */}

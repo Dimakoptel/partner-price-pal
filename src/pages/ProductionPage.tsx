@@ -25,16 +25,25 @@ function StagesList({ productionOrderId }: { productionOrderId: string }) {
   if (isLoading) return <p className="text-xs text-muted-foreground py-2">Загрузка этапов...</p>;
   if (!stages || stages.length === 0) return <p className="text-xs text-muted-foreground py-2">Этапы не определены</p>;
 
+  // Resolve actual codes from semantic tags so the UI keeps working even
+  // if an admin renames or replaces the dictionary codes.
+  const activeCode = stageStatuses.codeByTag("active", "in_progress");
+  const finalCode = stageStatuses.codeByTag("final", "completed");
+  const skippedCode = stageStatuses.codeByTag("skipped", "skipped");
+
+  const isFinalish = (status: string) =>
+    stageStatuses.hasTag(status, "final") || stageStatuses.hasTag(status, "skipped");
+
   const handleStart = (stage: ProductionStage) => {
-    updateStage.mutate({ id: stage.id, updates: { status: "in_progress", actual_start: new Date().toISOString() } });
+    updateStage.mutate({ id: stage.id, updates: { status: activeCode, actual_start: new Date().toISOString() } });
   };
 
   const handleComplete = (stage: ProductionStage) => {
-    updateStage.mutate({ id: stage.id, updates: { status: "completed", actual_end: new Date().toISOString() } });
+    updateStage.mutate({ id: stage.id, updates: { status: finalCode, actual_end: new Date().toISOString() } });
   };
 
   const handleSkip = (stage: ProductionStage) => {
-    updateStage.mutate({ id: stage.id, updates: { status: "skipped", actual_end: new Date().toISOString() } });
+    updateStage.mutate({ id: stage.id, updates: { status: skippedCode, actual_end: new Date().toISOString() } });
   };
 
   const handleSaveNotes = (stageId: string) => {
@@ -47,8 +56,11 @@ function StagesList({ productionOrderId }: { productionOrderId: string }) {
     <div className="space-y-2">
       {stages.map((s, idx) => {
         const si = stageStatuses.find(s.status);
-        const isEditable = s.status === "pending" || s.status === "in_progress";
-        const prevDone = idx === 0 || ["completed", "skipped"].includes(stages[idx - 1].status);
+        const isInitial = stageStatuses.hasTag(s.status, "initial");
+        const isActive = stageStatuses.hasTag(s.status, "active");
+        const isDone = isFinalish(s.status);
+        const isEditable = !isDone;
+        const prevDone = idx === 0 || isFinalish(stages[idx - 1].status);
 
         return (
           <div key={s.id} className="border border-border rounded-md p-3 bg-muted/20 space-y-2">
@@ -81,17 +93,17 @@ function StagesList({ productionOrderId }: { productionOrderId: string }) {
 
             {isEditable && (
               <div className="flex gap-1.5 flex-wrap">
-                {s.status === "pending" && prevDone && (
+                {isInitial && prevDone && (
                   <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => handleStart(s)} disabled={updateStage.isPending}>
                     <PlayCircle className="w-3 h-3" /> Начать
                   </Button>
                 )}
-                {s.status === "in_progress" && (
+                {isActive && (
                   <Button size="sm" variant="default" className="h-7 text-xs gap-1" onClick={() => handleComplete(s)} disabled={updateStage.isPending}>
                     <CheckCircle2 className="w-3 h-3" /> Завершить
                   </Button>
                 )}
-                {s.status !== "completed" && s.status !== "skipped" && (
+                {!isDone && (
                   <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={() => handleSkip(s)} disabled={updateStage.isPending}>
                     <SkipForward className="w-3 h-3" /> Пропустить
                   </Button>
@@ -137,15 +149,23 @@ export default function ProductionPage() {
     return prodStatuses.find(code);
   };
 
+  // Resolve codes by semantic tag — admin can rename codes without breaking buttons
+  const initialCode = prodStatuses.codeByTag("initial", "planned");
+  const activeCode = prodStatuses.codeByTag("active", "in_progress");
+  const finalCode = prodStatuses.codeByTag("final", "completed");
+  const pausedCode = prodStatuses.codeByTag("paused", "paused");
+
   const stats = useMemo(() => {
     const all = orders || [];
+    const isTag = (o: ProductionOrder, tag: string) =>
+      prodStatuses.hasTag(o.status?.code || "", tag);
     return {
       total: all.length,
-      inProgress: all.filter((o) => o.status?.code === "in_progress").length,
-      planned: all.filter((o) => o.status?.code === "planned").length,
-      completed: all.filter((o) => o.status?.code === "completed").length,
+      inProgress: all.filter((o) => isTag(o, "active")).length,
+      planned: all.filter((o) => isTag(o, "initial")).length,
+      completed: all.filter((o) => isTag(o, "final")).length,
     };
-  }, [orders]);
+  }, [orders, prodStatuses]);
 
   return (
     <AppLayout>
@@ -283,23 +303,23 @@ export default function ProductionPage() {
               {/* Status actions */}
               <Separator />
               <div className="flex gap-2 flex-wrap">
-                {selectedOrder.status?.code === "planned" && (
-                  <Button size="sm" onClick={() => { updateStatus.mutate({ productionOrderId: selectedOrder.id, statusCode: "in_progress" }); setSelectedOrder(null); }}>
+                {prodStatuses.hasTag(selectedOrder.status?.code || "", "initial") && (
+                  <Button size="sm" onClick={() => { updateStatus.mutate({ productionOrderId: selectedOrder.id, statusCode: activeCode }); setSelectedOrder(null); }}>
                     <PlayCircle className="w-3.5 h-3.5 mr-1" /> Начать производство
                   </Button>
                 )}
-                {selectedOrder.status?.code === "in_progress" && (
+                {prodStatuses.hasTag(selectedOrder.status?.code || "", "active") && (
                   <>
-                    <Button size="sm" variant="outline" onClick={() => { updateStatus.mutate({ productionOrderId: selectedOrder.id, statusCode: "paused" }); setSelectedOrder(null); }}>
+                    <Button size="sm" variant="outline" onClick={() => { updateStatus.mutate({ productionOrderId: selectedOrder.id, statusCode: pausedCode }); setSelectedOrder(null); }}>
                       <Pause className="w-3.5 h-3.5 mr-1" /> Приостановить
                     </Button>
-                    <Button size="sm" onClick={() => { updateStatus.mutate({ productionOrderId: selectedOrder.id, statusCode: "completed" }); setSelectedOrder(null); }}>
+                    <Button size="sm" onClick={() => { updateStatus.mutate({ productionOrderId: selectedOrder.id, statusCode: finalCode }); setSelectedOrder(null); }}>
                       <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Завершить
                     </Button>
                   </>
                 )}
-                {selectedOrder.status?.code === "paused" && (
-                  <Button size="sm" onClick={() => { updateStatus.mutate({ productionOrderId: selectedOrder.id, statusCode: "in_progress" }); setSelectedOrder(null); }}>
+                {prodStatuses.hasTag(selectedOrder.status?.code || "", "paused") && (
+                  <Button size="sm" onClick={() => { updateStatus.mutate({ productionOrderId: selectedOrder.id, statusCode: activeCode }); setSelectedOrder(null); }}>
                     <PlayCircle className="w-3.5 h-3.5 mr-1" /> Возобновить
                   </Button>
                 )}
