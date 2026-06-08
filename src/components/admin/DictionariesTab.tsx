@@ -236,7 +236,6 @@ export default function DictionariesTab() {
           {/* Add new — доступно для всех справочников, включая системные */}
           <>
             <Separator className="mb-4" />
-            )}
             <div className="flex items-end gap-2 flex-wrap">
               <div className="flex-1 min-w-[120px]">
                 <Label className="text-xs">Код</Label>
