@@ -15,6 +15,18 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+
+// Коды, на которые завязана бизнес-логика. Их можно переименовать в UI, но НЕ удалять
+// и не менять сам code, иначе соответствующие сценарии перестанут работать.
+const RESERVED_CODES: Record<string, string[]> = {
+  production_stage_status: ["pending", "in_progress", "completed", "skipped"],
+  production_order_status: ["planned", "in_progress", "completed", "cancelled", "paused"],
+  order_statuses: ["draft", "confirmed", "in_production", "ready", "shipped", "cancelled", "pending_approval"],
+  lead_statuses: ["new", "qualified", "won", "lost"],
+  client_types: ["agent", "partner", "customer"],
+  pricing_scenario: ["entry", "standard", "premium"],
+};
+
 export default function DictionariesTab() {
   const [selectedType, setSelectedType] = useState<string>("");
   const { types, items, isLoading, createItem, updateItem, deleteItem } = useDictionary(selectedType);
