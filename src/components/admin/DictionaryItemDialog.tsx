@@ -225,6 +225,22 @@ export default function DictionaryItemDialog({ open, onOpenChange, item, typeId,
             <Label className="text-sm">Активен</Label>
           </div>
 
+          <div>
+            <Label className="text-xs">Семантические метки</Label>
+            <Input
+              value={form.semantic_tags}
+              onChange={(e) => setForm({ ...form, semantic_tags: e.target.value })}
+              placeholder="initial, active, final"
+              className="font-mono text-xs"
+            />
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Через запятую. По меткам система определяет роль элемента (например{" "}
+              <code>initial</code>, <code>active</code>, <code>final</code>, <code>skipped</code>,{" "}
+              <code>paused</code>, <code>cancelled</code>). Можно свободно менять код и название —
+              кнопки и переходы будут продолжать работать, пока метки на месте.
+            </p>
+          </div>
+
           {/* Preset metadata fields */}
           {hint && (
             <div className="space-y-3 border border-border rounded-md p-3 bg-secondary/30">
