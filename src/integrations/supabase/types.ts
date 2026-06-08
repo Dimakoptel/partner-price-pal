@@ -780,6 +780,7 @@ export type Database = {
           brand: string | null
           category: string
           characteristics: string | null
+          complexity_coef: number
           concrete_grade_id: string | null
           created_at: string
           created_by: string
@@ -814,6 +815,7 @@ export type Database = {
           brand?: string | null
           category?: string
           characteristics?: string | null
+          complexity_coef?: number
           concrete_grade_id?: string | null
           created_at?: string
           created_by: string
@@ -848,6 +850,7 @@ export type Database = {
           brand?: string | null
           category?: string
           characteristics?: string | null
+          complexity_coef?: number
           concrete_grade_id?: string | null
           created_at?: string
           created_by?: string
@@ -961,34 +964,43 @@ export type Database = {
       operations: {
         Row: {
           category: string | null
+          complexity_coef: number
           cost_per_hour: number
           created_at: string
           description: string | null
           id: string
+          min_skill_level: string | null
           name: string
           norm_hours: number | null
+          norm_minutes: number | null
           rate: number
           unit: string
         }
         Insert: {
           category?: string | null
+          complexity_coef?: number
           cost_per_hour?: number
           created_at?: string
           description?: string | null
           id?: string
+          min_skill_level?: string | null
           name: string
           norm_hours?: number | null
+          norm_minutes?: number | null
           rate?: number
           unit?: string
         }
         Update: {
           category?: string | null
+          complexity_coef?: number
           cost_per_hour?: number
           created_at?: string
           description?: string | null
           id?: string
+          min_skill_level?: string | null
           name?: string
           norm_hours?: number | null
+          norm_minutes?: number | null
           rate?: number
           unit?: string
         }
