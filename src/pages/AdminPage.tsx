@@ -24,7 +24,7 @@ import {
   DollarSign, Palette, Users, FileText, ShieldCheck,
   Image, BookOpen, Building2, LayoutList, Database, Sprout,
   ClipboardCheck, Calculator, Factory, Warehouse, RefreshCw,
-  Settings, AlertCircle, CheckCircle, Clock, Send, Target
+  Settings, SlidersHorizontal, AlertCircle, CheckCircle, Clock, Send, Target
 } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
