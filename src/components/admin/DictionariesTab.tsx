@@ -141,19 +141,24 @@ export default function DictionariesTab() {
             )}
           </div>
 
-          {RESERVED_CODES[currentType.code] && (
-            <div className="text-xs text-muted-foreground mb-3 p-2 border border-border bg-muted/30 rounded">
-              <span className="font-medium text-foreground">Зарезервированные коды:</span>{" "}
-              {RESERVED_CODES[currentType.code].map((c) => (
-                <code key={c} className="mx-0.5 px-1 py-0.5 bg-secondary rounded text-[10px]">{c}</code>
-              ))}
-              <div className="mt-1">
-                Эти коды используются бизнес-логикой (кнопки «Начать», «Завершить», переходы статусов).
-                Можно <b>переименовать</b>, менять <b>цвет</b> и <b>порядок</b>, добавлять <b>новые</b> значения,
-                но <b>не меняйте сами коды</b> и не отключайте зарезервированные — иначе сценарии перестанут работать.
+          {SEMANTIC_TAGS_INFO[currentType.code] && (
+            <div className="text-xs text-muted-foreground mb-3 p-2 border border-border bg-muted/30 rounded space-y-1">
+              <div>
+                <span className="font-medium text-foreground">Семантические метки в этом справочнике:</span>{" "}
+                {SEMANTIC_TAGS_INFO[currentType.code].map((t) => (
+                  <code key={t.tag} className="mx-0.5 px-1 py-0.5 bg-secondary rounded text-[10px]" title={t.hint}>{t.tag}</code>
+                ))}
+              </div>
+              <div>
+                Система привязывает кнопки и переходы к <b>меткам</b>, а не к кодам.
+                Можно свободно <b>переименовывать, удалять и добавлять</b> любые значения —
+                достаточно, чтобы каждая нужная метка оставалась хотя бы на одном активном
+                элементе (метки редактируются в карточке элемента, поле «Семантические метки»).
               </div>
             </div>
           )}
+
+
 
 
           {/* Items table */}
