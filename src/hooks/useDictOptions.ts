@@ -28,8 +28,7 @@ export function useDictOptions(typeCode: string, fallback: DictOption[] = []) {
         .single();
       if (!typeData) return [];
 
-      const { data, error } = await supabase
-        .from("dictionary_items")
+      const { data, error } = await (supabase.from("dictionary_items" as any) as any)
         .select("code, name, color, sort_order, semantic_tags")
         .eq("type_id", typeData.id)
         .eq("is_active", true)
