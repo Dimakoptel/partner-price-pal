@@ -16,16 +16,28 @@ import {
 import { toast } from "sonner";
 
 
-// Коды, на которые завязана бизнес-логика. Их можно переименовать в UI, но НЕ удалять
-// и не менять сам code, иначе соответствующие сценарии перестанут работать.
-const RESERVED_CODES: Record<string, string[]> = {
-  production_stage_status: ["pending", "in_progress", "completed", "skipped"],
-  production_order_status: ["planned", "in_progress", "completed", "cancelled", "paused"],
-  order_statuses: ["draft", "confirmed", "in_production", "ready", "shipped", "cancelled", "pending_approval"],
-  lead_statuses: ["new", "qualified", "won", "lost"],
-  client_types: ["agent", "partner", "customer"],
-  pricing_scenario: ["entry", "standard", "premium"],
+// Семантические метки, которые система ищет в справочниках, чтобы оставаться
+// работоспособной независимо от переименования/удаления конкретных кодов.
+// Достаточно, чтобы каждая метка была проставлена хотя бы на одном активном элементе.
+const SEMANTIC_TAGS_INFO: Record<string, { tag: string; hint: string }[]> = {
+  production_stage_status: [
+    { tag: "initial", hint: "Начальный (этап ещё не начат)" },
+    { tag: "active", hint: "В работе" },
+    { tag: "final", hint: "Завершён" },
+    { tag: "skipped", hint: "Пропущен" },
+  ],
+  production_order_status: [
+    { tag: "initial", hint: "Запланирован" },
+    { tag: "active", hint: "В работе" },
+    { tag: "final", hint: "Завершён" },
+    { tag: "paused", hint: "Приостановлен" },
+    { tag: "cancelled", hint: "Отменён" },
+  ],
 };
+
+// Legacy fallback (used elsewhere; safe to keep)
+const RESERVED_CODES: Record<string, string[]> = {};
+
 
 export default function DictionariesTab() {
   const [selectedType, setSelectedType] = useState<string>("");
