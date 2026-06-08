@@ -14,6 +14,7 @@ import AccessGroupsTab from "@/components/admin/AccessGroupsTab";
 import NomenclatureTab from "@/components/admin/NomenclatureTab";
 import CategoriesTab from "@/components/admin/CategoriesTab";
 import DictionariesTab from "@/components/admin/DictionariesTab";
+import SystemSettingsTab from "@/components/admin/SystemSettingsTab";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
