@@ -777,14 +777,18 @@ export type Database = {
       }
       nomenclature: {
         Row: {
+          brand: string | null
           category: string
           characteristics: string | null
+          concrete_grade_id: string | null
           created_at: string
           created_by: string
           description: string | null
           drawing_url: string | null
           id: string
           is_active: boolean
+          length_mm: number | null
+          model: string | null
           name: string
           photo_url: string | null
           photo_urls: string[]
@@ -797,19 +801,28 @@ export type Database = {
           sku: string
           sort_order: number
           surface_area_m2: number
+          thickness_mm: number | null
+          type_item_id: string | null
           unit: string
           updated_at: string
+          volume_m3: number | null
           weight_kg: number | null
+          weight_manual_override: boolean
+          width_mm: number | null
         }
         Insert: {
+          brand?: string | null
           category?: string
           characteristics?: string | null
+          concrete_grade_id?: string | null
           created_at?: string
           created_by: string
           description?: string | null
           drawing_url?: string | null
           id?: string
           is_active?: boolean
+          length_mm?: number | null
+          model?: string | null
           name: string
           photo_url?: string | null
           photo_urls?: string[]
@@ -822,19 +835,28 @@ export type Database = {
           sku?: string
           sort_order?: number
           surface_area_m2?: number
+          thickness_mm?: number | null
+          type_item_id?: string | null
           unit?: string
           updated_at?: string
+          volume_m3?: number | null
           weight_kg?: number | null
+          weight_manual_override?: boolean
+          width_mm?: number | null
         }
         Update: {
+          brand?: string | null
           category?: string
           characteristics?: string | null
+          concrete_grade_id?: string | null
           created_at?: string
           created_by?: string
           description?: string | null
           drawing_url?: string | null
           id?: string
           is_active?: boolean
+          length_mm?: number | null
+          model?: string | null
           name?: string
           photo_url?: string | null
           photo_urls?: string[]
@@ -847,11 +869,31 @@ export type Database = {
           sku?: string
           sort_order?: number
           surface_area_m2?: number
+          thickness_mm?: number | null
+          type_item_id?: string | null
           unit?: string
           updated_at?: string
+          volume_m3?: number | null
           weight_kg?: number | null
+          weight_manual_override?: boolean
+          width_mm?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nomenclature_concrete_grade_id_fkey"
+            columns: ["concrete_grade_id"]
+            isOneToOne: false
+            referencedRelation: "dictionary_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nomenclature_type_item_id_fkey"
+            columns: ["type_item_id"]
+            isOneToOne: false
+            referencedRelation: "dictionary_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nomenclature_colors: {
         Row: {
