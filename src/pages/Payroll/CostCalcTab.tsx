@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Trash2, Plus, Save, Calculator, Package, Wrench, Clock, Wallet, AlertCircle } from "lucide-react";
+import { Trash2, Plus, Save, Calculator, Package, Wrench, Clock, Wallet, AlertCircle, Download, Printer, Radio } from "lucide-react";
 import PricingPanel from "./PricingPanel";
 
 type Nom = {
