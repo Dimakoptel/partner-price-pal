@@ -130,6 +130,11 @@ export default function DictionaryItemDialog({ open, onOpenChange, item, typeId,
       if (!typeId) throw new Error("Нет справочника");
       if (jsonError) throw new Error(jsonError);
 
+      const tagsArr = form.semantic_tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+
       const payload = {
         type_id: typeId,
         code: form.code,
@@ -138,6 +143,7 @@ export default function DictionaryItemDialog({ open, onOpenChange, item, typeId,
         sort_order: form.sort_order,
         is_active: form.is_active,
         metadata,
+        semantic_tags: tagsArr,
       };
 
       if (item) {
