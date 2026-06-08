@@ -142,6 +142,37 @@ export default function CostCalcTab() {
     enabled: !!user,
   });
 
+  // ---------- Realtime: при изменении ставок/операций/номенклатуры — обновлять кэш ----------
+  const [rtConnected, setRtConnected] = useState(false);
+  useEffect(() => {
+    const channel = supabase
+      .channel("cost-calc-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "employees" },
+        (payload) => {
+          qc.invalidateQueries({ queryKey: ["cost-emps"] });
+          // Обновить ставку в активных строках, если эту запись редактировали
+          const row = (payload.new ?? payload.old) as { id?: string; hourly_rate?: number } | null;
+          if (row?.id && payload.new) {
+            setRows((rs) => rs.map((r) =>
+              r.employee_id === row.id && typeof row.hourly_rate === "number"
+                ? { ...r, hourly_rate: Number(row.hourly_rate) }
+                : r
+            ));
+            toast.info("Ставка сотрудника обновлена — пересчёт выполнен");
+          }
+        })
+      .on("postgres_changes", { event: "*", schema: "public", table: "operations" },
+        () => qc.invalidateQueries({ queryKey: ["cost-ops"] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "nomenclature" },
+        () => qc.invalidateQueries({ queryKey: ["cost-noms"] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "dictionary_items" },
+        () => qc.invalidateQueries({ queryKey: ["dict_options"] }))
+      .subscribe((status) => setRtConnected(status === "SUBSCRIBED"));
+
+    return () => { supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const noms = nomsQ.data ?? [];
   const ops = opsQ.data ?? [];
   const emps = empsQ.data ?? [];
