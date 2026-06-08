@@ -10,8 +10,8 @@
 | Файл | Назначение |
 |------|-----------|
 | [`docs/PROJECT_OVERVIEW.md`](docs/PROJECT_OVERVIEW.md) | Полное описание реализованного функционала (живой документ) |
-| [`docs/DOCKER_SETUP.md`](docs/DOCKER_SETUP.md) | **Запуск в Docker — два сценария (полный стек / только фронтенд)** |
-| [`docs/LOCAL_DOCKER_SETUP.md`](docs/LOCAL_DOCKER_SETUP.md) | Классическая инструкция через Supabase CLI |
+| [`docs/LOCAL_DOCKER_SETUP.md`](docs/LOCAL_DOCKER_SETUP.md) | **Локальный запуск в Docker — два сценария (Lovable Cloud / self-hosted Supabase)** |
+| [`docs/DOCKER_SETUP.md`](docs/DOCKER_SETUP.md) | Короткая Docker-памятка |
 | [`KNOWLEDGE.md`](KNOWLEDGE.md) | Справочник логики, формул, правил |
 | [`DEPLOY.md`](DEPLOY.md) | Развёртывание на сервере (Docker + self-hosted Supabase) |
 | [`docs/SALES_MODULE.md`](docs/SALES_MODULE.md) | Модуль продаж — детально |

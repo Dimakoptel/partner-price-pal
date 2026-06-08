@@ -14,6 +14,7 @@ import AccessGroupsTab from "@/components/admin/AccessGroupsTab";
 import NomenclatureTab from "@/components/admin/NomenclatureTab";
 import CategoriesTab from "@/components/admin/CategoriesTab";
 import DictionariesTab from "@/components/admin/DictionariesTab";
+import SystemSettingsTab from "@/components/admin/SystemSettingsTab";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,13 +24,13 @@ import {
   DollarSign, Palette, Users, FileText, ShieldCheck,
   Image, BookOpen, Building2, LayoutList, Database, Sprout,
   ClipboardCheck, Calculator, Factory, Warehouse, RefreshCw,
-  Settings, AlertCircle, CheckCircle, Clock, Send, Target
+  Settings, SlidersHorizontal, AlertCircle, CheckCircle, Clock, Send, Target
 } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-type AdminSection = "calculators" | "references" | "sales" | "production" | "warehouse" | "integrations" | "system";
+type AdminSection = "calculators" | "references" | "sales" | "production" | "warehouse" | "integrations" | "settings" | "system";
 
 const SECTIONS: { key: AdminSection; label: string; icon: typeof DollarSign }[] = [
   { key: "calculators", label: "Калькуляторы", icon: Calculator },
@@ -38,6 +39,7 @@ const SECTIONS: { key: AdminSection; label: string; icon: typeof DollarSign }[] 
   { key: "production", label: "Производство", icon: Factory },
   { key: "warehouse", label: "Склад", icon: Warehouse },
   { key: "integrations", label: "Интеграции", icon: RefreshCw },
+  { key: "settings", label: "Системные настройки", icon: SlidersHorizontal },
   { key: "system", label: "Система", icon: Settings },
 ];
 
@@ -196,6 +198,9 @@ export default function AdminPage() {
 
         {/* Интеграции */}
         {section === "integrations" && <IntegrationsSection />}
+
+        {/* Системные настройки */}
+        {section === "settings" && <SystemSettingsTab />}
 
         {/* Система */}
         {section === "system" && (
