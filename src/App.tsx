@@ -21,6 +21,7 @@ import WarehousePage from "./pages/WarehousePage";
 import PriceListPage from "./pages/PriceListPage";
 import AdminLaunchChecklistPage from "./pages/AdminLaunchChecklistPage";
 import PayrollPage from "./pages/Payroll/PayrollPage";
+import ProductsPage from "./pages/ProductsPage";
 
 // Partner pages
 import PartnerDashboardPage from "./pages/partner/PartnerDashboardPage";
@@ -61,6 +62,7 @@ const App = () => (
               {/* Legacy route redirect */}
               <Route path="/sales" element={<Navigate to="/crm" replace />} />
               <Route path="/pricelist" element={<PriceListPage />} />
+              <Route path="/products" element={<ProductsPage />} />
             </Route>
             {/* Partner routes */}
             <Route element={<PartnerRoute />}>
