@@ -472,6 +472,7 @@ export type Database = {
           is_default: boolean
           metadata: Json | null
           name: string
+          semantic_tags: string[]
           sort_order: number
           type_id: string
           updated_at: string
@@ -487,6 +488,7 @@ export type Database = {
           is_default?: boolean
           metadata?: Json | null
           name: string
+          semantic_tags?: string[]
           sort_order?: number
           type_id: string
           updated_at?: string
@@ -502,6 +504,7 @@ export type Database = {
           is_default?: boolean
           metadata?: Json | null
           name?: string
+          semantic_tags?: string[]
           sort_order?: number
           type_id?: string
           updated_at?: string
