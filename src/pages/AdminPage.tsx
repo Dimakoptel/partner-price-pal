@@ -199,6 +199,9 @@ export default function AdminPage() {
         {/* Интеграции */}
         {section === "integrations" && <IntegrationsSection />}
 
+        {/* Системные настройки */}
+        {section === "settings" && <SystemSettingsTab />}
+
         {/* Система */}
         {section === "system" && (
           <Tabs defaultValue="users" className="space-y-6">
