@@ -167,25 +167,24 @@ export default function DictionariesTab() {
                   onCheckedChange={() => handleToggleActive(item)}
                   className="shrink-0"
                 />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => { setEditingItem(item); setDialogOpen(true); }}
+                  title="Редактировать (включая JSON-атрибуты)"
+                  className="text-muted-foreground hover:text-foreground shrink-0 h-7 w-7 p-0"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </Button>
                 {!currentType.is_system && (
-                  <>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => { setEditingItem(item); setDialogOpen(true); }}
-                      className="text-muted-foreground hover:text-foreground shrink-0 h-7 w-7 p-0"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDelete(item)}
-                      className="text-muted-foreground hover:text-destructive shrink-0 h-7 w-7 p-0"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
-                  </>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleDelete(item)}
+                    className="text-muted-foreground hover:text-destructive shrink-0 h-7 w-7 p-0"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
                 )}
               </div>
             ))}
