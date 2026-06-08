@@ -212,14 +212,14 @@ export default function CostCalcTab() {
     try {
       const { data: calc, error } = await supabase
         .from("calculations")
-        .insert({
+        .insert([{
           user_id: user.id,
           name: name.trim(),
           nomenclature_id: nomId,
-          product_snapshot: selectedNom ? (selectedNom as unknown as Record<string, unknown>) : {},
-          materials_snapshot: mats as unknown as Record<string, unknown>[],
-          totals: { ...totals, margin_pct: margin },
-        })
+          product_snapshot: (selectedNom ?? {}) as any,
+          materials_snapshot: mats as any,
+          totals: { ...totals, margin_pct: margin } as any,
+        }])
         .select("id")
         .single();
       if (error) throw error;
