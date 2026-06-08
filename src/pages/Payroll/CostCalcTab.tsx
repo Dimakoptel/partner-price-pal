@@ -687,6 +687,16 @@ export default function CostCalcTab() {
         </div>
       </Card>
 
+      {/* ============== Ценообразование ============== */}
+      <PricingPanel
+        cost={totals.cost}
+        surfaceM2={surfaceM2}
+        weightKg={weightKg}
+        margin={margin}
+        onMarginChange={setMargin}
+      />
+
+
       {/* ============== История ============== */}
       <Card className="p-4 space-y-2">
         <h3 className="font-semibold">Последние расчёты</h3>
