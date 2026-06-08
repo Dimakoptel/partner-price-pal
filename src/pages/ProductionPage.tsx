@@ -303,23 +303,23 @@ export default function ProductionPage() {
               {/* Status actions */}
               <Separator />
               <div className="flex gap-2 flex-wrap">
-                {selectedOrder.status?.code === "planned" && (
-                  <Button size="sm" onClick={() => { updateStatus.mutate({ productionOrderId: selectedOrder.id, statusCode: "in_progress" }); setSelectedOrder(null); }}>
+                {prodStatuses.hasTag(selectedOrder.status?.code || "", "initial") && (
+                  <Button size="sm" onClick={() => { updateStatus.mutate({ productionOrderId: selectedOrder.id, statusCode: activeCode }); setSelectedOrder(null); }}>
                     <PlayCircle className="w-3.5 h-3.5 mr-1" /> Начать производство
                   </Button>
                 )}
-                {selectedOrder.status?.code === "in_progress" && (
+                {prodStatuses.hasTag(selectedOrder.status?.code || "", "active") && (
                   <>
-                    <Button size="sm" variant="outline" onClick={() => { updateStatus.mutate({ productionOrderId: selectedOrder.id, statusCode: "paused" }); setSelectedOrder(null); }}>
+                    <Button size="sm" variant="outline" onClick={() => { updateStatus.mutate({ productionOrderId: selectedOrder.id, statusCode: pausedCode }); setSelectedOrder(null); }}>
                       <Pause className="w-3.5 h-3.5 mr-1" /> Приостановить
                     </Button>
-                    <Button size="sm" onClick={() => { updateStatus.mutate({ productionOrderId: selectedOrder.id, statusCode: "completed" }); setSelectedOrder(null); }}>
+                    <Button size="sm" onClick={() => { updateStatus.mutate({ productionOrderId: selectedOrder.id, statusCode: finalCode }); setSelectedOrder(null); }}>
                       <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Завершить
                     </Button>
                   </>
                 )}
-                {selectedOrder.status?.code === "paused" && (
-                  <Button size="sm" onClick={() => { updateStatus.mutate({ productionOrderId: selectedOrder.id, statusCode: "in_progress" }); setSelectedOrder(null); }}>
+                {prodStatuses.hasTag(selectedOrder.status?.code || "", "paused") && (
+                  <Button size="sm" onClick={() => { updateStatus.mutate({ productionOrderId: selectedOrder.id, statusCode: activeCode }); setSelectedOrder(null); }}>
                     <PlayCircle className="w-3.5 h-3.5 mr-1" /> Возобновить
                   </Button>
                 )}
