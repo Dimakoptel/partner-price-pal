@@ -149,15 +149,23 @@ export default function ProductionPage() {
     return prodStatuses.find(code);
   };
 
+  // Resolve codes by semantic tag — admin can rename codes without breaking buttons
+  const initialCode = prodStatuses.codeByTag("initial", "planned");
+  const activeCode = prodStatuses.codeByTag("active", "in_progress");
+  const finalCode = prodStatuses.codeByTag("final", "completed");
+  const pausedCode = prodStatuses.codeByTag("paused", "paused");
+
   const stats = useMemo(() => {
     const all = orders || [];
+    const isTag = (o: ProductionOrder, tag: string) =>
+      prodStatuses.hasTag(o.status?.code || "", tag);
     return {
       total: all.length,
-      inProgress: all.filter((o) => o.status?.code === "in_progress").length,
-      planned: all.filter((o) => o.status?.code === "planned").length,
-      completed: all.filter((o) => o.status?.code === "completed").length,
+      inProgress: all.filter((o) => isTag(o, "active")).length,
+      planned: all.filter((o) => isTag(o, "initial")).length,
+      completed: all.filter((o) => isTag(o, "final")).length,
     };
-  }, [orders]);
+  }, [orders, prodStatuses]);
 
   return (
     <AppLayout>
