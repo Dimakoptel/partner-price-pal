@@ -68,6 +68,28 @@ export function useReserveOrderStock() {
   });
 }
 
+export function useReleaseOrderStock() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (orderId: string) => {
+      const { data, error } = await supabase.rpc("release_order_stock", {
+        p_order_id: orderId,
+      });
+      if (error) throw error;
+      return data as number;
+    },
+    onSuccess: (count) => {
+      qc.invalidateQueries({ queryKey: ["availability"] });
+      qc.invalidateQueries({ queryKey: ["reservations"] });
+      qc.invalidateQueries({ queryKey: ["inventory"] });
+      toast.success(`Резерв освобождён: ${count} позиций`);
+    },
+    onError: (e: Error) => {
+      toast.error("Ошибка: " + e.message);
+    },
+  });
+}
+
 export function useOrderReservations(orderId?: string) {
   return useQuery({
     queryKey: ["reservations", orderId],
