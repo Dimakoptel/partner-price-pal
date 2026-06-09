@@ -2195,6 +2195,11 @@ export type Database = {
         Returns: undefined
       }
       release_expired_reservations: { Args: never; Returns: number }
+      release_order_item_stock: {
+        Args: { p_order_item_id: string }
+        Returns: number
+      }
+      release_order_stock: { Args: { p_order_id: string }; Returns: number }
       reserve_order_stock: { Args: { p_order_id: string }; Returns: number }
     }
     Enums: {

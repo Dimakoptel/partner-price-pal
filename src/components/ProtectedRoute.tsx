@@ -17,10 +17,16 @@ const ROUTE_MODULE_MAP: Record<string, ModuleKey> = {
   "/pricelist": "docs",
 };
 
+const PARTNER_PENDING_ROLES = new Set(["dealer", "agent", "designer", "partner"]);
+
 export function ProtectedRoute() {
   const { user, loading, isApproved, isAdmin, isPartner, signOut, pendingRole } = useAuth();
   const { hasAccess, loading: permLoading } = usePermissions();
   const location = useLocation();
+
+  // Effective partner: explicit role OR approved partner-type pending role
+  const isPartnerEffective =
+    isPartner || (isApproved && !!pendingRole && PARTNER_PENDING_ROLES.has(pendingRole));
 
   if (loading || permLoading) {
     return (
@@ -32,27 +38,22 @@ export function ProtectedRoute() {
 
   if (!user) return <Navigate to="/auth" replace />;
 
-  // Partners go to partner portal
-  if (isPartner && !location.pathname.startsWith("/partner")) {
+  // Partners → partner portal (single redirect block; no duplicates)
+  if (isPartnerEffective && !location.pathname.startsWith("/partner")) {
     return <Navigate to="/partner" replace />;
   }
 
-  // Partners (dealer, agent, designer) → partner portal
-  if (isPartner && !location.pathname.startsWith("/partner")) {
-    return <Navigate to="/partner" replace />;
-  }
-
-  // Non-staff pending role users → partner waiting page
-  if (!isAdmin && !isPartner && pendingRole && pendingRole !== "staff" && !isApproved) {
+  // Non-staff pending role users awaiting approval → waiting page
+  if (!isAdmin && !isPartnerEffective && pendingRole && pendingRole !== "staff" && !isApproved) {
     return <Navigate to="/partner/waiting" replace />;
   }
 
-  if (!isApproved && !isAdmin && !isPartner) {
+  if (!isApproved && !isAdmin && !isPartnerEffective) {
     return <PendingApprovalScreen onSignOut={signOut} />;
   }
 
-  // Check module access (skip for partners on partner routes)
-  if (!isPartner) {
+  // Module access (skip for partners on partner routes)
+  if (!isPartnerEffective) {
     const moduleKey = ROUTE_MODULE_MAP[location.pathname];
     if (moduleKey && !hasAccess(moduleKey)) {
       return <NoAccessScreen />;
@@ -63,7 +64,10 @@ export function ProtectedRoute() {
 }
 
 export function PartnerRoute() {
-  const { user, loading, isPartner, isApproved, isAdmin, signOut } = useAuth();
+  const { user, loading, isPartner, isApproved, isAdmin, signOut, pendingRole } = useAuth();
+
+  const isPartnerEffective =
+    isPartner || (isApproved && !!pendingRole && PARTNER_PENDING_ROLES.has(pendingRole));
 
   if (loading) {
     return (
@@ -74,7 +78,7 @@ export function PartnerRoute() {
   }
 
   if (!user) return <Navigate to="/auth" replace />;
-  if (!isPartner && !isAdmin) return <Navigate to="/" replace />;
+  if (!isPartnerEffective && !isAdmin) return <Navigate to="/" replace />;
   if (!isApproved && !isAdmin) return <PendingApprovalScreen onSignOut={signOut} />;
   return <Outlet />;
 }
