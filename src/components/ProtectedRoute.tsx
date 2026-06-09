@@ -64,7 +64,10 @@ export function ProtectedRoute() {
 }
 
 export function PartnerRoute() {
-  const { user, loading, isPartner, isApproved, isAdmin, signOut } = useAuth();
+  const { user, loading, isPartner, isApproved, isAdmin, signOut, pendingRole } = useAuth();
+
+  const isPartnerEffective =
+    isPartner || (isApproved && !!pendingRole && PARTNER_PENDING_ROLES.has(pendingRole));
 
   if (loading) {
     return (
@@ -75,8 +78,10 @@ export function PartnerRoute() {
   }
 
   if (!user) return <Navigate to="/auth" replace />;
-  if (!isPartner && !isAdmin) return <Navigate to="/" replace />;
+  if (!isPartnerEffective && !isAdmin) return <Navigate to="/" replace />;
   if (!isApproved && !isAdmin) return <PendingApprovalScreen onSignOut={signOut} />;
+  return <Outlet />;
+}
   return <Outlet />;
 }
 
