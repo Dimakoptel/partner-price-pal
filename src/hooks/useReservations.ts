@@ -12,7 +12,7 @@ export function useCheckAvailability(variantId?: string, quantity?: number) {
         p_quantity: quantity,
       });
       if (error) throw error;
-      return data as unknown as { available: boolean; reserved: number; requested: number };
+      return data as unknown as { available: boolean; on_hand: number; reserved: number; free: number; requested: number };
     },
     enabled: !!variantId && !!quantity,
   });
