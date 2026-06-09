@@ -222,13 +222,16 @@ export default function OrderItemsEditor({ orderId }: Props) {
               <Alert className="border-amber-200 bg-amber-50">
                 <AlertTriangle className="h-4 w-4 text-amber-600" />
                 <AlertDescription className="text-xs text-amber-800">
-                  Товар зарезервирован другими заказами (зарезервировано: {availability.reserved} шт.)
+                  Недостаточно свободного остатка: на складе {availability.on_hand} шт.,
+                  зарезервировано {availability.reserved} шт., свободно {availability.free} шт.
+                  Запрошено {availability.requested} шт. — позицию можно добавить, но она потребует
+                  производства или поступления на склад.
                 </AlertDescription>
               </Alert>
             )}
-            {availability && availability.reserved > 0 && availability.available && (
+            {availability && availability.available && availability.reserved > 0 && (
               <p className="text-xs text-muted-foreground">
-                Зарезервировано другими: {availability.reserved} шт.
+                На складе: {availability.on_hand} шт., зарезервировано: {availability.reserved} шт., свободно: {availability.free} шт.
               </p>
             )}
           </div>
