@@ -82,8 +82,6 @@ export function PartnerRoute() {
   if (!isApproved && !isAdmin) return <PendingApprovalScreen onSignOut={signOut} />;
   return <Outlet />;
 }
-  return <Outlet />;
-}
 
 export function AdminRoute() {
   const { user, loading, isAdmin } = useAuth();
